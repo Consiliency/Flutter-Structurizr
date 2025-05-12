@@ -1,0 +1,71 @@
+name: flutter_structurizr
+description: A cross-platform implementation of the Structurizr architecture visualization tool in Flutter.
+version: 0.1.0
+publish_to: 'none'
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # State management and dependency injection
+  flutter_riverpod: ^2.4.0
+  riverpod_annotation: ^2.1.0
+  
+  # Immutable models and serialization
+  freezed: ^2.4.0
+  freezed_annotation: ^2.4.0
+  json_annotation: ^4.8.0
+  
+  # DSL Parser
+  petitparser: ^6.0.0
+  
+  # File and data handling
+  path_provider: ^2.1.0
+  http: ^1.1.0
+  uuid: ^4.0.0
+  archive: ^3.4.0
+  shared_preferences: ^2.2.0
+  file_picker: ^5.5.0
+  
+  # UI components
+  flutter_markdown: ^0.6.17
+  fl_chart: ^0.63.0
+  webview_flutter: ^4.4.0
+  flutter_highlight: ^0.7.0
+  
+  # Math utilities
+  vector_math: ^2.1.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  
+  # Build tools
+  build_runner: ^2.4.0
+  json_serializable: ^6.7.0
+  riverpod_generator: ^2.3.0
+  
+  # Testing and analysis
+  flutter_lints: ^2.0.0
+  mockito: ^5.4.0
+  golden_toolkit: ^0.15.0
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/images/
+    - assets/fonts/
+
+  fonts:
+    - family: OpenSans
+      fonts:
+        - asset: assets/fonts/OpenSans-Regular.ttf
+        - asset: assets/fonts/OpenSans-Bold.ttf
+          weight: 700

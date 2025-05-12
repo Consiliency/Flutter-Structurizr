@@ -1,0 +1,98 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:flutter_structurizr/domain/model/element.dart';
+import 'package:uuid/uuid.dart';
+
+part 'group.freezed.dart';
+part 'group.g.dart';
+
+/// Represents a group of elements in the architecture model.
+@freezed
+class Group with _$Group implements Element {
+  const Group._();
+
+  /// Creates a new group with the given properties.
+  const factory Group({
+    required String id,
+    required String name,
+    String? description,
+    @Default('Group') String type,
+    @Default([]) List<String> tags,
+    @Default({}) Map<String, String> properties,
+    @Default([]) List<Relationship> relationships,
+    required String parentId,
+  }) = _Group;
+
+  /// Creates a group from a JSON object.
+  factory Group.fromJson(Map<String, dynamic> json) => _$GroupFromJson(json);
+
+  /// Creates a new group with a generated ID.
+  factory Group.create({
+    required String name,
+    required String parentId,
+    String? description,
+    List<String> tags = const [],
+    Map<String, String> properties = const {},
+  }) {
+    final id = const Uuid().v4();
+    return Group(
+      id: id,
+      name: name,
+      description: description,
+      parentId: parentId,
+      tags: [...tags],
+      properties: properties,
+    );
+  }
+
+  @override
+  Group addTag(String tag) {
+    return copyWith(tags: [...tags, tag]);
+  }
+
+  @override
+  Group addTags(List<String> newTags) {
+    return copyWith(tags: [...tags, ...newTags]);
+  }
+
+  @override
+  Group addProperty(String key, String value) {
+    final updatedProperties = Map<String, String>.from(properties);
+    updatedProperties[key] = value;
+    return copyWith(properties: updatedProperties);
+  }
+
+  @override
+  Group addRelationship({
+    required String destinationId,
+    required String description,
+    String? technology,
+    List<String> tags = const [],
+    Map<String, String> properties = const {},
+  }) {
+    final relationship = Relationship(
+      id: const Uuid().v4(),
+      sourceId: id,
+      destinationId: destinationId,
+      description: description,
+      technology: technology,
+      tags: tags,
+      properties: properties,
+    );
+
+    return copyWith(relationships: [...relationships, relationship]);
+  }
+
+  @override
+  Relationship? getRelationshipById(String relationshipId) {
+    try {
+      return relationships.firstWhere((r) => r.id == relationshipId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  List<Relationship> getRelationshipsTo(String destinationId) {
+    return relationships.where((r) => r.destinationId == destinationId).toList();
+  }
+}

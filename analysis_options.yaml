@@ -1,0 +1,41 @@
+include: package:flutter_lints/analysis_options.yaml
+
+linter:
+  rules:
+    - always_declare_return_types
+    - annotate_overrides
+    - avoid_empty_else
+    - avoid_print
+    - avoid_relative_lib_imports
+    - avoid_unnecessary_containers
+    - avoid_web_libraries_in_flutter
+    - camel_case_extensions
+    - camel_case_types
+    - curly_braces_in_flow_control_structures
+    - empty_catches
+    - file_names
+    - library_names
+    - library_prefixes
+    - non_constant_identifier_names
+    - prefer_const_constructors
+    - prefer_const_declarations
+    - prefer_final_fields
+    - prefer_is_empty
+    - prefer_is_not_empty
+    - prefer_single_quotes
+    - prefer_typing_uninitialized_variables
+    - sort_child_properties_last
+    - type_init_formals
+    - unawaited_futures
+    - unnecessary_getters_setters
+    - use_key_in_widget_constructors
+
+analyzer:
+  errors:
+    todo: info
+  exclude:
+    - lib/**/*.g.dart
+    - lib/**/*.freezed.dart
+  language:
+    strict-casts: true
+    strict-raw-types: true
