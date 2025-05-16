@@ -1,8 +1,10 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart' hide Element, Container, View;
+import 'package:flutter/material.dart' hide Element, Container, View, Border;
+import 'package:flutter_structurizr/domain/documentation/documentation.dart';
 import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/model.dart';
+import 'package:flutter_structurizr/domain/model/workspace.dart';
 import 'package:flutter_structurizr/domain/view/view.dart';
 import 'package:flutter_structurizr/domain/style/styles.dart';
 import 'package:flutter_structurizr/infrastructure/export/diagram_exporter.dart';
@@ -87,13 +89,18 @@ class DslExporter implements DiagramExporter<String> {
       // Add model section
       _generateModelSection(buffer, workspace);
       
+      // Add documentation section if requested
+      if (includeDocumentation && workspace.documentation != null) {
+        _generateDocumentationSection(buffer, workspace);
+      }
+      
       // Add views section
       if (includeViews) {
         _generateViewsSection(buffer, workspace);
       }
       
       // Add styles section if requested
-      if (includeStyles) {
+      if (includeStyles && workspace.styles != null) {
         _generateStylesSection(buffer, workspace);
       }
       
@@ -236,10 +243,10 @@ class DslExporter implements DiagramExporter<String> {
 
   /// Generates the styles section in DSL
   void _generateStylesSection(StringBuffer buffer, Workspace workspace) {
-    if (workspace.configuration?.styles != null) {
+    if (workspace.styles != null) {
       buffer.writeln('${indent}styles {');
       
-      final styles = workspace.configuration!.styles!;
+      final styles = workspace.styles;
       
       // Output element styles
       if (styles.elements.isNotEmpty) {
@@ -268,10 +275,6 @@ class DslExporter implements DiagramExporter<String> {
   /// Generates a person definition in DSL
   void _generatePersonDefinition(StringBuffer buffer, Person person, String indentation) {
     buffer.write('${indentation}person ');
-    
-    if (person.alias != null && person.alias!.isNotEmpty) {
-      buffer.write('"${_escapeString(person.alias!)}" ');
-    }
     
     buffer.write('"${_escapeString(person.name)}"');
     
@@ -312,10 +315,6 @@ class DslExporter implements DiagramExporter<String> {
   /// Generates a software system definition in DSL
   void _generateSystemDefinition(StringBuffer buffer, SoftwareSystem system, String indentation) {
     buffer.write('${indentation}softwareSystem ');
-    
-    if (system.alias != null && system.alias!.isNotEmpty) {
-      buffer.write('"${_escapeString(system.alias!)}" ');
-    }
     
     buffer.write('"${_escapeString(system.name)}"');
     
@@ -372,10 +371,6 @@ class DslExporter implements DiagramExporter<String> {
   void _generateContainerDefinition(StringBuffer buffer, Container container, String indentation) {
     buffer.write('${indentation}container ');
     
-    if (container.alias != null && container.alias!.isNotEmpty) {
-      buffer.write('"${_escapeString(container.alias!)}" ');
-    }
-    
     buffer.write('"${_escapeString(container.name)}"');
     
     if (container.description != null && container.description!.isNotEmpty) {
@@ -429,10 +424,6 @@ class DslExporter implements DiagramExporter<String> {
   void _generateComponentDefinition(StringBuffer buffer, Component component, String indentation) {
     buffer.write('${indentation}component ');
     
-    if (component.alias != null && component.alias!.isNotEmpty) {
-      buffer.write('"${_escapeString(component.alias!)}" ');
-    }
-    
     buffer.write('"${_escapeString(component.name)}"');
     
     if (component.description != null && component.description!.isNotEmpty) {
@@ -475,10 +466,6 @@ class DslExporter implements DiagramExporter<String> {
   /// Generates a deployment node definition in DSL
   void _generateDeploymentNodeDefinition(StringBuffer buffer, DeploymentNode node, String indentation) {
     buffer.write('${indentation}deploymentNode "${_escapeString(node.environment)}" ');
-    
-    if (node.alias != null && node.alias!.isNotEmpty) {
-      buffer.write('"${_escapeString(node.alias!)}" ');
-    }
     
     buffer.write('"${_escapeString(node.name)}"');
     
@@ -553,10 +540,6 @@ class DslExporter implements DiagramExporter<String> {
   void _generateInfrastructureNodeDefinition(StringBuffer buffer, InfrastructureNode node, String indentation) {
     buffer.write('${indentation}infrastructureNode ');
     
-    if (node.alias != null && node.alias!.isNotEmpty) {
-      buffer.write('"${_escapeString(node.alias!)}" ');
-    }
-    
     buffer.write('"${_escapeString(node.name)}"');
     
     if (node.description != null && node.description!.isNotEmpty) {
@@ -591,10 +574,6 @@ class DslExporter implements DiagramExporter<String> {
   void _generateSystemLandscapeViewDefinition(StringBuffer buffer, SystemLandscapeView view, String indentation) {
     buffer.write('${indentation}systemLandscape ');
     
-    if (view.key.isNotEmpty) {
-      buffer.write('"${_escapeString(view.key)}" ');
-    }
-    
     if (view.title != null && view.title!.isNotEmpty) {
       buffer.write('"${_escapeString(view.title!)}" ');
     }
@@ -618,8 +597,8 @@ class DslExporter implements DiagramExporter<String> {
       }
     }
     
-    // Add autoLayout if specified
-    if (view.autoLayout) {
+    // Add automaticLayout if specified
+    if (view.automaticLayout != null) {
       buffer.writeln();
       buffer.writeln('${indentation}${indent}autoLayout');
     }
@@ -632,10 +611,6 @@ class DslExporter implements DiagramExporter<String> {
   void _generateSystemContextViewDefinition(StringBuffer buffer, SystemContextView view, String indentation) {
     buffer.write('${indentation}systemContext ${view.softwareSystemId} ');
     
-    if (view.key.isNotEmpty) {
-      buffer.write('"${_escapeString(view.key)}" ');
-    }
-    
     if (view.title != null && view.title!.isNotEmpty) {
       buffer.write('"${_escapeString(view.title!)}" ');
     }
@@ -659,8 +634,8 @@ class DslExporter implements DiagramExporter<String> {
       }
     }
     
-    // Add autoLayout if specified
-    if (view.autoLayout) {
+    // Add automaticLayout if specified
+    if (view.automaticLayout != null) {
       buffer.writeln();
       buffer.writeln('${indentation}${indent}autoLayout');
     }
@@ -673,10 +648,6 @@ class DslExporter implements DiagramExporter<String> {
   void _generateContainerViewDefinition(StringBuffer buffer, ContainerView view, String indentation) {
     buffer.write('${indentation}container ${view.softwareSystemId} ');
     
-    if (view.key.isNotEmpty) {
-      buffer.write('"${_escapeString(view.key)}" ');
-    }
-    
     if (view.title != null && view.title!.isNotEmpty) {
       buffer.write('"${_escapeString(view.title!)}" ');
     }
@@ -700,8 +671,8 @@ class DslExporter implements DiagramExporter<String> {
       }
     }
     
-    // Add autoLayout if specified
-    if (view.autoLayout) {
+    // Add automaticLayout if specified
+    if (view.automaticLayout != null) {
       buffer.writeln();
       buffer.writeln('${indentation}${indent}autoLayout');
     }
@@ -714,10 +685,6 @@ class DslExporter implements DiagramExporter<String> {
   void _generateComponentViewDefinition(StringBuffer buffer, ComponentView view, String indentation) {
     buffer.write('${indentation}component ${view.containerId} ');
     
-    if (view.key.isNotEmpty) {
-      buffer.write('"${_escapeString(view.key)}" ');
-    }
-    
     if (view.title != null && view.title!.isNotEmpty) {
       buffer.write('"${_escapeString(view.title!)}" ');
     }
@@ -741,8 +708,8 @@ class DslExporter implements DiagramExporter<String> {
       }
     }
     
-    // Add autoLayout if specified
-    if (view.autoLayout) {
+    // Add automaticLayout if specified
+    if (view.automaticLayout != null) {
       buffer.writeln();
       buffer.writeln('${indentation}${indent}autoLayout');
     }
@@ -755,14 +722,10 @@ class DslExporter implements DiagramExporter<String> {
   void _generateDynamicViewDefinition(StringBuffer buffer, DynamicView view, String indentation) {
     buffer.write('${indentation}dynamic ');
     
-    if (view.elementId.isNotEmpty) {
+    if (view.elementId != null && view.elementId!.isNotEmpty) {
       buffer.write('${view.elementId} ');
     } else {
       buffer.write('* ');
-    }
-    
-    if (view.key.isNotEmpty) {
-      buffer.write('"${_escapeString(view.key)}" ');
     }
     
     if (view.title != null && view.title!.isNotEmpty) {
@@ -785,8 +748,8 @@ class DslExporter implements DiagramExporter<String> {
       }
     }
     
-    // Add autoLayout if specified
-    if (view.autoLayout) {
+    // Add automaticLayout if specified
+    if (view.automaticLayout != null) {
       buffer.writeln();
       buffer.writeln('${indentation}${indent}autoLayout');
     }
@@ -806,10 +769,6 @@ class DslExporter implements DiagramExporter<String> {
     }
     
     buffer.write('"${_escapeString(view.environment)}" ');
-    
-    if (view.key.isNotEmpty) {
-      buffer.write('"${_escapeString(view.key)}" ');
-    }
     
     if (view.title != null && view.title!.isNotEmpty) {
       buffer.write('"${_escapeString(view.title!)}" ');
@@ -834,8 +793,8 @@ class DslExporter implements DiagramExporter<String> {
       }
     }
     
-    // Add autoLayout if specified
-    if (view.autoLayout) {
+    // Add automaticLayout if specified
+    if (view.automaticLayout != null) {
       buffer.writeln();
       buffer.writeln('${indentation}${indent}autoLayout');
     }
@@ -851,23 +810,19 @@ class DslExporter implements DiagramExporter<String> {
     buffer.writeln('${indentation}configuration {');
     
     // Add branding if available
-    if (workspace.configuration?.branding != null) {
-      final branding = workspace.configuration!.branding!;
+    if (workspace.branding != null) {
+      final branding = workspace.branding!;
       buffer.writeln('${indentation}${indent}branding {');
       
       if (branding.logo != null && branding.logo!.isNotEmpty) {
         buffer.writeln('${indentation}${indent}${indent}logo "${_escapeString(branding.logo!)}"');
       }
       
-      if (branding.font != null && branding.font!.fonts.isNotEmpty) {
-        buffer.writeln('${indentation}${indent}${indent}font "${_escapeString(branding.font!.fonts.join(', '))}"');
-      }
-      
       buffer.writeln('${indentation}${indent}}');
     }
     
     // Add terminology if available
-    if (workspace.configuration?.terminology != null) {
+    if (workspace.configuration?.properties?.containsKey('terminology') == true) {
       buffer.writeln('${indentation}${indent}terminology {');
       // Add custom terminology definitions here if available
       buffer.writeln('${indentation}${indent}}');
@@ -880,19 +835,19 @@ class DslExporter implements DiagramExporter<String> {
   void _generateElementStyleDefinition(StringBuffer buffer, ElementStyle style, String indentation) {
     buffer.write('${indentation}element ');
     
-    if (style.tag.isNotEmpty) {
-      buffer.write('"${_escapeString(style.tag)}" ');
-    }
-    
     buffer.writeln('{');
     
     // Add style properties
-    if (style.background != null && style.background!.isNotEmpty) {
-      buffer.writeln('${indentation}${indent}background "${_escapeString(style.background!)}"');
+    if (style.background != null && style.background is String && (style.background as String).isNotEmpty) {
+      buffer.writeln('${indentation}${indent}background "${_escapeString(style.background as String)}"');
+    } else if (style.background != null) {
+      // Handle Color object or other type
+      buffer.writeln('${indentation}${indent}background "#${style.background.toString().split("0x")[1].substring(2, 8)}"');
     }
     
-    if (style.color != null && style.color!.isNotEmpty) {
-      buffer.writeln('${indentation}${indent}color "${_escapeString(style.color!)}"');
+    if (style.color != null) {
+      final colorStr = style.color.toString();
+      buffer.writeln('${indentation}${indent}color "$colorStr"');
     }
     
     if (style.fontSize != null) {
@@ -900,15 +855,17 @@ class DslExporter implements DiagramExporter<String> {
     }
     
     if (style.shape != null) {
-      buffer.writeln('${indentation}${indent}shape "${_escapeString(style.shape!)}"');
+      final shapeStr = style.shape.toString().split('.').last;
+      buffer.writeln('${indentation}${indent}shape "$shapeStr"');
     }
     
     if (style.icon != null && style.icon!.isNotEmpty) {
       buffer.writeln('${indentation}${indent}icon "${_escapeString(style.icon!)}"');
     }
     
-    if (style.border != null && style.border!.isNotEmpty) {
-      buffer.writeln('${indentation}${indent}border "${_escapeString(style.border!)}"');
+    if (style.border != null) {
+      final borderStr = style.border.toString().split('.').last;
+      buffer.writeln('${indentation}${indent}border "$borderStr"');
     }
     
     if (style.opacity != null) {
@@ -930,10 +887,6 @@ class DslExporter implements DiagramExporter<String> {
   void _generateRelationshipStyleDefinition(StringBuffer buffer, RelationshipStyle style, String indentation) {
     buffer.write('${indentation}relationship ');
     
-    if (style.tag.isNotEmpty) {
-      buffer.write('"${_escapeString(style.tag)}" ');
-    }
-    
     buffer.writeln('{');
     
     // Add style properties
@@ -941,12 +894,9 @@ class DslExporter implements DiagramExporter<String> {
       buffer.writeln('${indentation}${indent}thickness ${style.thickness}');
     }
     
-    if (style.color != null && style.color!.isNotEmpty) {
-      buffer.writeln('${indentation}${indent}color "${_escapeString(style.color!)}"');
-    }
-    
-    if (style.dashed != null && style.dashed!) {
-      buffer.writeln('${indentation}${indent}dashed true');
+    if (style.color != null) {
+      final colorStr = style.color.toString();
+      buffer.writeln('${indentation}${indent}color "$colorStr"');
     }
     
     if (style.routing != null) {
@@ -966,6 +916,86 @@ class DslExporter implements DiagramExporter<String> {
     }
     
     buffer.writeln('${indentation}}');
+  }
+
+  /// Generates the documentation section in DSL
+  void _generateDocumentationSection(StringBuffer buffer, Workspace workspace) {
+    if (workspace.documentation == null ||
+        (workspace.documentation!.sections.isEmpty &&
+         workspace.documentation!.decisions.isEmpty)) {
+      return; // No documentation to generate
+    }
+    
+    buffer.writeln('${indent}documentation {');
+    
+    // Add documentation sections
+    if (workspace.documentation!.sections.isNotEmpty) {
+      for (final section in workspace.documentation!.sections) {
+        // Start section
+        buffer.writeln('${indent}${indent}section "${_escapeString(section.title)}" {');
+        
+        // Add format if not markdown (markdown is the default)
+        if (section.format != DocumentationFormat.markdown) {
+          buffer.writeln('${indent}${indent}${indent}format "${section.format.toString().split('.').last}"');
+        }
+        
+        // Add content with proper escaping for multi-line strings
+        buffer.writeln('${indent}${indent}${indent}content """${_escapeString(section.content)}"""');
+        
+        // Close section
+        buffer.writeln('${indent}${indent}}');
+      }
+    }
+    
+    // Add decisions section separately if there are any decisions
+    if (workspace.documentation!.decisions.isNotEmpty) {
+      _generateDecisionsSection(buffer, workspace);
+    }
+    
+    buffer.writeln('${indent}}');
+    buffer.writeln();
+  }
+
+  /// Generates the decisions section in DSL
+  void _generateDecisionsSection(StringBuffer buffer, Workspace workspace) {
+    if (workspace.documentation?.decisions.isEmpty ?? true) {
+      return; // No decisions to generate
+    }
+    
+    buffer.writeln('${indent}${indent}decisions {');
+    
+    for (final decision in workspace.documentation!.decisions) {
+      // Start decision
+      buffer.writeln('${indent}${indent}${indent}decision "${_escapeString(decision.id)}" {');
+      
+      // Add decision properties
+      buffer.writeln('${indent}${indent}${indent}${indent}title "${_escapeString(decision.title)}"');
+      buffer.writeln('${indent}${indent}${indent}${indent}status "${_escapeString(decision.status)}"');
+      
+      // Format date as yyyy-MM-dd
+      final date = decision.date;
+      final formattedDate = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      buffer.writeln('${indent}${indent}${indent}${indent}date "$formattedDate"');
+      
+      // Add format if not markdown (markdown is the default)
+      if (decision.format != DocumentationFormat.markdown) {
+        buffer.writeln('${indent}${indent}${indent}${indent}format "${decision.format.toString().split('.').last}"');
+      }
+      
+      // Add content with proper escaping for multi-line strings
+      buffer.writeln('${indent}${indent}${indent}${indent}content """${_escapeString(decision.content)}"""');
+      
+      // Add links to other decisions if any
+      if (decision.links.isNotEmpty) {
+        final linksStr = decision.links.map((link) => '"${_escapeString(link)}"').join(', ');
+        buffer.writeln('${indent}${indent}${indent}${indent}links $linksStr');
+      }
+      
+      // Close decision
+      buffer.writeln('${indent}${indent}${indent}}');
+    }
+    
+    buffer.writeln('${indent}${indent}}');
   }
 
   /// Escapes a string for DSL output

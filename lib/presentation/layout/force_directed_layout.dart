@@ -1,7 +1,9 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:flutter_structurizr/domain/view/model_view.dart';
 import 'package:flutter_structurizr/domain/view/view.dart';
+import 'package:flutter_structurizr/util/import_helper.dart';
 import 'package:flutter/material.dart' hide Element, Container, View;
 
 /// A physics-based layout algorithm that positions elements using spring and repulsive forces.
@@ -75,42 +77,42 @@ class ForceDirectedLayout {
   }) {
     // 1. Initialize positions and velocities
     _initializeLayout(elementViews, elementSizes, canvasSize);
-    
+
     // 2. Identify boundaries and their children
     _identifyBoundaries(elementViews);
-    
+
     // 3. Run the physics simulation
     double totalEnergy = double.infinity;
     int iterations = 0;
-    
+
     while (totalEnergy > energyThreshold && iterations < maxIterations) {
       // Reset forces
       for (final id in _positions.keys) {
         _forces[id] = Offset.zero;
       }
-      
+
       // Calculate repulsive forces between all elements
       _calculateRepulsiveForces(elementViews);
-      
+
       // Calculate attractive forces along relationships
       _calculateAttractiveForces(relationshipViews);
-      
+
       // Calculate boundary containment forces
       _calculateBoundaryForces();
-      
+
       // Apply forces and update positions
       totalEnergy = _updatePositions();
-      
+
       iterations++;
-      
+
       // Optional: break early if movement is very small
       if (totalEnergy < energyThreshold / 10) {
         break;
       }
     }
-    
+
     print('Force-directed layout: Completed in $iterations iterations with energy: $totalEnergy');
-    
+
     // Return the calculated positions
     return Map.from(_positions);
   }
@@ -162,13 +164,21 @@ class ForceDirectedLayout {
     Map<String, List<String>> parentToChildren = {};
     
     for (final element in elementViews) {
-      if (element.parentId != null) {
+      if (element.hasParent) {
         parentToChildren.putIfAbsent(element.parentId!, () => []).add(element.id);
       }
     }
     
     // Store the boundary information
     _boundaries.addAll(parentToChildren);
+    
+    // Debug output for boundary information
+    if (_boundaries.isNotEmpty) {
+      print('Identified ${_boundaries.length} boundaries with children:');
+      _boundaries.forEach((parentId, children) {
+        print('  Parent $parentId has ${children.length} children: ${children.join(', ')}');
+      });
+    }
   }
 
   /// Calculate repulsive forces between all elements
@@ -221,40 +231,41 @@ class ForceDirectedLayout {
     for (final relationship in relationshipViews) {
       final sourceId = relationship.sourceId;
       final destinationId = relationship.destinationId;
-      
-      // Skip if either element is not in our layout
-      if (!_positions.containsKey(sourceId) || !_positions.containsKey(destinationId)) {
+
+      // Skip if either element is not in our layout or IDs are null
+      if (sourceId == null || destinationId == null ||
+          !_positions.containsKey(sourceId) || !_positions.containsKey(destinationId)) {
         continue;
       }
-      
+
       final sourcePos = _positions[sourceId]!;
       final destPos = _positions[destinationId]!;
       final sourceSize = _sizes[sourceId] ?? Size(100, 100);
       final destSize = _sizes[destinationId] ?? Size(100, 100);
-      
+
       // Calculate element centers
       final sourceCenter = sourcePos + Offset(sourceSize.width / 2, sourceSize.height / 2);
       final destCenter = destPos + Offset(destSize.width / 2, destSize.height / 2);
-      
+
       // Vector from source to destination
       final dx = destCenter.dx - sourceCenter.dx;
       final dy = destCenter.dy - sourceCenter.dy;
-      
+
       // Distance between centers
       double distance = sqrt(dx * dx + dy * dy);
       distance = max(distance, minDistance);  // Prevent division by zero
-      
+
       // Calculate ideal distance based on element sizes
       final idealDistance = (sourceSize.width + destSize.width + sourceSize.height + destSize.height) / 3;
-      
+
       // Calculate spring force using Hooke's law: F = k * (d - rest_length)
       final displacement = distance - idealDistance;
       final force = springConstant * displacement;
-      
+
       // Normalize the direction vector
       final normDx = dx / distance;
       final normDy = dy / distance;
-      
+
       // Apply force to both elements in opposite directions
       _forces[sourceId] = _forces[sourceId]! + Offset(normDx * force, normDy * force);
       _forces[destinationId] = _forces[destinationId]! - Offset(normDx * force, normDy * force);
@@ -276,13 +287,26 @@ class ForceDirectedLayout {
       final boundaryPos = _positions[boundaryId]!;
       final boundarySize = _sizes[boundaryId] ?? Size(400, 400);  // Default if size not available
       
+      // First, calculate the bounding box of all child elements
+      Rect childrenBounds = _calculateChildrenBoundingBox(childrenIds);
+      
+      // Dynamically adjust boundary size based on children if needed
+      Size adjustedBoundarySize = boundarySize;
+      if (childrenBounds != Rect.zero) {
+        // Ensure boundary is large enough to contain children with padding
+        adjustedBoundarySize = Size(
+          max(boundarySize.width, childrenBounds.width + 80.0), // 40px padding on each side
+          max(boundarySize.height, childrenBounds.height + 80.0) // 40px padding on each side
+        );
+      }
+      
       // Calculate boundary rectangle with padding
       const padding = 40.0;  // Padding inside boundary
       final boundaryRect = Rect.fromLTWH(
         boundaryPos.dx + padding,
         boundaryPos.dy + padding,
-        boundarySize.width - 2 * padding,
-        boundarySize.height - 2 * padding
+        adjustedBoundarySize.width - 2 * padding,
+        adjustedBoundarySize.height - 2 * padding
       );
       
       // Apply containment force to each child
@@ -321,17 +345,201 @@ class ForceDirectedLayout {
           double distance = sqrt(dx * dx + dy * dy);
           distance = max(distance, minDistance);  // Prevent division by zero
           
-          // Calculate containment force (stronger than normal forces)
-          final force = boundaryForce * (1.0 - distance / (boundaryRect.shortestSide / 2));
+          // Calculate the nearest point on the boundary to pull the child toward
+          Offset nearestPoint = _findNearestPointOnBoundary(childCenter, boundaryRect);
+          Offset pullDirection = nearestPoint - childCenter;
+          double pullDistance = pullDirection.distance;
+          pullDistance = max(pullDistance, minDistance);  // Prevent division by zero
           
-          // Normalize the direction vector
-          final normDx = dx / distance;
-          final normDy = dy / distance;
+          // Calculate containment force (stronger than normal forces)
+          // Use a stronger force for elements that are further outside
+          final outsideDistance = _calculateOutsideDistance(childRect, boundaryRect);
+          final force = boundaryForce * (1.0 + outsideDistance / 100.0);
+          
+          // Normalize the pull direction vector
+          final normPullDx = pullDirection.dx / pullDistance;
+          final normPullDy = pullDirection.dy / pullDistance;
           
           // Apply containment force to the child
-          _forces[childId] = _forces[childId]! + Offset(normDx * force, normDy * force);
+          _forces[childId] = _forces[childId]! + Offset(normPullDx * force, normPullDy * force);
         }
+        
+        // Also add a small force to separate children within the same boundary
+        _applyChildSeparationForces(childId, childrenIds);
       }
+      
+      // Update boundary size based on children positions
+      _updateBoundarySize(boundaryId, childrenIds);
+    }
+  }
+  
+  /// Calculate the bounding box of all child elements
+  Rect _calculateChildrenBoundingBox(List<String> childrenIds) {
+    if (childrenIds.isEmpty) {
+      return Rect.zero;
+    }
+    
+    double minX = double.infinity;
+    double minY = double.infinity;
+    double maxX = double.negativeInfinity;
+    double maxY = double.negativeInfinity;
+    
+    bool foundAny = false;
+    
+    for (final childId in childrenIds) {
+      if (_positions.containsKey(childId) && _sizes.containsKey(childId)) {
+        foundAny = true;
+        final childPos = _positions[childId]!;
+        final childSize = _sizes[childId]!;
+        
+        minX = min(minX, childPos.dx);
+        minY = min(minY, childPos.dy);
+        maxX = max(maxX, childPos.dx + childSize.width);
+        maxY = max(maxY, childPos.dy + childSize.height);
+      }
+    }
+    
+    if (!foundAny) {
+      return Rect.zero;
+    }
+    
+    return Rect.fromLTRB(minX, minY, maxX, maxY);
+  }
+  
+  /// Calculate how far outside the boundary a child element is
+  double _calculateOutsideDistance(Rect childRect, Rect boundaryRect) {
+    double dx = 0.0;
+    double dy = 0.0;
+    
+    // Calculate horizontal distance outside boundary
+    if (childRect.left < boundaryRect.left) {
+      dx = boundaryRect.left - childRect.left;
+    } else if (childRect.right > boundaryRect.right) {
+      dx = childRect.right - boundaryRect.right;
+    }
+    
+    // Calculate vertical distance outside boundary
+    if (childRect.top < boundaryRect.top) {
+      dy = boundaryRect.top - childRect.top;
+    } else if (childRect.bottom > boundaryRect.bottom) {
+      dy = childRect.bottom - boundaryRect.bottom;
+    }
+    
+    // Return the Euclidean distance
+    return sqrt(dx * dx + dy * dy);
+  }
+  
+  /// Find the nearest point on the boundary rectangle to a given point
+  Offset _findNearestPointOnBoundary(Offset point, Rect boundary) {
+    // Clamp point to boundary edges
+    double x, y;
+    
+    if (point.dx < boundary.left) {
+      x = boundary.left;
+    } else if (point.dx > boundary.right) {
+      x = boundary.right;
+    } else {
+      x = point.dx;
+    }
+    
+    if (point.dy < boundary.top) {
+      y = boundary.top;
+    } else if (point.dy > boundary.bottom) {
+      y = boundary.bottom;
+    } else {
+      y = point.dy;
+    }
+    
+    // If the point is already inside the boundary, find the nearest edge
+    if (boundary.contains(point)) {
+      double distToLeft = (point.dx - boundary.left).abs();
+      double distToRight = (boundary.right - point.dx).abs();
+      double distToTop = (point.dy - boundary.top).abs();
+      double distToBottom = (boundary.bottom - point.dy).abs();
+      
+      double minDist = min(min(distToLeft, distToRight), min(distToTop, distToBottom));
+      
+      if (minDist == distToLeft) {
+        x = boundary.left;
+      } else if (minDist == distToRight) {
+        x = boundary.right;
+      } else if (minDist == distToTop) {
+        y = boundary.top;
+      } else {
+        y = boundary.bottom;
+      }
+    }
+    
+    return Offset(x, y);
+  }
+  
+  /// Apply forces to separate children within the same boundary
+  void _applyChildSeparationForces(String childId, List<String> siblingIds) {
+    final childPos = _positions[childId]!;
+    final childSize = _sizes[childId] ?? Size(100, 100);
+    final childCenter = childPos + Offset(childSize.width / 2, childSize.height / 2);
+    
+    for (final siblingId in siblingIds) {
+      if (siblingId == childId || !_positions.containsKey(siblingId)) {
+        continue;
+      }
+      
+      final siblingPos = _positions[siblingId]!;
+      final siblingSize = _sizes[siblingId] ?? Size(100, 100);
+      final siblingCenter = siblingPos + Offset(siblingSize.width / 2, siblingSize.height / 2);
+      
+      // Vector from sibling to child
+      final dx = childCenter.dx - siblingCenter.dx;
+      final dy = childCenter.dy - siblingCenter.dy;
+      
+      // Distance between centers
+      double distance = sqrt(dx * dx + dy * dy);
+      distance = max(distance, minDistance);  // Prevent division by zero
+      
+      // Define minimum desired separation
+      final minSeparation = (childSize.width + siblingSize.width + childSize.height + siblingSize.height) / 5;
+      
+      // Apply a small separation force if siblings are too close
+      if (distance < minSeparation) {
+        final separation = (minSeparation - distance) / minSeparation;
+        final separationForce = 5.0 * separation; // Small force constant
+        
+        // Normalize the direction vector
+        final normDx = dx / distance;
+        final normDy = dy / distance;
+        
+        // Apply separation force
+        _forces[childId] = _forces[childId]! + Offset(normDx * separationForce, normDy * separationForce);
+      }
+    }
+  }
+  
+  /// Update boundary size based on children positions
+  void _updateBoundarySize(String boundaryId, List<String> childrenIds) {
+    if (childrenIds.isEmpty) {
+      return;
+    }
+    
+    Rect childrenBounds = _calculateChildrenBoundingBox(childrenIds);
+    
+    if (childrenBounds == Rect.zero) {
+      return;
+    }
+    
+    // Add padding around children
+    const padding = 40.0;
+    final requiredWidth = childrenBounds.width + 2 * padding;
+    final requiredHeight = childrenBounds.height + 2 * padding;
+    
+    // Get current boundary size
+    final currentSize = _sizes[boundaryId] ?? Size(400, 400);
+    
+    // Update size if needed
+    if (requiredWidth > currentSize.width || requiredHeight > currentSize.height) {
+      _sizes[boundaryId] = Size(
+        max(currentSize.width, requiredWidth),
+        max(currentSize.height, requiredHeight)
+      );
     }
   }
 
@@ -440,32 +648,42 @@ class ForceDirectedLayoutOptimizer {
         energyThreshold: 0.01,
       ),
     ];
-    
+
     // Start with initial positions (random or provided)
     Map<String, Offset> positions = {};
-    
+
+    // Working copy of element views that we'll update between phases
+    var currentElementViews = List<ElementView>.from(elementViews);
+
     // Run each phase
     for (final layoutPhase in layouts) {
       // If we have positions from a previous phase, update the element views
       if (positions.isNotEmpty) {
-        for (final element in elementViews) {
+        List<ElementView> updatedViews = [];
+
+        for (final element in currentElementViews) {
           if (positions.containsKey(element.id)) {
             final position = positions[element.id]!;
-            element.x = position.dx.round();
-            element.y = position.dy.round();
+            // Use extension method to create a new immutable copy with updated position
+            updatedViews.add(element.copyWithPositionOffset(position));
+          } else {
+            updatedViews.add(element);
           }
         }
+
+        // Update our working copy with the new immutable views
+        currentElementViews = updatedViews;
       }
-      
-      // Run this layout phase
+
+      // Run this layout phase with the current state of element views
       positions = layoutPhase.calculateLayout(
-        elementViews: elementViews,
+        elementViews: currentElementViews,
         relationshipViews: relationshipViews,
         canvasSize: canvasSize,
         elementSizes: elementSizes,
       );
     }
-    
+
     return positions;
   }
 }

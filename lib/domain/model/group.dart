@@ -20,6 +20,7 @@ class Group with _$Group implements Element {
     @Default({}) Map<String, String> properties,
     @Default([]) List<Relationship> relationships,
     required String parentId,
+    @Default([]) List<Element> elements,
   }) = _Group;
 
   /// Creates a group from a JSON object.
@@ -32,6 +33,7 @@ class Group with _$Group implements Element {
     String? description,
     List<String> tags = const [],
     Map<String, String> properties = const {},
+    List<Element> elements = const [],
   }) {
     final id = const Uuid().v4();
     return Group(
@@ -41,6 +43,7 @@ class Group with _$Group implements Element {
       parentId: parentId,
       tags: [...tags],
       properties: properties,
+      elements: elements,
     );
   }
 
@@ -94,5 +97,21 @@ class Group with _$Group implements Element {
   @override
   List<Relationship> getRelationshipsTo(String destinationId) {
     return relationships.where((r) => r.destinationId == destinationId).toList();
+  }
+
+  /// Adds an element to this group.
+  Group addElement(Element element) {
+    return copyWith(elements: [...elements, element]);
+  }
+
+  /// Sets a property on this group.
+  Group setProperty(String key, dynamic value) {
+    final updatedProperties = Map<String, String>.from(properties);
+    if (value is String) {
+      updatedProperties[key] = value;
+    } else {
+      updatedProperties[key] = value.toString();
+    }
+    return copyWith(properties: updatedProperties);
   }
 }

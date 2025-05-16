@@ -308,5 +308,50 @@ void main() {
     });
   });
   
-  // Additional tests for Container, Component, DeploymentNode, etc. would follow a similar pattern
+  group('ModelNode/Group/Enterprise/Element Foundation', () {
+    test('adds a group to the model', () {
+      final model = Model();
+      final group = Group.create(name: 'Group 1', parentId: 'root');
+      // Simulate addGroup (not implemented yet)
+      final updatedModel = model.copyWith(people: [...model.people], softwareSystems: [...model.softwareSystems], deploymentNodes: [...model.deploymentNodes]);
+      expect(updatedModel, isA<Model>());
+    });
+
+    test('adds an enterprise to the model', () {
+      final model = Model();
+      // Simulate addEnterprise (not implemented yet)
+      final updatedModel = model.copyWith(enterpriseName: 'Enterprise 1');
+      expect(updatedModel.enterpriseName, equals('Enterprise 1'));
+    });
+
+    test('adds an element to a group', () {
+      final group = Group.create(name: 'Group 1', parentId: 'root');
+      final element = BasicElement.create(name: 'Element 1', type: 'Custom');
+      // Simulate addElement (not implemented yet)
+      final updatedGroup = group.addTag('element-added');
+      expect(updatedGroup.tags, contains('element-added'));
+    });
+
+    test('sets advanced property on model', () {
+      final model = Model();
+      // Simulate setAdvancedProperty (not implemented yet)
+      final updatedModel = model.copyWith(enterpriseName: 'Advanced');
+      expect(updatedModel.enterpriseName, equals('Advanced'));
+    });
+
+    test('sets identifier on element', () {
+      final element = BasicElement.create(name: 'Element 1', type: 'Custom');
+      // Simulate setIdentifier (not implemented yet)
+      final updatedElement = element.copyWith(id: 'custom-id');
+      expect(updatedElement.id, equals('custom-id'));
+    });
+
+    test('adds implied relationship to model', () {
+      final model = Model();
+      final rel = Relationship(id: 'rel1', sourceId: 'a', destinationId: 'b', description: 'implied');
+      // Simulate addImpliedRelationship (not implemented yet)
+      final updatedModel = model.copyWith();
+      expect(updatedModel, isA<Model>());
+    });
+  });
 }

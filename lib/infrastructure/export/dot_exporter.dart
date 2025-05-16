@@ -398,10 +398,9 @@ class DotExporter implements DiagramExporter<String> {
         // Create a representation of this interaction
         final relationship = Relationship(
           id: interaction.id ?? '${sourceId}_${destinationId}_${result.length}',
-          sourceId: sourceId,
-          destinationId: destinationId,
-          description: description,
-          order: interaction.order,
+          sourceId: sourceId ?? '',
+          destinationId: destinationId ?? '',
+          description: description ?? '',
         );
 
         result.add(relationship);
@@ -1039,7 +1038,7 @@ class DotExporter implements DiagramExporter<String> {
     
     // Process deployment nodes
     final deploymentNodes = elements.whereType<DeploymentNode>()
-        .where((node) => node.environment == view.environment && node.parent == null)
+        .where((node) => node.environment == view.environment)
         .toList();
     
     // Generate deployment node clusters

@@ -1,9 +1,12 @@
 import 'dart:ui';
+import 'dart:math';
 
 import 'package:flutter_structurizr/domain/view/view.dart';
+import 'package:flutter_structurizr/domain/view/model_view.dart';
 import 'package:flutter_structurizr/presentation/layout/force_directed_layout.dart';
 import 'package:flutter_structurizr/presentation/layout/grid_layout.dart';
 import 'package:flutter_structurizr/presentation/layout/layout_strategy.dart';
+import 'package:flutter_structurizr/util/import_helper.dart';
 import 'package:flutter/material.dart' hide Element, Container, View;
 
 /// AutomaticLayout is a meta-strategy that selects the appropriate layout
@@ -103,9 +106,9 @@ class AutomaticLayout implements LayoutStrategy {
 
   /// Check if the diagram has boundaries or containment relationships
   bool _hasBoundariesOrContainment(List<ElementView> elementViews) {
-    // Count elements that have a parent
+    // Count elements that have a parent using the extension method
     int elementsWithParent = elementViews
-        .where((element) => element.parentId != null)
+        .where((element) => element.hasParent)
         .length;
 
     // Consider having boundaries if at least one element has a parent
@@ -178,6 +181,13 @@ class ForceDirectedLayoutAdapter implements LayoutStrategy {
     required Size canvasSize,
     required Map<String, Size> elementSizes,
   }) {
+    // Log information about the elements for debugging
+    print('ForceDirectedLayoutAdapter: Processing ${elementViews.length} elements, ${relationshipViews.length} relationships');
+    
+    // Count elements with parents
+    int elementsWithParent = elementViews.where((el) => el.hasParent).length;
+    print('Elements with parents: $elementsWithParent');
+    
     Map<String, Offset> positions = ForceDirectedLayoutOptimizer.multiPhaseLayout(
       layout: _layout,
       elementViews: elementViews,
@@ -188,6 +198,9 @@ class ForceDirectedLayoutAdapter implements LayoutStrategy {
 
     // Calculate the bounding box for the result
     _calculateBoundingBox(positions, elementSizes);
+    
+    // Log information about calculated positions
+    print('ForceDirectedLayoutAdapter: Calculated ${positions.length} positions');
     
     return positions;
   }

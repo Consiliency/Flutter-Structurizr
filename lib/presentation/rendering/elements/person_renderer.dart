@@ -32,6 +32,9 @@ class PersonRenderer extends BaseRenderer {
     required ElementView elementView,
     required ElementStyle style,
     bool selected = false,
+    bool hovered = false,
+    bool includeNames = true,
+    bool includeDescriptions = false,
   }) {
     // Calculate the element bounds
     final rect = _calculateRenderRect(elementView);
@@ -65,22 +68,33 @@ class PersonRenderer extends BaseRenderer {
       ..style = PaintingStyle.stroke
       ..strokeWidth = style.strokeWidth?.toDouble() ?? 1.0;
     
-    // If selected, draw a selection indicator
-    if (selected) {
-      final selectionPaint = Paint()
-        ..color = Colors.blue.withOpacity(0.5)
+    // If selected or hovered, draw a visual indicator
+    if (selected || hovered) {
+      final indicatorPaint = Paint()
+        ..color = selected ? Colors.blue.withOpacity(0.5) : Colors.grey.withOpacity(0.3)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.0;
+        ..strokeWidth = selected ? 2.0 : 1.5;
       
       // Draw a rectangle around the entire element
-      canvas.drawRect(rect.inflate(2.0), selectionPaint);
+      canvas.drawRect(rect.inflate(selected ? 2.0 : 1.5), indicatorPaint);
+      
+      // Optional: add a subtle glow effect for hover state
+      if (hovered && !selected) {
+        final glowPaint = Paint()
+          ..color = Colors.grey.withOpacity(0.15)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.0)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3.0;
+        
+        canvas.drawRect(rect.inflate(3.0), glowPaint);
+      }
     }
     
     // Draw the person figure
     _drawPersonFigure(canvas, figureRect, figurePaint, strokePaint, style);
     
     // Render the text
-    _renderText(canvas, element, textRect, style);
+    _renderText(canvas, element, textRect, style, includeNames, includeDescriptions);
   }
   
   /// Draws the person stick figure
@@ -122,7 +136,8 @@ class PersonRenderer extends BaseRenderer {
   }
   
   /// Renders the text for the element
-  void _renderText(Canvas canvas, Element element, Rect rect, ElementStyle style) {
+  void _renderText(Canvas canvas, Element element, Rect rect, ElementStyle style, 
+                  bool includeNames, bool includeDescriptions) {
     final padding = defaultPadding / 2; // Use less padding for text area
     final textRect = Rect.fromLTRB(
       rect.left + padding,
@@ -138,6 +153,11 @@ class PersonRenderer extends BaseRenderer {
       fontWeight: FontWeight.normal,
     );
     
+    // Only render text if name or description should be included
+    if (!includeNames && !includeDescriptions) {
+      return;
+    }
+    
     // Name of the element
     final nameTextPainter = createTextPainter(
       text: element.name,
@@ -146,13 +166,15 @@ class PersonRenderer extends BaseRenderer {
     );
     
     // Position the name at the center of the text rect
-    nameTextPainter.paint(
-      canvas,
-      Offset(textRect.left + (textRect.width - nameTextPainter.width) / 2, textRect.top),
-    );
+    if (includeNames) {
+      nameTextPainter.paint(
+        canvas,
+        Offset(textRect.left + (textRect.width - nameTextPainter.width) / 2, textRect.top),
+      );
+    }
     
     // If we should show description and it exists
-    if ((style.description ?? true) && element.description != null) {
+    if (includeDescriptions && (style.description ?? true) && element.description != null) {
       final descTextPainter = createTextPainter(
         text: element.description!,
         style: textStyle,
@@ -289,6 +311,8 @@ class PersonRenderer extends BaseRenderer {
     required Rect sourceRect,
     required Rect targetRect,
     bool selected = false,
+    bool hovered = false,
+    bool includeDescription = true,
   }) {
     // This is handled by the relationship renderer, not the element renderer
   }

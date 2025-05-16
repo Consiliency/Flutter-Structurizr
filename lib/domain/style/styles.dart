@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:flutter_structurizr/domain/model/element.dart';
 
 part 'styles.freezed.dart';
 part 'styles.g.dart';
@@ -95,6 +96,37 @@ class Styles with _$Styles {
   Styles addTheme(String theme) {
     return copyWith(themes: [...themes, theme]);
   }
+
+  /// Finds an element style for a specific element based on its tags.
+  ElementStyle? findElementStyle(Element element) {
+    if (element.tags.isEmpty) return null;
+
+    // Find all matching styles for the element's tags
+    final matchingStyles = elements.where((style) =>
+      style.tag != null && element.tags.contains(style.tag)
+    ).toList();
+
+    if (matchingStyles.isEmpty) {
+      return null;
+    }
+
+    // Merge all matching styles in tag order
+    ElementStyle merged = const ElementStyle();
+    for (final tag in element.tags) {
+      for (final style in matchingStyles.where((s) => s.tag == tag)) {
+        merged = merged.merge(style);
+      }
+    }
+    return merged;
+  }
+
+  /// Finds a relationship style for a specific relationship based on its tags.
+  RelationshipStyle? findRelationshipStyle(Relationship relationship) {
+    if (relationship.tags.isEmpty) return null;
+
+    // Get the merged style for all tags
+    return getRelationshipStyle(relationship.tags);
+  }
 }
 
 /// Styles for architecture elements.
@@ -145,6 +177,9 @@ class ElementStyle with _$ElementStyle {
 
     /// Whether to show description.
     bool? description,
+    
+    /// Position of the label on the element.
+    LabelPosition? labelPosition,
   }) = _ElementStyle;
 
   /// Creates an element style from a JSON object.
@@ -168,6 +203,7 @@ class ElementStyle with _$ElementStyle {
       fontSize: other.fontSize ?? fontSize,
       metadata: other.metadata ?? metadata,
       description: other.description ?? description,
+      labelPosition: other.labelPosition ?? labelPosition,
     );
   }
 }
@@ -264,6 +300,13 @@ enum StyleRouting {
   direct,
   curved,
   orthogonal,
+}
+
+/// Position of labels on elements.
+enum LabelPosition {
+  top,
+  center,
+  bottom,
 }
 
 // This is intentionally removed as we already have a ColorConverter class above

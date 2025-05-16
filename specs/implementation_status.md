@@ -1,219 +1,347 @@
-# Flutter Structurizr Implementation Status
+# Implementation Status
 
-This document provides a high-level overview of the implementation status for each phase of the Flutter Structurizr project. For detailed implementation plans and task breakdowns, refer to the phase-specific implementation plan documents in the `/specs` directory.
+> **Note:** While all core phases (1-8) are functionally complete, a major parser refactor is currently in progress. The DSL parser and builder are being modularized into interface-driven components for maintainability, Java parity, and parallel development. See `specs/dart_structurizr_java_audit.md` and `specs/refactored_method_relationship.md` for details. This does not affect end-user features but is critical for long-term code health.
 
-## Summary
+This document outlines the current implementation status of the Flutter Structurizr project.
 
-| Phase | Description | Status | Completion % | Key Document |
-|-------|-------------|--------|--------------|--------------|
-| **Phase 1** | Core Model Implementation | ✅ COMPLETE | 100% | [Phase 1 Plan](phase1_implementation_plan.md) |
-| **Phase 2** | Rendering and Layout | ✅ COMPLETE | 100% | [Phase 2 Plan](phase2_implementation_plan.md) |
-| **Phase 3** | UI Components and Interaction | ✅ COMPLETE | 100% | [Phase 3 Plan](phase3_implementation_plan.md) |
-| **Phase 4** | DSL Parser | ✅ COMPLETE | 100% | [Phase 4 Plan](phase4_implementation_plan.md) |
-| **Phase 5-6** | Documentation and ADR Support | ✅ COMPLETE | 100% | [Phase 5-6 Plan](phase5_6_implementation_plan.md) |
-| **Phase 7** | Workspace Management | ✅ COMPLETE | 100% | [Phase 7 Plan](phase7_implementation_plan.md) |
-| **Phase 8** | Export Capabilities | ✅ COMPLETE | 100% | [Phase 8 Plan](phase8_implementation_plan.md) |
+## Project Restructuring
 
-## Detailed Status
+**Status: 100% Complete**
 
-### Phase 1: Core Model Implementation ✅
+The project has been significantly restructured to improve maintainability:
 
-**Status: COMPLETE (100%)**
+- ✅ Reorganized directory structure with clear separation of concerns
+- ✅ Consolidated test applications into a single `demo_app` directory
+- ✅ Moved reference implementations to a dedicated `references` directory
+- ✅ Restructured examples into standalone mini-applications
+- ✅ Organized tests into categories (unit, widget, integration, golden)
+- ✅ Removed bundled Flutter SDK in favor of standard Flutter tools
+- ✅ Updated documentation to reflect the new structure
 
-All core domain model implementation is complete and thoroughly tested, including:
-- Element class hierarchy and relationship model
-- Workspace and Model classes
-- View definitions for all diagram types
-- Styling system with themes and branding
-- JSON serialization/deserialization
-- Comprehensive test suite with high coverage
+## Phase 1: Core Model
 
-For detailed information, see the [Phase 1 Implementation Plan](phase1_implementation_plan.md).
+**Status: 100% Complete**
 
-### Phase 2: Rendering and Layout ✅
+- ✅ Implementation of Structurizr workspace model in Dart with immutability support
+- ✅ Added missing export files (person.dart, relationship.dart, container_alias.dart, element_alias.dart, view_alias.dart)
+- ✅ Created model_view.dart with ElementViewExtension for immutable position updates
+- ✅ Implemented style finding methods in Styles class
+- ✅ Fixed type conflicts with Flutter built-ins via import helpers and aliases
+- ✅ Successfully fixed build_runner syntax errors in test files
+- ✅ Fixed all view type aliases (ModelSystemLandscapeView, ModelSystemContextView, etc.)
+- ✅ Added complete view-related functionality to Workspace class
+- ✅ Implemented comprehensive JSON serialization with validation
+- ✅ Added all remaining model class files (container.dart, component.dart, software_system.dart, enterprise.dart, deployment_node.dart, infrastructure_node.dart, location.dart, model_item.dart)
 
-**Status: COMPLETE (100%)**
+## Phase 2: Rendering and Layout
 
-All rendering and layout components are implemented and tested:
-- Base renderer and component-specific renderers for all shapes
-- Relationship rendering with proper routing and styling
-- Boundary rendering for containment visualization
-- Multiple layout algorithms (force-directed, grid, manual, automatic)
-- Fixed import path issues and name conflicts with `hide` directives
-- Comprehensive test suite including integration tests
+**Status: 100% Complete**
 
-For detailed information, see the [Phase 2 Implementation Plan](phase2_implementation_plan.md).
+- ✅ Force-directed layout algorithm implementation with immutability support
+- ✅ Position updates using extension methods for immutable models
+- ✅ Grid, manual, and automatic layout strategies
+- ✅ Multi-phase layout optimization with spring forces
+- ✅ Relationship routing with direct, curved and orthogonal paths
+- ✅ Enhanced boundary rendering with nested boundaries and visual hierarchy
+- ✅ Support for collapsible boundary elements
+- ✅ Custom styling for boundaries with label positioning
+- ✅ Element rendering with different shapes and styles including hover state
+- ✅ Viewport management with zooming and panning
+  - ✅ Viewport constraints to prevent getting lost when zooming/panning
+  - ✅ Zoom to selection functionality
+  - ✅ Keyboard shortcuts for zooming (Ctrl+E for zoom to selection)
+- ✅ Selection and hover highlighting with visual feedback
+- ✅ Enhanced lasso selection with visual feedback
+  - ✅ Improved relationship path testing
+  - ✅ Proper immutable model updates for multi-element operations
 
-### Phase 3: UI Components and Interaction ✅
+## Phase 3: UI Components
 
-**Status: COMPLETE (100%)**
+**Status: 100% Complete** ✅
 
-All UI components are implemented and thoroughly tested:
-- StructurizrDiagram widget with pan, zoom, and multi-selection support
-- DiagramControls for viewport manipulation
-- ElementExplorer for browsing model elements
-- AnimationControls for dynamic views
-- ViewSelector with dropdown and thumbnail previews
-- PropertyPanel with complete property editing functionality
-- Multi-select with keyboard modifiers (Shift/Ctrl) and lasso selection
-- Drag-and-drop for elements with manual layout integration
-- Fixed name conflicts and layout issues
-- Comprehensive test suite for all components
+- ✅ Core StructurizrDiagram widget with comprehensive features:
+  - ✅ Element and relationship rendering with proper styling
+  - ✅ Selection and hover highlighting with visual feedback
+  - ✅ Drag and drop positioning with multi-element selection
+  - ✅ Keyboard shortcuts for viewport navigation and selection
+  - ✅ Configurable text rendering options for element names and descriptions
+  - ✅ Animation step support for dynamic views
+- ✅ DiagramControls widget for zoom, pan, and fit controls
+- ✅ ElementExplorer tree view with enhanced features:
+  - ✅ Comprehensive tree view with expandable nodes
+  - ✅ Element type and tag grouping options
+  - ✅ Search functionality with auto-expansion
+  - ✅ Selection with visual feedback
+  - ✅ Drag and drop support for diagram integration
+  - ✅ Customizable display options (icons, badges, descriptions)
+  - ✅ Highlighting of elements in current view
+  - ✅ Context menu support with configurable menu items
+  - ✅ Action handling for context menu operations
+- ✅ PropertyPanel for displaying and editing element/relationship properties
+- ✅ StyleEditor with comprehensive styling controls:
+  - ✅ Color pickers for background, text, and stroke colors
+  - ✅ Shape selectors with visual previews
+  - ✅ Line style controls with visual feedback
+  - ✅ Border width and opacity sliders
+  - ✅ Font size and family selection
+  - ✅ Icon selection and positioning options
+- ✅ FilterPanel for filtering diagram elements:
+  - ✅ Tag-based filtering with multi-select support
+  - ✅ Element type filtering (Person, SoftwareSystem, Container, etc.)
+  - ✅ Custom filter expressions with syntax highlighting
+  - ✅ Filter templates for common scenarios
+  - ✅ Search functionality for finding elements by name or description
+- ✅ ViewSelector for switching between different view types:
+  - ✅ Support for all view types (system landscape, context, container, component, etc.)
+  - ✅ Thumbnail previews of diagram views
+  - ✅ Multiple display modes (compact dropdown, flat list, grouped by type)
+  - ✅ View details including element and relationship counts
+  - ✅ Custom styling with theming support
+- ✅ AnimationControls with comprehensive playback features:
+  - ✅ Play/pause controls with configurable playback speeds
+  - ✅ Interactive timeline with step indicators
+  - ✅ Multiple playback modes (play once, loop, ping-pong)
+  - ✅ Smooth transitions between animation steps
+  - ✅ Configurable appearance and behavior with themes
+- ✅ DynamicViewDiagram integration:
+  - ✅ Seamless combination of StructurizrDiagram and AnimationControls
+  - ✅ Configuration options for both diagram and animation behavior
+  - ✅ Support for all animation step functionality with visual indicators
+  - ✅ Example application demonstrating dynamic view animation
+  - ✅ Comprehensive documentation with usage examples
+- ✅ StyleEditor comprehensive implementation:
+  - ✅ Complete color pickers for background, text, and stroke colors
+  - ✅ Shape selector dialogs with visual previews
+  - ✅ Border style and width controls
+  - ✅ Font size and label position controls
+  - ✅ Additional advanced settings (opacity, metadata display)
+- ✅ FilterPanel implementation:
+  - ✅ Tag-based filtering with checkboxes
+  - ✅ Element type filtering support
+  - ✅ Custom filter expressions with operators
+  - ✅ Filter templates for common scenarios
+  - ✅ Active filter management with clear options
+  - ✅ Search functionality for locating specific filters
+- ✅ UI component tests improvements:
+  - ✅ Core renderer tests now passing (boundary_renderer_test.dart, element_renderer_test.dart, relationship_renderer_test.dart)
+  - ✅ Method signatures updated for consistent behavior (includeNames, includeDescriptions, includeDescription parameters)
+  - ✅ MockCanvas implementation enhanced for better text drawing verification
+  - ✅ ViewSelector tests fixed and passing
+  - ✅ ElementExplorer tests implemented and passing
+  - ✅ Context menu implementation and tests completed
+  - ✅ Complex widget tests fully implemented:
+    - ✅ Improved AnimationControls testing with animation_controls_improved_test.dart
+    - ✅ Enhanced ElementExplorer integration tests with element_explorer_integration_test.dart
+    - ✅ Robust AsciiDoc renderer tests with asciidoc_renderer_improved_test.dart
+    - ✅ Enhanced relationship hit testing with diagram_painter_improved_test.dart
 
-For detailed information, see the [Phase 3 Implementation Plan](phase3_implementation_plan.md).
+## Phase 4: DSL Parser
 
-### Phase 4: DSL Parser ✅
+**Status: 100% Complete** ✅
 
-**Status: COMPLETE (100%)**
+> **Ongoing Refactor:** The DSL parser and builder are being refactored into modular, interface-driven components to match the Java Structurizr DSL, enable parallel development, and improve maintainability. See the audit and handoff tables in `specs/` for up-to-date interfaces and build order.
 
-All aspects of the DSL parser have been implemented successfully:
+- ✅ Basic framework for DSL parser implementation
+- ✅ Initial syntax analysis and AST structure
+- ✅ Preliminary model building functionality
+- ✅ Enhanced error reporting system
+- ✅ Fixed syntax errors in lexer_test.dart and related files
+- ✅ Fixed integration test syntax issues in dsl_parser_integration_test.dart
+- ✅ Successfully generated serialization code with build_runner
+- ✅ Documentation parser support with AST node definitions
+- ✅ Implementation of DocumentationMapper for converting AST to domain model
+- ✅ Integration of documentation parsing into the workspace mapping pipeline
+- ✅ Support for structured documentation sections and Architecture Decision Records (ADRs)
+- ✅ Comprehensive tests for documentation parsing and mapping pipeline
+- ✅ Fixed circular dependencies in AST structure for documentation
+- ✅ Created DefaultAstVisitor to simplify visitor implementations
+- ✅ Added test utilities and comprehensive test documentation
+- ✅ Implemented proper date parsing for architecture decisions
+- ✅ Added support for links between architecture decisions
+- ✅ Implemented token definitions and lexer functionality with comprehensive tests
+- ✅ Fixed workspace_mapper.dart to match factory method signatures
+- ✅ Direct construction of model elements with proper ID handling
+- ✅ Fixed enum conflicts (Routing vs StyleRouting)
+- ✅ Improved null safety handling in tests
+- ✅ Added minimal integration tests to verify core functionality
+- ✅ Improved string literal parsing with support for multi-line strings
+- ✅ Added robust reference resolution system with caching and error reporting
+- ✅ Implemented context-based reference handling with support for aliases
+- ✅ Added circular dependency detection in reference resolution system
+- ✅ Enhanced workspace mapper to use reference resolver for hierarchical models
+- ✅ Implemented WorkspaceBuilder with clear separation of concerns
+- ✅ Created comprehensive builder interfaces with proper inheritance
+- ✅ Added complete implementation of core workspace building logic
+- ✅ Enhanced error handling during workspace building process
+- ✅ Simplified AST traversal with improved visitor pattern implementation
+- ✅ Integrated ReferenceResolver for better element lookup
+- ✅ Created comprehensive tests for WorkspaceBuilder functionality
+- ✅ Implemented robust parent-child relationship handling in the builder
+- ✅ Added proper validation for the constructed workspace
+- ✅ Added support for variable aliases in AST nodes with ModelElementNode enhancements
+- ✅ Updated workspace mapper and builder to register aliases during element creation
+- ✅ Enhanced reference resolution to handle both direct IDs and variable names
+- ✅ Added comprehensive tests for variable alias functionality
+- ✅ Added support for include directives with proper file loading mechanism
+- ✅ Implemented recursive include resolution with circular dependency detection
+- ✅ Added tests for include directive functionality
+- ✅ Added lexer token definitions for documentation blocks and ADRs
+- ✅ Created and tested lexer token handling for documentation
+- ✅ Fixed critical token matching issues for documentation and decisions in parser
+- ✅ Added special case handling in lexer for documentation and decisions keywords
+- ✅ Implemented debug diagnostics to aid in documentation parsing diagnostics
+- ✅ Created patched parser implementation to ensure proper documentation handling
+- ✅ Comprehensive error recovery with synchronization points
+- 🚧 Live syntax highlighting and validation (planned for future enhancement)
 
-✅ Completed:
-- Refactored AST nodes to fix circular dependencies by consolidating in a single file
-- Implemented proper visitor pattern interface structure
-- Created backward compatibility through re-export files
-- Fixed type conflicts in AST node definitions
-- Implemented token definitions and lexer functionality with full DSL support
-- Enhanced recursive descent parser with error recovery
-- Implemented workspace mapper for all model elements including style, branding, and terminology support
-- Enhanced error reporting and diagnostics with context-sensitive messages
-- Added support for filtered views, custom views and image views
-- Fixed routing conflicts in style definitions
-- Designed comprehensive reference resolution system with support for:
-  - Element references by ID and name (case-sensitive and case-insensitive)
-  - "this" and "parent" special references in relationships
-  - Deeply nested component references through multiple hierarchy levels
-  - Container instance references in deployment views
-  - View filter references to elements and tags
-  - Element references in styles
-- Added robust error handling for unresolved references
-- Created comprehensive test suite for reference resolution
-- Resolved model class compatibility issues and implemented all required interfaces
-- Created missing model interfaces for element and relationship collections
-- Added lookup methods (findRelationshipBetween, findPersonByName, etc.)
-- Fixed Group class implementation with proper freezed support
-- Implemented automated code generation for model classes
-- Created comprehensive test suite for all aspects of DSL parsing
+## Phase 5: Documentation
 
-For detailed information, see the [Phase 4 Implementation Plan](phase4_implementation_plan.md).
+**Status: 100% Complete** ✅
 
-### Phase 5-6: Documentation and ADR Support ✅
+- ✅ Implemented enhanced MarkdownRenderer with syntax highlighting
+- ✅ Added custom github-dark theme for syntax highlighting
+- ✅ Fixed section numbering functionality in Markdown documents
+- ✅ Implemented diagram embedding with customization options
+- ✅ Enhanced DocumentationNavigator with navigation history
+- ✅ Added browser-like back/forward navigation controls
+- ✅ Added responsive layout with content expansion toggle
+- ✅ Implemented proper index validation and error handling
+- ✅ Created comprehensive tests for documentation components
+- ✅ Enhanced TableOfContents with collapsible hierarchy, expansion controls, and indentation
+- ✅ Enhanced DocumentationSearchController with improved section title matching and result ranking
+- ✅ Enhanced AsciiDoc renderer with offline support and error handling
+- ✅ Optimized AsciiDoc rendering for large documents with progressive chunking and caching
+  - Progressive rendering approach breaks large documents into manageable chunks
+  - LRU caching mechanism prevents redundant rendering of same content
+  - Performance metrics tracking to identify rendering bottlenecks
+  - Granular progress reporting during rendering process
+- ✅ Added keyboard shortcuts for documentation navigation with help dialog
+  - Comprehensive keyboard navigation across all documentation views
+  - Arrow keys for navigation between sections/decisions
+  - Alt+Left/Right for back/forward history navigation
+  - Ctrl+D/G/T/S for switching between documentation views
+  - Ctrl+F for toggling fullscreen mode
+  - Home/End for jumping to first/last section
+  - Alt+Number keys for direct navigation to sections by index
+  - Help dialog showing all available shortcuts
+- ✅ Implemented WebView SecurityPolicy for AsciiDoc to enhance security
+- ✅ Added enhanced Markdown extensions for task lists, tables, and metadata
+  - Task list syntax for interactive checklists
+  - Enhanced image handling with width, height, captions, and more
+  - Keyboard shortcut syntax with <kbd> tag support
+  - Enhanced tables with alternate row styling and better column handling
+  - Metadata blocks for document front matter
+- ✅ Implemented comprehensive documentation search index 
+  - Full-text indexing with relevance ranking
+  - Metadata search support for filtering by author, date, etc.
+  - Advanced filtering by document type and status
+  - Content snippets with highlighted search matches
+  - Enhanced search UI with filtering options
+- ✅ Added deep linking support for documentation sharing
+  - URL generation for sections and decisions
+  - Support for parameters in deep links
+  - Link handling for navigation between documents
+  - Serialization and deserialization of links
 
-**Status: COMPLETE (100%)**
+## Phase 6: Architecture Decision Records (ADR) Support
 
-All documentation components and ADR support have been implemented:
+**Status: 100% Complete** ✅
 
-✅ Completed:
-- Markdown rendering is working with full support for code highlighting
-- AsciiDoc rendering has been implemented using WebView and Asciidoctor.js
-- Documentation navigation is implemented with multi-view support
-- Table of contents and section organization works
-- Documentation search with result highlighting is implemented
-- Diagram embedding within documentation is fully implemented
-- ADR support with timeline view is functional
-- Decision graph visualization with force-directed layout is implemented
-- Decision search and filtering by date/status is working
-- Complete integration with the main application via tabbed interface
-- UI refinements for better usability and consistent styling
-- Performance optimizations for large documentation sets
+- ✅ Fixed directive order issues in decision_graph.dart
+- ✅ Implemented basic decision graph visualization framework
+- ✅ Created core classes for Decision model
+- ✅ Implemented force-directed layout for decision graphs
+- ✅ Implemented decision node rendering with status indicators
+- ✅ Added visualization of decision relationships with proper styling
+- ✅ Added zooming and panning in decision graph visualization with scale controls
+- ✅ Fixed decision graph tests with proper widget expectations
+- ✅ Enhanced timeline filtering with inclusive date ranges
+- ✅ Added simulation controls for force-directed layout
+- ✅ Enhanced decision graph UI with styling and interactive controls
+- ✅ Decision timeline visualization with improved filtering functionality
+- ✅ Implemented comprehensive DecisionList widget with status chip filters
+- ✅ Added filtering by status with multi-select chip system
+- ✅ Implemented full-text search across ID, title, and content
+- ✅ Added date sorting with toggle between ascending/descending
+- ✅ Created comprehensive test suite for all ADR components
+- ✅ Implemented enhanced decision graph with relationship types
+- ✅ Added decision clustering for complex relationship visualization
+- ✅ Implemented detailed tooltips for relationship information
+- ✅ Created relationship type legend with color-coding
+- ✅ Created EnhancedDecisionGraph component with comprehensive features
+- ✅ Implemented relationship type system (supersedes, depends, conflicts, etc.)
+- ✅ Added bidirectional relationship visualization
+- ✅ Created decision clustering mechanism for organizing related decisions
+- ✅ Added interactive tooltips for relationship details
+- ✅ Implemented legend to explain relationship types
+- ✅ Created comprehensive documentation and examples
 
-For detailed information, see the [Phase 5-6 Implementation Plan](phase5_6_implementation_plan.md).
+## Phase 7: Workspace Management
 
-### Phase 7: Workspace Management ✅
+**Status: 100% Complete** ✅
 
-**Status: COMPLETE (100%)**
+- ✅ Enhanced JSON serialization for all model types
+- ✅ Created JsonSerializationHelper utility class
+- ✅ Added validation for JSON schema compliance
+- ✅ Implemented robust error handling for malformed JSON
+- ✅ Complete workspace management implementation with WorkspaceManager
+- ✅ File system integration for saving and loading workspaces
+- ✅ Recent workspace history with persistence
+- ✅ Multi-workspace support with concurrent workspace handling
+- ✅ Workspace import and export functionality
+- ✅ Auto-save capability with change detection
+- ✅ Backup and versioning support
+- ✅ Platform-specific file system handling
+- ✅ Event-based notifications for workspace changes
+- ✅ Comprehensive tests for all functionality
 
-All workspace management functionality is implemented and tested:
-- File-based storage with saving and loading
-- Auto-save functionality with configurable interval
-- Backup and versioning support
-- Remote service integration
-- Comprehensive test suite
+## Phase 8: Export Capabilities
 
-For detailed information, see the [Phase 7 Implementation Plan](phase7_implementation_plan.md).
+**Status: 100% Complete** ✅
 
-### Phase 8: Export Capabilities ✅
+- ✅ All core export features are fully implemented and tested:
+  - PNG and SVG exporters with full rendering and configuration options
+  - Comprehensive text-based format exporters (Mermaid, PlantUML, DOT)
+  - C4 model exporter (JSON/YAML) for all diagram types
+  - DSL exporter with documentation and ADR support (markdown, AsciiDoc)
+  - Batch export capability for multiple diagrams
+  - Export dialogs (single and batch) with format selection, options, and progress
+  - Export preview widgets for all formats (real-time, debounced, metadata extraction)
+  - Transparent background support for PNG exports
+  - Memory-efficient export pipeline for large diagrams
+  - Progress reporting and error handling in UI and backend
+  - Special character handling and proper formatting in all exporters
+  - Comprehensive test suite for all exporters and documentation export
+  - Dedicated tests for documentation/ADR export, SVG preview, and export dialogs
+  - Integration with Export Manager for seamless usage
 
-**Status: COMPLETE (100%)**
+- ℹ️ **Future Improvements & Known Limitations:**
+  - Unified rendering pipeline abstraction for all formats
+  - Golden image comparison and comprehensive visual regression testing
+  - Performance benchmarking for large diagrams and export operations
+  - Some UI tests are limited by Flutter test environment constraints (e.g., image package, file system)
+  - Naming conflicts and import organization improvements
 
-All export capabilities have been implemented:
+All major formats, batch export, dialogs, preview, and documentation/ADR export are implemented and verified. Remaining technical challenges are tracked for future improvement but do not impact current export capabilities.
 
-✅ Completed:
-- JSON export (part of core model)
-- Implemented the diagram exporter interface
-- Created fully working PlantUML exporter with support for:
-  - System context diagrams
-  - Container diagrams
-  - Component diagrams
-  - Deployment diagrams
-  - Different PlantUML styles (standard, C4, C4-PlantUML)
-  - Export progress reporting
-  - Batch export functionality
-- Implemented PNG exporter for raster image export
-- Implemented SVG exporter for vector image export
-- Added view lookup and element/relationship resolution for all exporters
-- Fixed name conflicts with Flutter core widgets
-- Implemented Mermaid exporter with support for:
-  - System context diagrams
-  - Container diagrams
-  - Component diagrams
-  - Deployment diagrams
-  - Standard and C4 style options
-  - Theming support
-  - Direction configuration
-- Implemented DOT/Graphviz exporter with support for:
-  - System context diagrams
-  - Container diagrams
-  - Component diagrams
-  - Deployment diagrams
-  - Different layout algorithms
-  - Custom styling
-  - Cluster support for hierarchical diagrams
-- Implemented DSL exporter with support for:
-  - Complete workspace export
-  - Model elements (people, systems, containers, components, etc.)
-  - Views (system context, container, component, deployment, etc.)
-  - Styles and configuration
-  - Pretty printing with configurable indentation
-- Updated ExportManager to support all export formats
-- Created export UI components:
-  - Single diagram export dialog with format selection and configuration
-  - Batch export dialog with view selection and destination folder picker
-  - Progress reporting and error handling
-- Implemented memory-efficient rendering for large diagrams:
-  - Custom rendering pipeline for memory optimization
-  - Isolated rendering to prevent memory leaks
-  - Sequential batch processing to manage memory usage
-  - User configuration options for memory efficiency
-- Comprehensive test suite for all exporters and UI components
-- Cross-platform compatibility testing
+## Phase 9: Advanced Features
 
-For detailed information, see the [Phase 8 Implementation Plan](phase8_implementation_plan.md).
+**Status: IN PROGRESS (15%)**
 
-## Next Steps
-
-All planned phases have been completed. Here are the next areas for future development:
-
-1. **Continuous Improvement**:
-   - Add more end-to-end tests for complete user flows
-   - Further optimize performance for very large diagrams
-   - Enhance usability based on user feedback
-   - Ensure robust cross-platform compatibility
-
-2. **Potential Enhancements**:
-   - Add collaborative editing features
-   - Implement version history and comparison
-   - Develop additional export formats as needed
-   - Create integrations with other architecture tools
-
-3. **Production Readiness**:
-   - Complete comprehensive cross-browser testing
-   - Implement analytics and error reporting
-   - Create user documentation and tutorials
-   - Set up CI/CD pipeline for automated releases
-
-For detailed implementation plans for each phase, refer to the phase-specific documents in the `/specs` directory.
-
-## Reference
-
-The authoritative specification for this project is the [Flutter Structurizr Implementation Specification](flutter_structurizr_implementation_spec_updated.md), which provides the complete requirements and architecture for the system.
+- ✅ Advanced state management (undo/redo, history) implementation
+  - ✅ Command pattern implementation with support for command merging
+  - ✅ History manager for tracking command execution and undo/redo operations
+  - ✅ Transaction support for grouping multiple commands
+  - ✅ Specific commands for all common workspace operations (move, add, delete, update properties)
+  - ✅ Integration with WorkspaceManager through decorator pattern
+  - ✅ UI components (toolbar, panel) for undo/redo functionality
+  - ✅ Keyboard shortcuts for undo/redo (Ctrl+Z, Ctrl+Y, Ctrl+Shift+Z)
+  - ✅ Comprehensive unit tests for commands and history management
+  - ✅ Command merging capability for continuous operations (e.g., dragging)
+- 🚧 Planned features for future implementation:
+  - Workspace versioning and restore points
+  - Performance optimizations (level-of-detail rendering, parallel processing)
+  - Advanced documentation features (enhanced search, equation support)
+  - Cross-platform enhancements (mobile/desktop optimizations)
+  - Advanced testing (golden images, performance, accessibility)
+- See the implementation plan for detailed tasks, technical approach, and references.

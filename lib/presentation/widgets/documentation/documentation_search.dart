@@ -90,6 +90,22 @@ class DocumentationSearchController extends ChangeNotifier {
       
       // Search in sections
       for (final section in _documentation!.sections) {
+        // Search in section title
+        final titleLower = section.title.toLowerCase();
+        if (titleLower.contains(lowercaseQuery)) {
+          final titleMatchIndex = titleLower.indexOf(lowercaseQuery);
+          results.add(DocumentationSearchResult(
+            section: section,
+            matchedText: section.title.substring(
+              titleMatchIndex,
+              titleMatchIndex + query.length
+            ),
+            context: _highlightMatch(section.title, query),
+            matchIndex: -1, // Title is special marker
+          ));
+        }
+        
+        // Search in section content
         final content = section.content.toLowerCase();
         int index = content.indexOf(lowercaseQuery);
         
@@ -156,9 +172,9 @@ class DocumentationSearchController extends ChangeNotifier {
       
       // Sort results by relevance (title matches first, then by index)
       results.sort((a, b) {
-        // Title matches come first
-        final aIsTitle = a.matchIndex == 0 && (a.isDecision || a.section?.title.toLowerCase().contains(query.toLowerCase()) == true);
-        final bIsTitle = b.matchIndex == 0 && (b.isDecision || b.section?.title.toLowerCase().contains(query.toLowerCase()) == true);
+        // Title matches come first (matchIndex == -1 for titles)
+        final aIsTitle = a.matchIndex == -1;
+        final bIsTitle = b.matchIndex == -1;
         
         if (aIsTitle && !bIsTitle) return -1;
         if (!aIsTitle && bIsTitle) return 1;

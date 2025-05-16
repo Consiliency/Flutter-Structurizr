@@ -115,9 +115,9 @@ void main() {
       expect(find.text('Date Range'), findsOneWidget);
       expect(find.text('Status'), findsOneWidget);
       
-      // Should find checkboxes for statuses
-      expect(find.text('Accepted'), findsOneWidget);
-      expect(find.text('Proposed'), findsOneWidget);
+      // Should find status options in the filter dialog
+      expect(find.text('Accepted'), findsWidgets);
+      expect(find.text('Proposed'), findsWidgets);
       
       // Should find buttons to cancel or apply
       expect(find.text('Cancel'), findsOneWidget);

@@ -1,5 +1,8 @@
 import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/deployment_environment.dart';
+import 'package:flutter_structurizr/domain/model/modeled_relationship.dart';
+import 'package:flutter_structurizr/domain/model/group.dart';
+import 'package:flutter_structurizr/domain/model/enterprise.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -30,6 +33,18 @@ class Model with _$Model {
 
     /// List of deployment environments in the model.
     @Default([]) List<DeploymentEnvironment> deploymentEnvironments,
+    
+    /// List of groups in the model.
+    @Default([]) List<Group> groups,
+    
+    /// The enterprise in the model.
+    Enterprise? enterprise,
+    
+    /// List of implied relationships in the model.
+    @Default([]) List<Relationship> impliedRelationships,
+    
+    /// Map of advanced properties for the model.
+    @Default({}) Map<String, dynamic> advancedProperties,
   }) = _Model;
 
   /// Creates a model from a JSON object.
@@ -41,6 +56,14 @@ class Model with _$Model {
     
     // Add people
     elements.addAll(people);
+    
+    // Add enterprise if present
+    if (enterprise != null) {
+      elements.add(enterprise!);
+    }
+    
+    // Add groups
+    elements.addAll(groups);
     
     // Add software systems and their containers/components
     for (final system in softwareSystems) {
@@ -60,6 +83,10 @@ class Model with _$Model {
     
     return elements;
   }
+  
+  /// Getter for all elements in the model.
+  /// Returns the same result as getAllElements() for convenience.
+  List<Element> get elements => getAllElements();
   
   /// Gets all elements in a deployment node recursively.
   List<Element> _getDeploymentNodeElements(DeploymentNode node) {
@@ -85,8 +112,15 @@ class Model with _$Model {
       relationships.addAll(element.relationships);
     }
     
+    // Add implied relationships
+    relationships.addAll(impliedRelationships);
+    
     return relationships;
   }
+  
+  /// Getter for all relationships in the model.
+  /// Returns the same result as getAllRelationships() for convenience.
+  List<Relationship> get relationships => getAllRelationships();
 
   /// Finds an element by its ID.
   Element? getElementById(String id) {
@@ -110,6 +144,67 @@ class Model with _$Model {
   /// Adds a deployment node to the model.
   Model addDeploymentNode(DeploymentNode node) {
     return copyWith(deploymentNodes: [...deploymentNodes, node]);
+  }
+
+  /// Adds a group to the model.
+  Model addGroup(Group group) {
+    return copyWith(groups: [...groups, group]);
+  }
+
+  /// Adds an enterprise to the model.
+  Model addEnterprise(Enterprise enterpriseNode) {
+    return copyWith(enterprise: enterpriseNode);
+  }
+
+  /// Adds an element to the model.
+  Model addElement(Element element) {
+    if (element is Person) {
+      return addPerson(element);
+    } else if (element is SoftwareSystem) {
+      return addSoftwareSystem(element);
+    } else if (element is DeploymentNode) {
+      return addDeploymentNode(element);
+    } else if (element is Group) {
+      return addGroup(element);
+    } else if (element is Enterprise) {
+      return addEnterprise(element);
+    } else {
+      throw ArgumentError('Unsupported element type: ${element.runtimeType}');
+    }
+  }
+
+  /// Adds a relationship to the model.
+  Model addRelationship(Relationship relationship) {
+    // Relationships are owned by elements, so we need to find the element
+    // and add the relationship to it
+    final sourceElement = getElementById(relationship.sourceId);
+    if (sourceElement == null) {
+      throw ArgumentError('Source element not found: ${relationship.sourceId}');
+    }
+    
+    // Since elements are immutable, we need to create a new element with the relationship added
+    // and then update the model with the new element
+    final updatedElement = sourceElement.addRelationship(
+      destinationId: relationship.destinationId,
+      description: relationship.description,
+      technology: relationship.technology,
+      tags: relationship.tags,
+      properties: relationship.properties,
+    );
+    
+    return addElement(updatedElement);
+  }
+
+  /// Adds an implied relationship to the model.
+  Model addImpliedRelationship(Relationship relationship) {
+    return copyWith(impliedRelationships: [...impliedRelationships, relationship]);
+  }
+
+  /// Sets an advanced property on the model.
+  Model setAdvancedProperty(String key, dynamic value) {
+    final updatedProperties = Map<String, dynamic>.from(advancedProperties);
+    updatedProperties[key] = value;
+    return copyWith(advancedProperties: updatedProperties);
   }
 
   /// Validates the model for consistency.
@@ -178,62 +273,143 @@ class Model with _$Model {
 
   /// Finds a container by its name within a software system.
   /// Returns null if no container is found with the given name.
-  Container? findContainerByName(String softwareSystemId, String name, {bool ignoreCase = false}) {
-    final system = getSoftwareSystemById(softwareSystemId);
-    if (system == null) return null;
+  Container? findContainerByName(String name, {String? softwareSystemId, bool ignoreCase = false}) {
+    if (softwareSystemId != null) {
+      final system = getSoftwareSystemById(softwareSystemId);
+      if (system == null) return null;
 
-    if (ignoreCase) {
-      final lowerName = name.toLowerCase();
-      return system.containers.firstWhere(
-        (container) => container.name.toLowerCase() == lowerName,
-        orElse: () => Container(id: '', name: '', parentId: ''),
-      );
+      if (ignoreCase) {
+        final lowerName = name.toLowerCase();
+        try {
+          return system.containers.firstWhere(
+            (container) => container.name.toLowerCase() == lowerName,
+          );
+        } catch (_) {
+          return null;
+        }
+      } else {
+        try {
+          return system.containers.firstWhere(
+            (container) => container.name == name,
+          );
+        } catch (_) {
+          return null;
+        }
+      }
     } else {
-      return system.containers.firstWhere(
-        (container) => container.name == name,
-        orElse: () => Container(id: '', name: '', parentId: ''),
-      );
+      // Search across all software systems
+      for (final system in softwareSystems) {
+        Container? container;
+        
+        if (ignoreCase) {
+          final lowerName = name.toLowerCase();
+          try {
+            container = system.containers.firstWhere(
+              (c) => c.name.toLowerCase() == lowerName,
+            );
+          } catch (_) {
+            container = null;
+          }
+        } else {
+          try {
+            container = system.containers.firstWhere(
+              (c) => c.name == name,
+            );
+          } catch (_) {
+            container = null;
+          }
+        }
+        
+        if (container != null) {
+          return container;
+        }
+      }
+      
+      return null;
     }
   }
 
   /// Finds a component by its name within a container.
   /// Returns null if no component is found with the given name.
-  Component? findComponentByName(String containerId, String name, {bool ignoreCase = false}) {
-    // First, find the container
-    Container? container;
-    for (final system in softwareSystems) {
-      final foundContainer = system.getContainerById(containerId);
-      if (foundContainer != null) {
-        container = foundContainer;
-        break;
+  Component? findComponentByName(String name, {String? containerId, bool ignoreCase = false}) {
+    if (containerId != null) {
+      // First, find the container
+      Container? container;
+      for (final system in softwareSystems) {
+        final foundContainer = system.getContainerById(containerId);
+        if (foundContainer != null) {
+          container = foundContainer;
+          break;
+        }
       }
-    }
 
-    if (container == null) return null;
+      if (container == null) return null;
 
-    if (ignoreCase) {
-      final lowerName = name.toLowerCase();
-      return container.components.firstWhere(
-        (component) => component.name.toLowerCase() == lowerName,
-        orElse: () => Component(id: '', name: '', parentId: ''),
-      );
+      if (ignoreCase) {
+        final lowerName = name.toLowerCase();
+        try {
+          return container.components.firstWhere(
+            (component) => component.name.toLowerCase() == lowerName,
+          );
+        } catch (_) {
+          return null;
+        }
+      } else {
+        try {
+          return container.components.firstWhere(
+            (component) => component.name == name,
+          );
+        } catch (_) {
+          return null;
+        }
+      }
     } else {
-      return container.components.firstWhere(
-        (component) => component.name == name,
-        orElse: () => Component(id: '', name: '', parentId: ''),
-      );
+      // Search across all containers in all systems
+      for (final system in softwareSystems) {
+        for (final container in system.containers) {
+          Component? component;
+          
+          if (ignoreCase) {
+            final lowerName = name.toLowerCase();
+            try {
+              component = container.components.firstWhere(
+                (c) => c.name.toLowerCase() == lowerName,
+              );
+            } catch (_) {
+              component = null;
+            }
+          } else {
+            try {
+              component = container.components.firstWhere(
+                (c) => c.name == name,
+              );
+            } catch (_) {
+              component = null;
+            }
+          }
+          
+          if (component != null) {
+            return component;
+          }
+        }
+      }
+      
+      return null;
     }
   }
 
   /// Finds a relationship between two elements.
+  /// Returns a ModeledRelationship that provides access to source and destination elements.
   /// Returns null if no such relationship exists.
-  Relationship? findRelationshipBetween(String sourceId, String destinationId, String? description) {
+  ModeledRelationship? findRelationshipBetween(String sourceId, String destinationId, [String? description]) {
     final source = getElementById(sourceId);
     if (source == null) return null;
 
+    Relationship? foundRelationship;
+    
     // If a description is provided, look for a specific relationship
     if (description != null) {
-      return source.relationships.firstWhere(
+      foundRelationship = source.relationships.firstWhere(
         (r) => r.destinationId == destinationId && r.description == description,
         orElse: () => Relationship(
           id: '',
@@ -244,7 +420,7 @@ class Model with _$Model {
       );
     } else {
       // Otherwise, find any relationship between the source and destination
-      return source.relationships.firstWhere(
+      foundRelationship = source.relationships.firstWhere(
         (r) => r.destinationId == destinationId,
         orElse: () => Relationship(
           id: '',
@@ -254,6 +430,14 @@ class Model with _$Model {
         ),
       );
     }
+    
+    // If we found a valid relationship, wrap it in a ModeledRelationship
+    if (foundRelationship.id.isNotEmpty) {
+      return ModeledRelationship.fromRelationship(foundRelationship, this);
+    }
+    
+    // No relationship found
+    return null;
   }
 
   /// Gets a person by its ID.
@@ -291,6 +475,7 @@ class Person with _$Person implements Element {
     @Default([]) List<Relationship> relationships,
     String? parentId,
     @Default('Internal') String location,
+    @Default([]) List<Element> children,
   }) = _Person;
 
   /// Creates a person from a JSON object.
@@ -303,6 +488,7 @@ class Person with _$Person implements Element {
     List<String> tags = const ['Person'],
     Map<String, String> properties = const {},
     String location = 'Internal',
+    List<Element> children = const [],
   }) {
     final id = const Uuid().v4();
     return Person(
@@ -312,6 +498,7 @@ class Person with _$Person implements Element {
       tags: [...tags],
       properties: properties,
       location: location,
+      children: children,
     );
   }
 
@@ -366,6 +553,29 @@ class Person with _$Person implements Element {
   List<Relationship> getRelationshipsTo(String destinationId) {
     return relationships.where((r) => r.destinationId == destinationId).toList();
   }
+
+  /// Adds a child element to this person.
+  Person addChild(Element childNode) {
+    return copyWith(children: [...children, childNode]);
+  }
+
+  /// Sets the identifier for this person.
+  Person setIdentifier(String identifier) {
+    // The id is immutable, so we can't change it directly
+    // We would need to create a new Person with the new id
+    throw UnsupportedError('Cannot change the ID of an existing Person.');
+  }
+
+  /// Sets a property on this person.
+  Person setProperty(String key, dynamic value) {
+    final updatedProperties = Map<String, String>.from(properties);
+    if (value is String) {
+      updatedProperties[key] = value;
+    } else {
+      updatedProperties[key] = value.toString();
+    }
+    return copyWith(properties: updatedProperties);
+  }
 }
 
 /// Represents a software system in the architecture model.
@@ -386,6 +596,7 @@ class SoftwareSystem with _$SoftwareSystem implements Element {
     @Default('Internal') String location,
     @Default([]) List<Container> containers,
     @Default([]) List<DeploymentEnvironment> deploymentEnvironments,
+    @Default([]) List<Element> children,
   }) = _SoftwareSystem;
 
   /// Creates a software system from a JSON object.
@@ -399,6 +610,7 @@ class SoftwareSystem with _$SoftwareSystem implements Element {
     Map<String, String> properties = const {},
     String location = 'Internal',
     List<Container> containers = const [],
+    List<Element> children = const [],
   }) {
     final id = const Uuid().v4();
     return SoftwareSystem(
@@ -409,6 +621,7 @@ class SoftwareSystem with _$SoftwareSystem implements Element {
       properties: properties,
       location: location,
       containers: containers,
+      children: children,
     );
   }
 
@@ -477,641 +690,348 @@ class SoftwareSystem with _$SoftwareSystem implements Element {
       return null;
     }
   }
-}
 
-/// Represents a container (application, database, etc.) in a software system.
-@freezed
-class Container with _$Container implements Element {
-  const Container._();
-
-  /// Creates a new container with the given properties.
-  const factory Container({
-    required String id,
-    required String name,
-    String? description,
-    @Default('Container') String type,
-    @Default([]) List<String> tags,
-    @Default({}) Map<String, String> properties,
-    @Default([]) List<Relationship> relationships,
-    required String parentId,
-    String? technology,
-    @Default([]) List<Component> components,
-  }) = _Container;
-
-  /// Creates a container from a JSON object.
-  factory Container.fromJson(Map<String, dynamic> json) => _$ContainerFromJson(json);
-
-  /// Creates a new container with a generated ID.
-  factory Container.create({
-    required String name,
-    required String parentId,
-    String? description,
-    String? technology,
-    List<String> tags = const ['Container'],
-    Map<String, String> properties = const {},
-    List<Component> components = const [],
-  }) {
-    final id = const Uuid().v4();
-    return Container(
-      id: id,
-      name: name,
-      description: description,
-      parentId: parentId,
-      technology: technology,
-      tags: [...tags],
-      properties: properties,
-      components: components,
-    );
+  /// Adds a child element to this software system.
+  SoftwareSystem addChild(Element childNode) {
+    return copyWith(children: [...children, childNode]);
   }
 
-  @override
-  Container addTag(String tag) {
-    return copyWith(tags: [...tags, tag]);
+  /// Sets the identifier for this software system.
+  SoftwareSystem setIdentifier(String identifier) {
+    // The id is immutable, so we can't change it directly
+    // We would need to create a new SoftwareSystem with the new id
+    throw UnsupportedError('Cannot change the ID of an existing SoftwareSystem.');
   }
 
-  @override
-  Container addTags(List<String> newTags) {
-    return copyWith(tags: [...tags, ...newTags]);
-  }
-
-  @override
-  Container addProperty(String key, String value) {
+  /// Sets a property on this software system.
+  SoftwareSystem setProperty(String key, dynamic value) {
     final updatedProperties = Map<String, String>.from(properties);
-    updatedProperties[key] = value;
+    if (value is String) {
+      updatedProperties[key] = value;
+    } else {
+      updatedProperties[key] = value.toString();
+    }
     return copyWith(properties: updatedProperties);
-  }
-
-  @override
-  Container addRelationship({
-    required String destinationId,
-    required String description,
-    String? technology,
-    List<String> tags = const [],
-    Map<String, String> properties = const {},
-  }) {
-    final relationship = Relationship(
-      id: const Uuid().v4(),
-      sourceId: id,
-      destinationId: destinationId,
-      description: description,
-      technology: technology,
-      tags: tags,
-      properties: properties,
-    );
-
-    return copyWith(relationships: [...relationships, relationship]);
-  }
-
-  @override
-  Relationship? getRelationshipById(String relationshipId) {
-    try {
-      return relationships.firstWhere((r) => r.id == relationshipId);
-    } catch (_) {
-      return null;
-    }
-  }
-
-  @override
-  List<Relationship> getRelationshipsTo(String destinationId) {
-    return relationships.where((r) => r.destinationId == destinationId).toList();
-  }
-
-  /// Adds a component to this container.
-  Container addComponent(Component component) {
-    return copyWith(components: [...components, component]);
-  }
-
-  /// Gets a component by its ID.
-  Component? getComponentById(String componentId) {
-    try {
-      return components.firstWhere((c) => c.id == componentId);
-    } catch (_) {
-      return null;
-    }
   }
 }
 
-/// Represents a component in a container.
-@freezed
-class Component with _$Component implements Element {
-  const Component._();
+// --- STUBS FOR MISSING MODEL CLASSES ---
 
-  /// Creates a new component with the given properties.
-  const factory Component({
-    required String id,
-    required String name,
-    String? description,
-    @Default('Component') String type,
-    @Default([]) List<String> tags,
-    @Default({}) Map<String, String> properties,
-    @Default([]) List<Relationship> relationships,
-    required String parentId,
-    String? technology,
-  }) = _Component;
+class DeploymentNode implements Element {
+  @override
+  final String id;
+  @override
+  final String name;
+  @override
+  final String? description;
+  @override
+  final String type;
+  @override
+  final List<String> tags;
+  @override
+  final Map<String, String> properties;
+  @override
+  final List<Relationship> relationships;
+  @override
+  final String? parentId;
+  final String environment;
+  final String? technology;
+  final List<InfrastructureNode> infrastructureNodes;
+  final List<ContainerInstance> containerInstances;
+  final List<SoftwareSystemInstance> softwareSystemInstances;
+  final List<DeploymentNode> children;
 
-  /// Creates a component from a JSON object.
-  factory Component.fromJson(Map<String, dynamic> json) => _$ComponentFromJson(json);
-
-  /// Creates a new component with a generated ID.
-  factory Component.create({
-    required String name,
-    required String parentId,
-    String? description,
-    String? technology,
-    List<String> tags = const ['Component'],
-    Map<String, String> properties = const {},
-  }) {
-    final id = const Uuid().v4();
-    return Component(
-      id: id,
-      name: name,
-      description: description,
-      parentId: parentId,
-      technology: technology,
-      tags: [...tags],
-      properties: properties,
-    );
-  }
+  DeploymentNode({
+    required this.id,
+    required this.name,
+    this.description,
+    this.type = 'DeploymentNode',
+    this.tags = const [],
+    this.properties = const {},
+    this.relationships = const [],
+    this.parentId,
+    this.environment = '',
+    this.technology,
+    this.infrastructureNodes = const [],
+    this.containerInstances = const [],
+    this.softwareSystemInstances = const [],
+    this.children = const [],
+  });
 
   @override
-  Component addTag(String tag) {
-    return copyWith(tags: [...tags, tag]);
-  }
-
+  Element addTag(String tag) => this;
   @override
-  Component addTags(List<String> newTags) {
-    return copyWith(tags: [...tags, ...newTags]);
-  }
-
+  Element addTags(List<String> newTags) => this;
   @override
-  Component addProperty(String key, String value) {
-    final updatedProperties = Map<String, String>.from(properties);
-    updatedProperties[key] = value;
-    return copyWith(properties: updatedProperties);
-  }
-
+  Element addProperty(String key, String value) => this;
   @override
-  Component addRelationship({
-    required String destinationId,
-    required String description,
-    String? technology,
-    List<String> tags = const [],
-    Map<String, String> properties = const {},
-  }) {
-    final relationship = Relationship(
-      id: const Uuid().v4(),
-      sourceId: id,
-      destinationId: destinationId,
-      description: description,
-      technology: technology,
-      tags: tags,
-      properties: properties,
-    );
-
-    return copyWith(relationships: [...relationships, relationship]);
-  }
-
+  Element addRelationship({required String destinationId, required String description, String? technology, List<String> tags = const [], Map<String, String> properties = const {}}) => this;
   @override
-  Relationship? getRelationshipById(String relationshipId) {
-    try {
-      return relationships.firstWhere((r) => r.id == relationshipId);
-    } catch (_) {
-      return null;
-    }
-  }
-
+  Relationship? getRelationshipById(String relationshipId) => null;
   @override
-  List<Relationship> getRelationshipsTo(String destinationId) {
-    return relationships.where((r) => r.destinationId == destinationId).toList();
-  }
+  List<Relationship> getRelationshipsTo(String destinationId) => [];
+  @override
+  Element addChild(Element childNode) => this;
+  @override
+  Element setIdentifier(String identifier) => this;
 }
 
-/// Represents a deployment node in the architecture model.
-@freezed
-class DeploymentNode with _$DeploymentNode implements Element {
-  const DeploymentNode._();
+class Container implements Element {
+  @override
+  final String id;
+  @override
+  final String name;
+  @override
+  final String? description;
+  @override
+  final String type;
+  @override
+  final List<String> tags;
+  @override
+  final Map<String, String> properties;
+  @override
+  final List<Relationship> relationships;
+  @override
+  final String? parentId;
+  final String? technology;
+  final List<Component> components;
+  @override
+  final List<Element> children;
 
-  /// Creates a new deployment node with the given properties.
-  const factory DeploymentNode({
-    required String id,
-    required String name,
-    String? description,
-    @Default('DeploymentNode') String type,
-    @Default([]) List<String> tags,
-    @Default({}) Map<String, String> properties,
-    @Default([]) List<Relationship> relationships,
-    String? parentId,
-    required String environment,
-    String? technology,
-    int? instances,
-    @Default([]) List<ContainerInstance> containerInstances,
-    @Default([]) List<SoftwareSystemInstance> softwareSystemInstances,
-    @Default([]) List<InfrastructureNode> infrastructureNodes,
-    @Default([]) List<DeploymentNode> children,
-  }) = _DeploymentNode;
-
-  /// Creates a deployment node from a JSON object.
-  factory DeploymentNode.fromJson(Map<String, dynamic> json) => _$DeploymentNodeFromJson(json);
-
-  /// Creates a new deployment node with a generated ID.
-  factory DeploymentNode.create({
-    required String name,
-    required String environment,
-    String? parentId,
-    String? description,
-    String? technology,
-    int? instances,
-    List<String> tags = const ['DeploymentNode'],
-    Map<String, String> properties = const {},
-    List<ContainerInstance> containerInstances = const [],
-    List<SoftwareSystemInstance> softwareSystemInstances = const [],
-    List<InfrastructureNode> infrastructureNodes = const [],
-    List<DeploymentNode> children = const [],
-  }) {
-    final id = const Uuid().v4();
-    return DeploymentNode(
-      id: id,
-      name: name,
-      description: description,
-      parentId: parentId,
-      environment: environment,
-      technology: technology,
-      instances: instances,
-      tags: [...tags],
-      properties: properties,
-      containerInstances: containerInstances,
-      softwareSystemInstances: softwareSystemInstances,
-      infrastructureNodes: infrastructureNodes,
-      children: children,
-    );
-  }
+  Container({
+    required this.id,
+    required this.name,
+    this.description,
+    this.type = 'Container',
+    this.tags = const [],
+    this.properties = const {},
+    this.relationships = const [],
+    this.parentId,
+    this.technology,
+    this.components = const [],
+    this.children = const [],
+  });
 
   @override
-  DeploymentNode addTag(String tag) {
-    return copyWith(tags: [...tags, tag]);
-  }
-
+  Element addTag(String tag) => this;
   @override
-  DeploymentNode addTags(List<String> newTags) {
-    return copyWith(tags: [...tags, ...newTags]);
-  }
-
+  Element addTags(List<String> newTags) => this;
   @override
-  DeploymentNode addProperty(String key, String value) {
-    final updatedProperties = Map<String, String>.from(properties);
-    updatedProperties[key] = value;
-    return copyWith(properties: updatedProperties);
-  }
-
+  Element addProperty(String key, String value) => this;
   @override
-  DeploymentNode addRelationship({
-    required String destinationId,
-    required String description,
-    String? technology,
-    List<String> tags = const [],
-    Map<String, String> properties = const {},
-  }) {
-    final relationship = Relationship(
-      id: const Uuid().v4(),
-      sourceId: id,
-      destinationId: destinationId,
-      description: description,
-      technology: technology,
-      tags: tags,
-      properties: properties,
-    );
-
-    return copyWith(relationships: [...relationships, relationship]);
-  }
-
+  Element addRelationship({required String destinationId, required String description, String? technology, List<String> tags = const [], Map<String, String> properties = const {}}) => this;
   @override
-  Relationship? getRelationshipById(String relationshipId) {
-    try {
-      return relationships.firstWhere((r) => r.id == relationshipId);
-    } catch (_) {
-      return null;
-    }
-  }
-
+  Relationship? getRelationshipById(String relationshipId) => null;
   @override
-  List<Relationship> getRelationshipsTo(String destinationId) {
-    return relationships.where((r) => r.destinationId == destinationId).toList();
-  }
-
-  /// Adds a child deployment node to this node.
-  DeploymentNode addChildNode(DeploymentNode node) {
-    return copyWith(children: [...children, node]);
-  }
-
-  /// Adds a container instance to this node.
-  DeploymentNode addContainerInstance(ContainerInstance instance) {
-    return copyWith(containerInstances: [...containerInstances, instance]);
-  }
-
-  /// Adds a software system instance to this node.
-  DeploymentNode addSoftwareSystemInstance(SoftwareSystemInstance instance) {
-    return copyWith(softwareSystemInstances: [...softwareSystemInstances, instance]);
-  }
-
-  /// Adds an infrastructure node to this node.
-  DeploymentNode addInfrastructureNode(InfrastructureNode node) {
-    return copyWith(infrastructureNodes: [...infrastructureNodes, node]);
-  }
+  List<Relationship> getRelationshipsTo(String destinationId) => [];
+  @override
+  Element addChild(Element childNode) => this;
+  @override
+  Element setIdentifier(String identifier) => this;
 }
 
-/// Represents an infrastructure node (load balancer, firewall, etc.).
-@freezed
-class InfrastructureNode with _$InfrastructureNode implements Element {
-  const InfrastructureNode._();
+class Component implements Element {
+  @override
+  final String id;
+  @override
+  final String name;
+  @override
+  final String? description;
+  @override
+  final String type;
+  @override
+  final List<String> tags;
+  @override
+  final Map<String, String> properties;
+  @override
+  final List<Relationship> relationships;
+  @override
+  final String? parentId;
+  @override
+  final List<Element> children;
+  final String? technology;
 
-  /// Creates a new infrastructure node with the given properties.
-  const factory InfrastructureNode({
-    required String id,
-    required String name,
-    String? description,
-    @Default('InfrastructureNode') String type,
-    @Default([]) List<String> tags,
-    @Default({}) Map<String, String> properties,
-    @Default([]) List<Relationship> relationships,
-    required String parentId,
-    String? technology,
-  }) = _InfrastructureNode;
-
-  /// Creates an infrastructure node from a JSON object.
-  factory InfrastructureNode.fromJson(Map<String, dynamic> json) => _$InfrastructureNodeFromJson(json);
-
-  /// Creates a new infrastructure node with a generated ID.
-  factory InfrastructureNode.create({
-    required String name,
-    required String parentId,
-    String? description,
-    String? technology,
-    List<String> tags = const ['InfrastructureNode'],
-    Map<String, String> properties = const {},
-  }) {
-    final id = const Uuid().v4();
-    return InfrastructureNode(
-      id: id,
-      name: name,
-      description: description,
-      parentId: parentId,
-      technology: technology,
-      tags: [...tags],
-      properties: properties,
-    );
-  }
+  Component({
+    required this.id,
+    required this.name,
+    this.description,
+    this.type = 'Component',
+    this.tags = const [],
+    this.properties = const {},
+    this.relationships = const [],
+    this.parentId,
+    this.technology,
+    this.children = const [],
+  });
 
   @override
-  InfrastructureNode addTag(String tag) {
-    return copyWith(tags: [...tags, tag]);
-  }
-
+  Element addTag(String tag) => this;
   @override
-  InfrastructureNode addTags(List<String> newTags) {
-    return copyWith(tags: [...tags, ...newTags]);
-  }
-
+  Element addTags(List<String> newTags) => this;
   @override
-  InfrastructureNode addProperty(String key, String value) {
-    final updatedProperties = Map<String, String>.from(properties);
-    updatedProperties[key] = value;
-    return copyWith(properties: updatedProperties);
-  }
-
+  Element addProperty(String key, String value) => this;
   @override
-  InfrastructureNode addRelationship({
-    required String destinationId,
-    required String description,
-    String? technology,
-    List<String> tags = const [],
-    Map<String, String> properties = const {},
-  }) {
-    final relationship = Relationship(
-      id: const Uuid().v4(),
-      sourceId: id,
-      destinationId: destinationId,
-      description: description,
-      technology: technology,
-      tags: tags,
-      properties: properties,
-    );
-
-    return copyWith(relationships: [...relationships, relationship]);
-  }
-
+  Element addRelationship({required String destinationId, required String description, String? technology, List<String> tags = const [], Map<String, String> properties = const {}}) => this;
   @override
-  Relationship? getRelationshipById(String relationshipId) {
-    try {
-      return relationships.firstWhere((r) => r.id == relationshipId);
-    } catch (_) {
-      return null;
-    }
-  }
-
+  Relationship? getRelationshipById(String relationshipId) => null;
   @override
-  List<Relationship> getRelationshipsTo(String destinationId) {
-    return relationships.where((r) => r.destinationId == destinationId).toList();
-  }
+  List<Relationship> getRelationshipsTo(String destinationId) => [];
+  @override
+  Element addChild(Element childNode) => this;
+  @override
+  Element setIdentifier(String identifier) => this;
 }
 
-/// Represents a deployed instance of a container.
-@freezed
-class ContainerInstance with _$ContainerInstance implements Element {
-  const ContainerInstance._();
+class InfrastructureNode implements Element {
+  @override
+  final String id;
+  @override
+  final String name;
+  @override
+  final String? description;
+  @override
+  final String type;
+  @override
+  final List<String> tags;
+  @override
+  final Map<String, String> properties;
+  @override
+  final List<Relationship> relationships;
+  @override
+  final String? parentId;
+  @override
+  final List<Element> children;
+  final String? technology;
 
-  /// Creates a new container instance with the given properties.
-  const factory ContainerInstance({
-    required String id,
-    @Default('ContainerInstance') String type,
-    @Default([]) List<String> tags,
-    @Default({}) Map<String, String> properties,
-    @Default([]) List<Relationship> relationships,
-    required String parentId,
-    required String containerId,
-    int? instanceId,
-    String? healthEndpoint,
-  }) = _ContainerInstance;
-
-  /// Creates a container instance from a JSON object.
-  factory ContainerInstance.fromJson(Map<String, dynamic> json) => _$ContainerInstanceFromJson(json);
-
-  /// Creates a new container instance with a generated ID.
-  factory ContainerInstance.create({
-    required String parentId,
-    required String containerId,
-    int? instanceId = 1,
-    String? healthEndpoint,
-    List<String> tags = const ['ContainerInstance'],
-    Map<String, String> properties = const {},
-  }) {
-    final id = const Uuid().v4();
-    return ContainerInstance(
-      id: id,
-      parentId: parentId,
-      containerId: containerId,
-      instanceId: instanceId,
-      healthEndpoint: healthEndpoint,
-      tags: [...tags],
-      properties: properties,
-    );
-  }
+  InfrastructureNode({
+    required this.id,
+    required this.name,
+    this.description,
+    this.type = 'InfrastructureNode',
+    this.tags = const [],
+    this.properties = const {},
+    this.relationships = const [],
+    this.parentId,
+    this.technology,
+    this.children = const [],
+  });
 
   @override
-  String get name => 'Container Instance';
-
+  Element addTag(String tag) => this;
   @override
-  String? get description => null;
-
+  Element addTags(List<String> newTags) => this;
   @override
-  ContainerInstance addTag(String tag) {
-    return copyWith(tags: [...tags, tag]);
-  }
-
+  Element addProperty(String key, String value) => this;
   @override
-  ContainerInstance addTags(List<String> newTags) {
-    return copyWith(tags: [...tags, ...newTags]);
-  }
-
+  Element addRelationship({required String destinationId, required String description, String? technology, List<String> tags = const [], Map<String, String> properties = const {}}) => this;
   @override
-  ContainerInstance addProperty(String key, String value) {
-    final updatedProperties = Map<String, String>.from(properties);
-    updatedProperties[key] = value;
-    return copyWith(properties: updatedProperties);
-  }
-
+  Relationship? getRelationshipById(String relationshipId) => null;
   @override
-  ContainerInstance addRelationship({
-    required String destinationId,
-    required String description,
-    String? technology,
-    List<String> tags = const [],
-    Map<String, String> properties = const {},
-  }) {
-    final relationship = Relationship(
-      id: const Uuid().v4(),
-      sourceId: id,
-      destinationId: destinationId,
-      description: description,
-      technology: technology,
-      tags: tags,
-      properties: properties,
-    );
-
-    return copyWith(relationships: [...relationships, relationship]);
-  }
-
+  List<Relationship> getRelationshipsTo(String destinationId) => [];
   @override
-  Relationship? getRelationshipById(String relationshipId) {
-    try {
-      return relationships.firstWhere((r) => r.id == relationshipId);
-    } catch (_) {
-      return null;
-    }
-  }
-
+  Element addChild(Element childNode) => this;
   @override
-  List<Relationship> getRelationshipsTo(String destinationId) {
-    return relationships.where((r) => r.destinationId == destinationId).toList();
-  }
+  Element setIdentifier(String identifier) => this;
 }
 
-/// Represents a deployed instance of a software system.
-@freezed
-class SoftwareSystemInstance with _$SoftwareSystemInstance implements Element {
-  const SoftwareSystemInstance._();
+class ContainerInstance implements Element {
+  @override
+  final String id;
+  @override
+  final String name;
+  @override
+  final String? description;
+  @override
+  final String type;
+  @override
+  final List<String> tags;
+  @override
+  final Map<String, String> properties;
+  @override
+  final List<Relationship> relationships;
+  @override
+  final String? parentId;
+  @override
+  final List<Element> children;
+  final String containerId;
 
-  /// Creates a new software system instance with the given properties.
-  const factory SoftwareSystemInstance({
-    required String id,
-    @Default('SoftwareSystemInstance') String type,
-    @Default([]) List<String> tags,
-    @Default({}) Map<String, String> properties,
-    @Default([]) List<Relationship> relationships,
-    required String parentId,
-    required String softwareSystemId,
-    int? instanceId,
-    String? healthEndpoint,
-  }) = _SoftwareSystemInstance;
-
-  /// Creates a software system instance from a JSON object.
-  factory SoftwareSystemInstance.fromJson(Map<String, dynamic> json) => _$SoftwareSystemInstanceFromJson(json);
-
-  /// Creates a new software system instance with a generated ID.
-  factory SoftwareSystemInstance.create({
-    required String parentId,
-    required String softwareSystemId,
-    int? instanceId = 1,
-    String? healthEndpoint,
-    List<String> tags = const ['SoftwareSystemInstance'],
-    Map<String, String> properties = const {},
-  }) {
-    final id = const Uuid().v4();
-    return SoftwareSystemInstance(
-      id: id,
-      parentId: parentId,
-      softwareSystemId: softwareSystemId,
-      instanceId: instanceId,
-      healthEndpoint: healthEndpoint,
-      tags: [...tags],
-      properties: properties,
-    );
-  }
+  ContainerInstance({
+    required this.id,
+    required this.name,
+    required this.containerId,
+    this.description,
+    this.type = 'ContainerInstance',
+    this.tags = const [],
+    this.properties = const {},
+    this.relationships = const [],
+    this.parentId,
+    this.children = const [],
+  });
 
   @override
-  String get name => 'Software System Instance';
+  Element addTag(String tag) => this;
+  @override
+  Element addTags(List<String> newTags) => this;
+  @override
+  Element addProperty(String key, String value) => this;
+  @override
+  Element addRelationship({required String destinationId, required String description, String? technology, List<String> tags = const [], Map<String, String> properties = const {}}) => this;
+  @override
+  Relationship? getRelationshipById(String relationshipId) => null;
+  @override
+  List<Relationship> getRelationshipsTo(String destinationId) => [];
+  @override
+  Element addChild(Element childNode) => this;
+  @override
+  Element setIdentifier(String identifier) => this;
+}
+
+class SoftwareSystemInstance implements Element {
+  @override
+  final String id;
+  @override
+  final String name;
+  @override
+  final String? description;
+  @override
+  final String type;
+  @override
+  final List<String> tags;
+  @override
+  final Map<String, String> properties;
+  @override
+  final List<Relationship> relationships;
+  @override
+  final String? parentId;
+  @override
+  final List<Element> children;
+
+  SoftwareSystemInstance({
+    required this.id,
+    required this.name,
+    this.description,
+    this.type = 'SoftwareSystemInstance',
+    this.tags = const [],
+    this.properties = const {},
+    this.relationships = const [],
+    this.parentId,
+    this.children = const [],
+  });
 
   @override
-  String? get description => null;
-
+  Element addTag(String tag) => this;
   @override
-  SoftwareSystemInstance addTag(String tag) {
-    return copyWith(tags: [...tags, tag]);
-  }
-
+  Element addTags(List<String> newTags) => this;
   @override
-  SoftwareSystemInstance addTags(List<String> newTags) {
-    return copyWith(tags: [...tags, ...newTags]);
-  }
-
+  Element addProperty(String key, String value) => this;
   @override
-  SoftwareSystemInstance addProperty(String key, String value) {
-    final updatedProperties = Map<String, String>.from(properties);
-    updatedProperties[key] = value;
-    return copyWith(properties: updatedProperties);
-  }
-
+  Element addRelationship({required String destinationId, required String description, String? technology, List<String> tags = const [], Map<String, String> properties = const {}}) => this;
   @override
-  SoftwareSystemInstance addRelationship({
-    required String destinationId,
-    required String description,
-    String? technology,
-    List<String> tags = const [],
-    Map<String, String> properties = const {},
-  }) {
-    final relationship = Relationship(
-      id: const Uuid().v4(),
-      sourceId: id,
-      destinationId: destinationId,
-      description: description,
-      technology: technology,
-      tags: tags,
-      properties: properties,
-    );
-
-    return copyWith(relationships: [...relationships, relationship]);
-  }
-
+  Relationship? getRelationshipById(String relationshipId) => null;
   @override
-  Relationship? getRelationshipById(String relationshipId) {
-    try {
-      return relationships.firstWhere((r) => r.id == relationshipId);
-    } catch (_) {
-      return null;
-    }
-  }
-
+  List<Relationship> getRelationshipsTo(String destinationId) => [];
   @override
-  List<Relationship> getRelationshipsTo(String destinationId) {
-    return relationships.where((r) => r.destinationId == destinationId).toList();
-  }
+  Element addChild(Element childNode) => this;
+  @override
+  Element setIdentifier(String identifier) => this;
 }

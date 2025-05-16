@@ -83,6 +83,8 @@ class MockCanvas implements Canvas {
     // Handle text painting (called from TextPainter.paint)
     if (invocation.memberName == #drawParagraph) {
       // This is triggered when TextPainter.paint() is called on this canvas
+      // Record an empty path to signify text was drawn
+      drawnPaths.add(Path());
       return null;
     }
     return null;

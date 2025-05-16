@@ -1,0 +1,37 @@
+import 'package:flutter/painting.dart';
+
+/// GitHub Dark theme based on GitHub's dark mode syntax highlighting
+final Map<String, TextStyle> githubDarkTheme = {
+  'root': TextStyle(
+    backgroundColor: Color(0xFF0d1117),
+    color: Color(0xFFc9d1d9),
+  ),
+  'comment': TextStyle(color: Color(0xFF8b949e), fontStyle: FontStyle.italic),
+  'quote': TextStyle(color: Color(0xFF8b949e), fontStyle: FontStyle.italic),
+  'keyword': TextStyle(color: Color(0xFFff7b72)),
+  'selector-tag': TextStyle(color: Color(0xFFff7b72)),
+  'literal': TextStyle(color: Color(0xFFff7b72)),
+  'name': TextStyle(color: Color(0xFFff7b72)),
+  'type': TextStyle(color: Color(0xFFff7b72)),
+  'section': TextStyle(color: Color(0xFFd2a8ff), fontWeight: FontWeight.bold),
+  'title': TextStyle(color: Color(0xFFd2a8ff)),
+  'tag': TextStyle(color: Color(0xFFd2a8ff)),
+  'attr': TextStyle(color: Color(0xFf79c0ff)),
+  'number': TextStyle(color: Color(0xFFf8b86d)),
+  'string': TextStyle(color: Color(0xFFa5d6ff)),
+  'doctag': TextStyle(color: Color(0xFFa5d6ff)),
+  'built_in': TextStyle(color: Color(0xFFd2a8ff)),
+  'variable': TextStyle(color: Color(0xFFd2a8ff)),
+  'template-variable': TextStyle(color: Color(0xFFd2a8ff)),
+  'function': TextStyle(color: Color(0xFFd2a8ff)),
+  'attribute': TextStyle(color: Color(0xFF79c0ff)),
+  'regexp': TextStyle(color: Color(0xFFa5d6ff)),
+  'symbol': TextStyle(color: Color(0xFFd2a8ff)),
+  'link': TextStyle(color: Color(0xFFa5d6ff), decoration: TextDecoration.underline),
+  'meta': TextStyle(color: Color(0xFFe3b341)),
+  'deletion': TextStyle(color: Color(0xFFffa198), backgroundColor: Color(0xFF5d0000)),
+  'addition': TextStyle(color: Color(0xFF9ec8a1), backgroundColor: Color(0xFF033a16)),
+  'subst': TextStyle(color: Color(0xFFc9d1d9)),
+  'strong': TextStyle(fontWeight: FontWeight.bold),
+  'emphasis': TextStyle(fontStyle: FontStyle.italic),
+};

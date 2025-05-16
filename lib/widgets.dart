@@ -3,3 +3,4 @@ library flutter_structurizr.widgets;
 
 export 'presentation/widgets/diagram/structurizr_diagram.dart';
 export 'presentation/widgets/diagram/animation_controls.dart';
+export 'presentation/widgets/diagram/dynamic_view_diagram.dart';

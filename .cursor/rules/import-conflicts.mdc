@@ -1,0 +1,12 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+import 'package:flutter/material.dart' hide Container, Element, View, Border;
+import 'package:flutter_structurizr/domain/model/model.dart' as structurizr_model;
+
+// Use Flutter's Container
+Container(...)
+// Use domain model's Container
+structurizr_model.Container(...)

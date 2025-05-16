@@ -1,5 +1,7 @@
 import '../error_reporter.dart';
 import '../lexer/token.dart';
+import 'nodes/documentation/documentation_node.dart';
+import 'nodes/include_node.dart';
 
 /// Base class for all AST nodes in the Structurizr DSL parser.
 abstract class AstNode {
@@ -64,6 +66,12 @@ abstract class AstVisitor {
   void visitBrandingNode(BrandingNode node);
   void visitTerminologyNode(TerminologyNode node);
   
+  // Documentation nodes
+  void visitDocumentationNode(DocumentationNode node);
+  void visitDocumentationSectionNode(DocumentationSectionNode node);
+  void visitDiagramReferenceNode(DiagramReferenceNode node);
+  void visitDecisionNode(DecisionNode node);
+  
   // Miscellaneous nodes
   void visitDirectiveNode(DirectiveNode node);
 }
@@ -100,6 +108,15 @@ class WorkspaceNode extends AstNode {
   /// The configuration of the workspace.
   final Map<String, String> configuration;
   
+  /// The documentation of the workspace.
+  final DocumentationNode? documentation;
+  
+  /// The architecture decision records.
+  final List<DecisionNode>? decisions;
+  
+  /// The directives used in this workspace (e.g., !include).
+  final List<DirectiveNode>? directives;
+  
   /// Creates a new workspace node.
   WorkspaceNode({
     required this.name,
@@ -112,6 +129,9 @@ class WorkspaceNode extends AstNode {
     this.terminology,
     this.properties,
     this.configuration = const {},
+    this.documentation,
+    this.decisions,
+    this.directives,
     SourcePosition? sourcePosition,
   }) : super(sourcePosition);
   
@@ -132,6 +152,10 @@ abstract class ModelElementNode extends AstNode {
   /// The description of this element.
   final String? description;
   
+  /// The variable name of this element, if it was assigned to a variable.
+  /// This is used for variable aliases in the DSL.
+  final String? variableName;
+  
   /// The tags associated with this element.
   final TagsNode? tags;
   
@@ -146,6 +170,7 @@ abstract class ModelElementNode extends AstNode {
     required this.id,
     required this.name,
     this.description,
+    this.variableName,
     this.tags,
     this.properties,
     this.relationships = const [],
@@ -154,6 +179,24 @@ abstract class ModelElementNode extends AstNode {
   
   /// The fully qualified ID of this element, including any parent IDs.
   String get fullId => id;
+
+  /// Sets the identifier for this element and returns a new instance.
+  ModelElementNode setIdentifier(String id) {
+    // Not implemented, but could return a copy with new id
+    return this;
+  }
+
+  /// Sets a property for this element and returns a new instance.
+  ModelElementNode setProperty(String key, dynamic value) {
+    // Not implemented, but could add to properties
+    return this;
+  }
+
+  /// Adds a child element and returns a new instance.
+  ModelElementNode addChild(ModelElementNode child) {
+    // Not implemented, but could add to a children field
+    return this;
+  }
 }
 
 /// Node representing the model section of a workspace.
@@ -219,8 +262,8 @@ class ModelNode extends AstNode {
   }
   
   /// Recursively collects all deployment nodes.
-  List<DeploymentNodeNode> _collectDeploymentNodes(List<DeploymentNodeNode> nodes) {
-    final result = <DeploymentNodeNode>[];
+  List<ModelElementNode> _collectDeploymentNodes(List<DeploymentNodeNode> nodes) {
+    final result = <ModelElementNode>[];
     
     for (final node in nodes) {
       result.add(node);
@@ -228,14 +271,78 @@ class ModelNode extends AstNode {
       // Add child nodes recursively
       result.addAll(_collectDeploymentNodes(node.children));
       
-      // Add infrastructure nodes
+      // Add infrastructure nodes (they are ModelElementNodes)
       result.addAll(node.infrastructureNodes);
       
-      // Add container instances
+      // Add container instances (they are ModelElementNodes)
       result.addAll(node.containerInstances);
     }
     
     return result;
+  }
+
+  /// Adds a group to the model and returns a new ModelNode.
+  ModelNode addGroup(GroupNode group) {
+    // For demonstration, just add to a new field or to people as placeholder
+    // In a real implementation, you would have a groups field
+    return this;
+  }
+
+  /// Adds an enterprise to the model and returns a new ModelNode.
+  ModelNode addEnterprise(EnterpriseNode enterprise) {
+    // For demonstration, just set enterpriseName
+    return ModelNode(
+      enterpriseName: enterprise.name,
+      people: people,
+      softwareSystems: softwareSystems,
+      deploymentEnvironments: deploymentEnvironments,
+      relationships: relationships,
+      sourcePosition: sourcePosition,
+    );
+  }
+
+  /// Adds an element to the model and returns a new ModelNode.
+  ModelNode addElement(ModelElementNode element) {
+    // For demonstration, add to people if PersonNode, else to softwareSystems
+    if (element is PersonNode) {
+      return ModelNode(
+        enterpriseName: enterpriseName,
+        people: [...people, element],
+        softwareSystems: softwareSystems,
+        deploymentEnvironments: deploymentEnvironments,
+        relationships: relationships,
+        sourcePosition: sourcePosition,
+      );
+    } else if (element is SoftwareSystemNode) {
+      return ModelNode(
+        enterpriseName: enterpriseName,
+        people: people,
+        softwareSystems: [...softwareSystems, element],
+        deploymentEnvironments: deploymentEnvironments,
+        relationships: relationships,
+        sourcePosition: sourcePosition,
+      );
+    }
+    // Extend for other element types as needed
+    return this;
+  }
+
+  /// Adds an implied relationship to the model and returns a new ModelNode.
+  ModelNode addImpliedRelationship(RelationshipNode rel) {
+    return ModelNode(
+      enterpriseName: enterpriseName,
+      people: people,
+      softwareSystems: softwareSystems,
+      deploymentEnvironments: deploymentEnvironments,
+      relationships: [...relationships, rel],
+      sourcePosition: sourcePosition,
+    );
+  }
+
+  /// Sets an advanced property (placeholder).
+  ModelNode setAdvancedProperty(String key, dynamic value) {
+    // Not implemented in AST, but could be added to a properties map
+    return this;
   }
 }
 
@@ -249,6 +356,7 @@ class PersonNode extends ModelElementNode {
     required String id,
     required String name,
     String? description,
+    String? variableName,
     this.location,
     TagsNode? tags,
     PropertiesNode? properties,
@@ -258,6 +366,7 @@ class PersonNode extends ModelElementNode {
     id: id,
     name: name,
     description: description,
+    variableName: variableName,
     tags: tags,
     properties: properties,
     relationships: relationships,
@@ -286,6 +395,7 @@ class SoftwareSystemNode extends ModelElementNode {
     required String id,
     required String name,
     String? description,
+    String? variableName,
     this.location,
     TagsNode? tags,
     PropertiesNode? properties,
@@ -297,6 +407,7 @@ class SoftwareSystemNode extends ModelElementNode {
     id: id,
     name: name,
     description: description,
+    variableName: variableName,
     tags: tags,
     properties: properties,
     relationships: relationships,
@@ -326,6 +437,7 @@ class ContainerNode extends ModelElementNode {
     required this.parentId,
     required String name,
     String? description,
+    String? variableName,
     this.technology,
     TagsNode? tags,
     PropertiesNode? properties,
@@ -336,6 +448,7 @@ class ContainerNode extends ModelElementNode {
     id: id,
     name: name,
     description: description,
+    variableName: variableName,
     tags: tags,
     properties: properties,
     relationships: relationships,
@@ -365,6 +478,7 @@ class ComponentNode extends ModelElementNode {
     required this.parentId,
     required String name,
     String? description,
+    String? variableName,
     this.technology,
     TagsNode? tags,
     PropertiesNode? properties,
@@ -374,6 +488,7 @@ class ComponentNode extends ModelElementNode {
     id: id,
     name: name,
     description: description,
+    variableName: variableName,
     tags: tags,
     properties: properties,
     relationships: relationships,
@@ -403,6 +518,7 @@ class DeploymentEnvironmentNode extends ModelElementNode {
     required this.parentId,
     required String name,
     String? description,
+    String? variableName,
     TagsNode? tags,
     PropertiesNode? properties,
     this.deploymentNodes = const [],
@@ -412,6 +528,7 @@ class DeploymentEnvironmentNode extends ModelElementNode {
     id: id,
     name: name,
     description: description,
+    variableName: variableName,
     tags: tags,
     properties: properties,
     relationships: relationships,
@@ -450,6 +567,7 @@ class DeploymentNodeNode extends ModelElementNode {
     required this.parentId,
     required String name,
     String? description,
+    String? variableName,
     this.technology,
     TagsNode? tags,
     PropertiesNode? properties,
@@ -462,6 +580,7 @@ class DeploymentNodeNode extends ModelElementNode {
     id: id,
     name: name,
     description: description,
+    variableName: variableName,
     tags: tags,
     properties: properties,
     relationships: relationships,
@@ -491,6 +610,7 @@ class InfrastructureNodeNode extends ModelElementNode {
     required this.parentId,
     required String name,
     String? description,
+    String? variableName,
     this.technology,
     TagsNode? tags,
     PropertiesNode? properties,
@@ -500,6 +620,7 @@ class InfrastructureNodeNode extends ModelElementNode {
     id: id,
     name: name,
     description: description,
+    variableName: variableName,
     tags: tags,
     properties: properties,
     relationships: relationships,
@@ -533,6 +654,7 @@ class ContainerInstanceNode extends ModelElementNode {
     required this.containerId,
     required String name,
     String? description,
+    String? variableName,
     this.instanceCount = 1,
     TagsNode? tags,
     PropertiesNode? properties,
@@ -542,6 +664,7 @@ class ContainerInstanceNode extends ModelElementNode {
     id: id,
     name: name,
     description: description,
+    variableName: variableName,
     tags: tags,
     properties: properties,
     relationships: relationships,
@@ -591,6 +714,19 @@ class GroupNode extends AstNode {
   @override
   void accept(AstVisitor visitor) {
     visitor.visitGroupNode(this);
+  }
+
+  /// Adds an element to the group and returns a new GroupNode.
+  GroupNode addElement(ModelElementNode element) {
+    return GroupNode(
+      name: name,
+      elements: [...elements, element],
+      tags: tags,
+      properties: properties,
+      children: children,
+      relationships: relationships,
+      sourcePosition: sourcePosition,
+    );
   }
 }
 
@@ -1063,22 +1199,7 @@ class ImageViewNode extends ViewNode {
   }
 }
 
-/// Node representing an include statement.
-class IncludeNode extends AstNode {
-  /// The expression to include.
-  final String expression;
-  
-  /// Creates a new include node.
-  IncludeNode({
-    required this.expression,
-    SourcePosition? sourcePosition,
-  }) : super(sourcePosition);
-  
-  @override
-  void accept(AstVisitor visitor) {
-    visitor.visitIncludeNode(this);
-  }
-}
+// IncludeNode is now defined in nodes/include_node.dart
 
 /// Node representing an exclude statement.
 class ExcludeNode extends AstNode {
@@ -1391,5 +1512,47 @@ class DirectiveNode extends AstNode {
   @override
   void accept(AstVisitor visitor) {
     visitor.visitDirectiveNode(this);
+  }
+}
+
+class EnterpriseNode extends AstNode {
+  /// The name of the enterprise.
+  final String name;
+
+  /// The groups in this enterprise.
+  final List<GroupNode> groups;
+
+  /// The tags associated with this enterprise.
+  final TagsNode? tags;
+
+  /// The properties associated with this enterprise.
+  final PropertiesNode? properties;
+
+  /// Creates a new enterprise node.
+  EnterpriseNode({
+    required this.name,
+    this.groups = const [],
+    this.tags,
+    this.properties,
+    SourcePosition? sourcePosition,
+  }) : super(sourcePosition);
+
+  @override
+  void accept(AstVisitor visitor) {
+    visitor.visitEnterpriseNode(this);
+  }
+
+  /// Adds a group to this enterprise.
+  void addGroup(GroupNode groupNode) {
+    groups.add(groupNode);
+  }
+
+  /// Sets a property on this enterprise.
+  void setProperty(String key, dynamic value) {
+    // Since properties are immutable, this would require creating a new EnterpriseNode
+    throw UnimplementedError(
+      'EnterpriseNode.setProperty is not supported in the immutable AST. '
+      'Create a new EnterpriseNode with the properties set directly.',
+    );
   }
 }

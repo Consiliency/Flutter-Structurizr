@@ -5,6 +5,7 @@ import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/model.dart';
 import 'package:flutter_structurizr/domain/view/view.dart';
 import 'package:flutter_structurizr/infrastructure/export/diagram_exporter.dart';
+import 'package:flutter_structurizr/domain/model/workspace.dart';
 
 /// The style of PlantUML to generate
 enum PlantUmlStyle {
@@ -364,10 +365,9 @@ class PlantUmlExporter implements DiagramExporter<String> {
         // Create a representation of this interaction
         final relationship = Relationship(
           id: interaction.id ?? '${sourceId}_${destinationId}_${result.length}',
-          sourceId: sourceId,
-          destinationId: destinationId,
-          description: description,
-          order: interaction.order,
+          sourceId: sourceId ?? '',
+          destinationId: destinationId ?? '',
+          description: description ?? '',
         );
 
         result.add(relationship);

@@ -1,11 +1,12 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
-import 'package:flutter/material.dart' hide Element;
+import 'package:flutter/material.dart' hide Container, Border, Element, View;
 import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/workspace.dart';
-import 'package:flutter_structurizr/domain/style/styles.dart';
-import 'package:flutter_structurizr/domain/view/view.dart';
+import 'package:flutter_structurizr/domain/style/styles.dart' hide Border;
+import 'package:flutter_structurizr/domain/view/view.dart' as structurizr_view;
+import 'package:flutter_structurizr/domain/model/model.dart' hide Container, Element;
 import 'package:flutter_structurizr/presentation/layout/force_directed_layout.dart';
 import 'package:flutter_structurizr/presentation/layout/layout_strategy.dart';
 import 'package:flutter_structurizr/presentation/rendering/base_renderer.dart';
@@ -15,6 +16,9 @@ import 'package:flutter_structurizr/presentation/rendering/elements/component_re
 import 'package:flutter_structurizr/presentation/rendering/elements/container_renderer.dart';
 import 'package:flutter_structurizr/presentation/rendering/elements/person_renderer.dart';
 import 'package:flutter_structurizr/presentation/rendering/relationships/relationship_renderer.dart';
+import 'package:flutter/material.dart' as flutter;
+import 'package:flutter_structurizr/domain/model/model.dart' as structurizr_model;
+import 'package:flutter_structurizr/domain/view/model_view.dart';
 
 /// A custom painter that renders Structurizr diagrams.
 ///
@@ -23,7 +27,7 @@ import 'package:flutter_structurizr/presentation/rendering/relationships/relatio
 /// zooming, panning, selection, and highlighting of diagram elements.
 class DiagramPainter extends CustomPainter {
   /// The view to render
-  final View view;
+  final structurizr_view.View view;
 
   /// The workspace containing the model
   final Workspace workspace;
@@ -48,6 +52,18 @@ class DiagramPainter extends CustomPainter {
 
   /// Animation step to display (for dynamic views)
   final int? animationStep;
+  
+  /// Whether to include names in element renderings
+  final bool includeNames;
+  
+  /// Whether to include descriptions in element renderings
+  final bool includeDescriptions;
+  
+  /// Whether to include relationship descriptions
+  final bool includeRelationshipDescriptions;
+  
+  /// Whether to show animation step indicators
+  final bool showAnimationStepIndicators;
 
   /// Map of element renderers by element type
   final Map<String, BaseRenderer> _elementRenderers = {};
@@ -64,6 +80,9 @@ class DiagramPainter extends CustomPainter {
   /// Map of element rectangles (bounds)
   Map<String, Rect> _elementRects = {};
   
+  /// Map of relationship paths for hit testing
+  Map<String, List<Offset>> _relationshipPaths = {};
+  
   /// The bounding box for all elements
   Rect _boundingBox = Rect.zero;
   
@@ -72,11 +91,16 @@ class DiagramPainter extends CustomPainter {
     required this.view,
     required this.workspace,
     this.selectedId,
+    this.selectedIds,
     this.hoveredId,
     this.zoomScale = 1.0,
     this.panOffset = Offset.zero,
     this.layoutStrategy,
     this.animationStep,
+    this.includeNames = true,
+    this.includeDescriptions = false,
+    this.includeRelationshipDescriptions = true,
+    this.showAnimationStepIndicators = false,
   }) : _relationshipRenderer = RelationshipRenderer(),
        _boundaryRenderer = BoundaryRenderer() {
     _initializeRenderers();
@@ -233,11 +257,12 @@ class DiagramPainter extends CustomPainter {
     }
   }
   
-  /// Draw all boundary elements
+  /// Draw all boundary elements with proper nesting
   void _drawBoundaries(Canvas canvas) {
     // Group elements by parent ID to identify boundaries
     final Map<String, List<String>> boundaryElements = {};
     
+    // Identify parent-child relationships
     for (final elementView in view.elements) {
       final element = _findElementById(elementView.id);
       if (element == null) continue;
@@ -247,10 +272,43 @@ class DiagramPainter extends CustomPainter {
       }
     }
     
-    // Draw each boundary
-    for (final entry in boundaryElements.entries) {
-      final parentId = entry.key;
-      final childIds = entry.value;
+    // Build a hierarchy of boundaries to know which to draw first
+    final rootBoundaries = _findRootBoundaries(boundaryElements);
+    
+    // Draw boundaries from root (top level) to leaf (most nested)
+    _drawNestedBoundaries(canvas, rootBoundaries, boundaryElements);
+  }
+  
+  /// Find root boundaries (those that have no parents in the boundary map)
+  List<String> _findRootBoundaries(Map<String, List<String>> boundaryElements) {
+    // Start with all parent IDs
+    final Set<String> parentIds = boundaryElements.keys.toSet();
+    
+    // Remove any that are children of other boundaries
+    for (final childIds in boundaryElements.values) {
+      for (final childId in childIds) {
+        if (parentIds.contains(childId)) {
+          // This child is itself a parent, so remove it from root candidates
+          parentIds.remove(childId);
+        }
+      }
+    }
+    
+    return parentIds.toList();
+  }
+
+  /// Draw boundaries recursively, starting with outermost (root) boundaries
+  void _drawNestedBoundaries(
+    Canvas canvas, 
+    List<String> parentIds, 
+    Map<String, List<String>> boundaryElements
+  ) {
+    // Sort parent IDs to ensure consistent drawing order
+    parentIds.sort();
+    
+    // Process each boundary in sorted order
+    for (final parentId in parentIds) {
+      final childIds = boundaryElements[parentId] ?? [];
       
       // Skip if parent doesn't have a rectangle
       if (!_elementRects.containsKey(parentId)) continue;
@@ -263,16 +321,28 @@ class DiagramPainter extends CustomPainter {
       // Find the style for the boundary
       final style = _getBoundaryStyle(parent);
       
+      // Get rectangles for the direct children
+      final childRects = childIds
+          .map((id) => _elementRects[id])
+          .whereType<Rect>()
+          .toList();
+      
       // Draw the boundary
       _boundaryRenderer.renderBoundary(
         canvas: canvas,
         element: parent,
         bounds: parentRect,
         style: style,
-        childRects: childIds.map((id) => _elementRects[id]).whereType<Rect>().toList(),
+        childRects: childRects,
         selected: parentId == selectedId,
         hovered: parentId == hoveredId,
       );
+      
+      // Recursively draw any child boundaries
+      final childBoundaryIds = childIds.where((id) => boundaryElements.containsKey(id)).toList();
+      if (childBoundaryIds.isNotEmpty) {
+        _drawNestedBoundaries(canvas, childBoundaryIds, boundaryElements);
+      }
     }
   }
   
@@ -287,7 +357,7 @@ class DiagramPainter extends CustomPainter {
       // Find the animation step
       final step = view.animations.firstWhere(
         (a) => a.order == animationStep,
-        orElse: () => const AnimationStep(order: 0),
+        orElse: () => ModelAnimationStep(order: -1, elements: const [], relationships: const []),
       );
       
       // Check if element is included in this step
@@ -305,7 +375,7 @@ class DiagramPainter extends CustomPainter {
       final position = _elementPositions[elementView.id]!;
       
       // Update the element view with its position and size
-      final updatedElementView = ElementView(
+      final updatedElementView = structurizr_view.ElementView(
         id: elementView.id,
         x: position.dx.round(),
         y: position.dy.round(),
@@ -323,7 +393,10 @@ class DiagramPainter extends CustomPainter {
         element: element,
         elementView: updatedElementView,
         style: style,
-        selected: elementView.id == selectedId,
+        selected: elementView.id == selectedId || (selectedIds?.contains(elementView.id) ?? false),
+        hovered: elementView.id == hoveredId,
+        includeNames: includeNames,
+        includeDescriptions: includeDescriptions,
       );
     }
   }
@@ -339,7 +412,7 @@ class DiagramPainter extends CustomPainter {
       // Find the animation step
       final step = view.animations.firstWhere(
         (a) => a.order == animationStep,
-        orElse: () => const AnimationStep(order: 0),
+        orElse: () => ModelAnimationStep(order: -1, elements: const [], relationships: const []),
       );
       
       // Check if relationship is included in this step
@@ -375,8 +448,16 @@ class DiagramPainter extends CustomPainter {
         style: style,
         sourceRect: sourceRect,
         targetRect: targetRect,
-        selected: relationshipView.id == selectedId,
+        selected: relationshipView.id == selectedId || (selectedIds?.contains(relationshipView.id) ?? false),
+        hovered: relationshipView.id == hoveredId,
+        includeDescription: includeRelationshipDescriptions,
       );
+      
+      // Store relationship path for hit testing
+      _relationshipPaths[relationshipView.id] = [
+        sourceRect.center,
+        targetRect.center,
+      ];
     }
   }
   
@@ -387,10 +468,13 @@ class DiagramPainter extends CustomPainter {
   
   /// Find a relationship by its ID
   Relationship? _findRelationshipById(String id) {
-    return workspace.model.getAllRelationships().firstWhere(
-      (r) => r.id == id,
-      orElse: () => null,
-    );
+    try {
+      return workspace.model.getAllRelationships().firstWhere(
+        (r) => r.id == id,
+      );
+    } catch (e) {
+      return null;
+    }
   }
   
   /// Get the appropriate renderer for an element based on its type
@@ -402,12 +486,15 @@ class DiagramPainter extends CustomPainter {
   /// Get the style for an element
   ElementStyle _getElementStyle(Element element) {
     // Try to get style from the workspace styles
-    final style = workspace.views.configuration.styles.elements.firstWhere(
-      (s) => _elementMatchesStyle(element, s),
-      orElse: () => ElementStyle(),  // Default style if none found
-    );
+    if (workspace.styles != null) {
+      final foundStyle = workspace.styles.findElementStyle(element);
+      if (foundStyle != null) {
+        return foundStyle;
+      }
+    }
     
-    return style;
+    // Default style if none found
+    return const ElementStyle();
   }
   
   /// Get the style for a boundary
@@ -419,37 +506,19 @@ class DiagramPainter extends CustomPainter {
   /// Get the style for a relationship
   RelationshipStyle _getRelationshipStyle(Relationship relationship) {
     // Try to get style from the workspace styles
-    final style = workspace.views.configuration.styles.relationships.firstWhere(
-      (s) => _relationshipMatchesStyle(relationship, s),
-      orElse: () => RelationshipStyle(),  // Default style if none found
-    );
+    if (workspace.styles != null) {
+      final foundStyle = workspace.styles.findRelationshipStyle(relationship);
+      if (foundStyle != null) {
+        return foundStyle;
+      }
+    }
     
-    return style;
+    // Default style if none found
+    return const RelationshipStyle();
   }
   
-  /// Check if an element matches a style definition
-  bool _elementMatchesStyle(Element element, ElementStyle style) {
-    // Check if the element's type matches the style
-    if (style.tag != null && element.tags.contains(style.tag)) {
-      return true;
-    }
-    
-    if (style.type != null && element.type == style.type) {
-      return true;
-    }
-    
-    return false;
-  }
-  
-  /// Check if a relationship matches a style definition
-  bool _relationshipMatchesStyle(Relationship relationship, RelationshipStyle style) {
-    // Check if the relationship's tags match the style
-    if (style.tag != null && relationship.tags.contains(style.tag)) {
-      return true;
-    }
-    
-    return false;
-  }
+  // These methods are no longer used as we're now using the built-in
+  // findElementStyle and findRelationshipStyle methods from the Styles class
   
   @override
   bool shouldRepaint(DiagramPainter oldDelegate) {
@@ -459,11 +528,22 @@ class DiagramPainter extends CustomPainter {
            oldDelegate.hoveredId != hoveredId ||
            oldDelegate.zoomScale != zoomScale ||
            oldDelegate.panOffset != panOffset ||
-           oldDelegate.animationStep != animationStep;
+           oldDelegate.animationStep != animationStep ||
+           oldDelegate.includeNames != includeNames ||
+           oldDelegate.includeDescriptions != includeDescriptions ||
+           oldDelegate.includeRelationshipDescriptions != includeRelationshipDescriptions ||
+           oldDelegate.showAnimationStepIndicators != showAnimationStepIndicators;
   }
   
   /// Hit test to determine which element or relationship was clicked
-  HitTestResult hitTest(Offset point) {
+  bool? hitTest(Offset position) {
+    // Delegate to our custom hit test implementation
+    final result = _hitTest(position);
+    return result.type != DiagramHitTestResultType.none;
+  }
+  
+  /// Custom hit test to determine which element or relationship was clicked
+  DiagramHitTestResult _hitTest(Offset point) {
     // Adjust point for pan and zoom
     final adjustedPoint = (point - panOffset) / zoomScale;
     
@@ -479,7 +559,7 @@ class DiagramPainter extends CustomPainter {
       final renderer = _getRendererForElement(element);
       
       // Update element view with current position and size
-      final updatedElementView = ElementView(
+      final updatedElementView = structurizr_view.ElementView(
         id: elementView.id,
         x: rect.left.round(),
         y: rect.top.round(),
@@ -494,8 +574,8 @@ class DiagramPainter extends CustomPainter {
         elementView: updatedElementView,
         style: style,
       )) {
-        return HitTestResult(
-          type: HitTestResultType.element,
+        return DiagramHitTestResult(
+          type: DiagramHitTestResultType.element,
           id: elementView.id,
           element: element,
         );
@@ -523,8 +603,8 @@ class DiagramPainter extends CustomPainter {
         sourceRect: sourceRect,
         targetRect: targetRect,
       )) {
-        return HitTestResult(
-          type: HitTestResultType.relationship,
+        return DiagramHitTestResult(
+          type: DiagramHitTestResultType.relationship,
           id: relationshipView.id,
           relationship: relationship,
         );
@@ -532,7 +612,12 @@ class DiagramPainter extends CustomPainter {
     }
     
     // No hit
-    return HitTestResult(type: HitTestResultType.none);
+    return DiagramHitTestResult(type: DiagramHitTestResultType.none);
+  }
+  
+  /// Public method to expose custom hit testing
+  DiagramHitTestResult performHitTest(Offset point) {
+    return _hitTest(point);
   }
   
   /// Gets the current bounding box of all elements
@@ -543,10 +628,79 @@ class DiagramPainter extends CustomPainter {
   
   /// Gets all element rectangles
   Map<String, Rect> getAllElementRects() => Map.unmodifiable(_elementRects);
+  
+  /// Gets all relationship paths
+  Map<String, List<Offset>> getAllRelationshipPaths() => Map.unmodifiable(_relationshipPaths);
+  
+  /// Gets elements that intersect with the given rectangle
+  Set<String> getElementsInRect(Rect rect) {
+    final result = <String>{};
+    
+    for (final entry in _elementRects.entries) {
+      if (entry.value.overlaps(rect)) {
+        result.add(entry.key);
+      }
+    }
+    
+    return result;
+  }
+  
+  /// Gets relationships that intersect with the given rectangle
+  Set<String> getRelationshipsInRect(Rect rect) {
+    final result = <String>{};
+    
+    for (final entry in _relationshipPaths.entries) {
+      final relationshipId = entry.key;
+      final path = entry.value;
+      
+      if (path.length < 2) continue;
+      
+      // Check if either endpoint is inside the rect
+      if (rect.contains(path.first) || rect.contains(path.last)) {
+        result.add(relationshipId);
+        continue;
+      }
+      
+      // Check if the line segment intersects with any edge of the rect
+      if (_lineIntersectsRect(path.first, path.last, rect)) {
+        result.add(relationshipId);
+      }
+    }
+    
+    return result;
+  }
+  
+  /// Checks if a line segment intersects with a rectangle
+  bool _lineIntersectsRect(Offset p1, Offset p2, Rect rect) {
+    // Check intersection with all 4 sides of the rectangle
+    return _lineIntersectsLine(p1, p2, rect.topLeft, rect.topRight) ||
+           _lineIntersectsLine(p1, p2, rect.topRight, rect.bottomRight) ||
+           _lineIntersectsLine(p1, p2, rect.bottomRight, rect.bottomLeft) ||
+           _lineIntersectsLine(p1, p2, rect.bottomLeft, rect.topLeft);
+  }
+  
+  /// Line segment intersection test
+  bool _lineIntersectsLine(Offset a, Offset b, Offset c, Offset d) {
+    // Calculate the cross products
+    final ccw1 = _ccw(a, c, d);
+    final ccw2 = _ccw(b, c, d);
+    final ccw3 = _ccw(a, b, c);
+    final ccw4 = _ccw(a, b, d);
+    
+    // Check if the line segments intersect
+    return (ccw1 * ccw2 <= 0) && (ccw3 * ccw4 <= 0);
+  }
+  
+  /// Counter-clockwise test for three points
+  int _ccw(Offset a, Offset b, Offset c) {
+    final val = (b.dy - a.dy) * (c.dx - b.dx) - (b.dx - a.dx) * (c.dy - b.dy);
+    if (val == 0) return 0;      // Collinear
+    return val > 0 ? 1 : -1;     // Clockwise or Counterclockwise
+  }
 }
 
 /// Types of hit test results
-enum HitTestResultType {
+enum DiagramHitTestResultType {
   /// No element or relationship was hit
   none,
   
@@ -558,9 +712,9 @@ enum HitTestResultType {
 }
 
 /// Result of a hit test
-class HitTestResult {
+class DiagramHitTestResult {
   /// The type of hit test result
-  final HitTestResultType type;
+  final DiagramHitTestResultType type;
   
   /// The ID of the element or relationship that was hit
   final String? id;
@@ -572,7 +726,7 @@ class HitTestResult {
   final Relationship? relationship;
   
   /// Creates a new hit test result
-  HitTestResult({
+  DiagramHitTestResult({
     required this.type,
     this.id,
     this.element,

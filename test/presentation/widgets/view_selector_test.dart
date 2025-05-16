@@ -67,17 +67,21 @@ void main() {
       );
 
       // Verify dropdown is shown
-      expect(find.text('Select View'), findsOneWidget);
+      expect(find.text('View'), findsOneWidget);
       
-      // Tap the dropdown
-      await tester.tap(find.byType(DropdownButtonFormField<String>));
+      // Find dropdown button  
+      final dropdownFinder = find.byType(DropdownButton<String>);
+      expect(dropdownFinder, findsOneWidget);
+      
+      // Tap to open the dropdown
+      await tester.tap(dropdownFinder);
       await tester.pumpAndSettle();
       
       // Verify view options are shown
-      expect(find.text('System Context 1'), findsOneWidget);
-      expect(find.text('Container View 1'), findsOneWidget);
-      expect(find.text('Container View 2'), findsOneWidget);
-      expect(find.text('Component View 1'), findsOneWidget);
+      expect(find.text('System Context 1').last, findsOneWidget);
+      expect(find.text('Container View 1').last, findsOneWidget);
+      expect(find.text('Container View 2').last, findsOneWidget);
+      expect(find.text('Component View 1').last, findsOneWidget);
     });
     
     testWidgets('ViewSelector renders in flat mode', (WidgetTester tester) async {
@@ -98,10 +102,10 @@ void main() {
         ),
       );
 
-      // Verify title is shown
-      expect(find.text('Select View'), findsOneWidget);
-      
-      // Verify view items are shown
+      // Wait for widget to build
+      await tester.pumpAndSettle();
+
+      // Verify views are shown
       expect(find.text('System Context 1'), findsOneWidget);
       expect(find.text('Container View 1'), findsOneWidget);
       expect(find.text('Container View 2'), findsOneWidget);

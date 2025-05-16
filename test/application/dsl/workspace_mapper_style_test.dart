@@ -2,8 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter_structurizr/application/dsl/workspace_mapper.dart';
 import 'package:flutter_structurizr/domain/model/workspace.dart';
-import 'package:flutter_structurizr/domain/parser/ast/ast_node.dart';
-import 'package:flutter_structurizr/domain/parser/ast/ast_nodes.dart';
+import 'package:flutter_structurizr/domain/parser/ast/ast.dart';
 import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 import 'package:flutter_structurizr/domain/style/styles.dart';
 import 'package:flutter_structurizr/domain/view/views.dart';

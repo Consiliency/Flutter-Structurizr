@@ -1,12 +1,13 @@
 import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 import 'package:flutter_structurizr/domain/parser/lexer/lexer.dart';
 import 'package:flutter_structurizr/domain/parser/lexer/token.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Lexer', () {
     // Helper function to scan tokens from source
     List<Token> scanTokens(String source) {
+      final errorReporter = ErrorReporter(source);
       final lexer = Lexer(source);
       return lexer.scanTokens();
     }
@@ -15,7 +16,7 @@ void main() {
     void expectTokenTypes(List<Token> tokens, List<TokenType> expectedTypes) {
       expect(
         tokens.map((t) => t.type).toList(),
-        equals(expectedTypes),
+        expectedTypes,
         reason: 'Token types should match expected types',
       );
     }
@@ -266,31 +267,31 @@ void main() {
 
     group('String literal features', () {
       test('should process escape sequences in string literals', () {
-        final source = r'"Line1\nLine2\t\r\b\f\'\"\\Test"';
+        final source = '"Line1\\nLine2\\t\\r\\b\\f\\\'\\\"\\\\Test"';
         final tokens = scanTokens(source);
         
         expectToken(
           tokens[0],
           type: TokenType.string,
-          lexeme: r'"Line1\nLine2\t\r\b\f\'\"\\Test"',
+          lexeme: '"Line1\\nLine2\\t\\r\\b\\f\\\'\\\"\\\\Test"',
           value: 'Line1\nLine2\t\r\b\f\'\"\\Test',
         );
       });
 
       test('should process Unicode escape sequences', () {
-        final source = r'"\u0041\u0042\u0043"'; // ABC in Unicode
+        final source = '"\\u0041\\u0042\\u0043"'; // ABC in Unicode
         final tokens = scanTokens(source);
         
         expectToken(
           tokens[0],
           type: TokenType.string,
-          lexeme: r'"\u0041\u0042\u0043"',
+          lexeme: '"\\u0041\\u0042\\u0043"',
           value: 'ABC',
         );
       });
 
       test('should report error for invalid escape sequences', () {
-        final source = r'"Test\z"';
+        final source = '"Test\\z"';
         final lexer = Lexer(source);
         final tokens = lexer.scanTokens();
         
@@ -302,7 +303,7 @@ void main() {
       });
 
       test('should report error for incomplete Unicode escape sequence', () {
-        final source = r'"\u004"'; // Incomplete Unicode sequence
+        final source = '"\\u004"'; // Incomplete Unicode sequence
         final lexer = Lexer(source);
         final tokens = lexer.scanTokens();
         
@@ -314,7 +315,7 @@ void main() {
       });
 
       test('should report error for invalid Unicode escape sequence', () {
-        final source = r'"\u004Z"'; // Invalid Unicode sequence
+        final source = '"\\u004Z"'; // Invalid Unicode sequence
         final lexer = Lexer(source);
         final tokens = lexer.scanTokens();
         
@@ -507,6 +508,92 @@ component "Name" {
         
         // Ensure we got a complete token stream by checking EOF
         expect(tokens.last.type, equals(TokenType.eof));
+      });
+    });
+    
+    group('Documentation and decisions keywords', () {
+      test('should correctly identify documentation and decisions as keywords', () {
+        final source = '''
+workspace {
+  documentation {
+    content = "This is documentation"
+  }
+  
+  decisions {
+    decision "ADR-001" {
+      title = "Test Decision"
+    }
+  }
+  
+  // These should be identifiers, not keywords
+  myDocumentation = "Not a keyword"
+  myDecisions = "Not a keyword"
+}
+''';
+        final tokens = scanTokens(source);
+        
+        // Print all tokens for debugging
+        print('\n--- DEBUG: TOKENS FOR DOCUMENTATION/DECISIONS TEST ---');
+        tokens.forEach((token) {
+          print('Token: ${token.type} | Lexeme: "${token.lexeme}" | Line: ${token.line} | Column: ${token.column}');
+        });
+        print('--- END DEBUG ---\n');
+        
+        // Find documentation and decisions tokens
+        final docToken = tokens.firstWhere(
+          (t) => t.lexeme == 'documentation', 
+          orElse: () => Token(type: TokenType.error, lexeme: 'not found', position: SourcePosition(line: 0, column: 0, offset: 0))
+        );
+        
+        final decisionsToken = tokens.firstWhere(
+          (t) => t.lexeme == 'decisions', 
+          orElse: () => Token(type: TokenType.error, lexeme: 'not found', position: SourcePosition(line: 0, column: 0, offset: 0))
+        );
+        
+        // Find the identifier tokens for myDocumentation and myDecisions
+        final myDocumentationToken = tokens.firstWhere(
+          (t) => t.lexeme == 'myDocumentation', 
+          orElse: () => Token(type: TokenType.error, lexeme: 'not found', position: SourcePosition(line: 0, column: 0, offset: 0))
+        );
+        
+        final myDecisionsToken = tokens.firstWhere(
+          (t) => t.lexeme == 'myDecisions', 
+          orElse: () => Token(type: TokenType.error, lexeme: 'not found', position: SourcePosition(line: 0, column: 0, offset: 0))
+        );
+        
+        // Check that the tokens are of the correct type
+        expect(docToken.type, equals(TokenType.documentation), 
+               reason: "'documentation' should be recognized as a keyword, not an identifier");
+               
+        expect(decisionsToken.type, equals(TokenType.decisions), 
+               reason: "'decisions' should be recognized as a keyword, not an identifier");
+               
+        expect(myDocumentationToken.type, equals(TokenType.identifier), 
+               reason: "'myDocumentation' should be an identifier, not a keyword");
+               
+        expect(myDecisionsToken.type, equals(TokenType.identifier), 
+               reason: "'myDecisions' should be an identifier, not a keyword");
+      });
+      
+      test('should correctly identify isolated documentation and decisions tokens', () {
+        // This test tries to isolate the tokens on their own lines to clearly see the lexer's behavior
+        final source = '''
+documentation
+decisions
+''';
+        final tokens = scanTokens(source);
+        
+        // Print all tokens for debugging
+        print('\n--- DEBUG: TOKENS FOR ISOLATED DOCUMENTATION/DECISIONS TEST ---');
+        tokens.forEach((token) {
+          print('Token: ${token.type} | Lexeme: "${token.lexeme}" | Line: ${token.line} | Column: ${token.column}');
+        });
+        print('--- END DEBUG ---\n');
+        
+        // Check the types
+        expect(tokens.length, equals(3), reason: "Should have 2 tokens plus EOF");
+        expect(tokens[0].type, equals(TokenType.documentation), reason: "First token should be documentation keyword");
+        expect(tokens[1].type, equals(TokenType.decisions), reason: "Second token should be decisions keyword");
       });
     });
   });

@@ -1,0 +1,7 @@
+## Table 4: **ElementParser Methods**
+| Method                                                      | Calls                                                                                           | Example Method Call                                  |
+|-------------------------------------------------------------|-------------------------------------------------------------------------------------------------|------------------------------------------------------|
+| ElementParser.parsePerson(List<Token>): PersonNode           | ContextStack.push, ContextStack.pop, _parseIdentifier, ElementNode.setIdentifier, PersonNode.setProperty, _parseParentChild, handleError | `elementParser.parsePerson(tokens);`                 |
+| ElementParser.parseSoftwareSystem(List<Token>): SoftwareSystemNode | ContextStack.push, ContextStack.pop, _parseIdentifier, ElementNode.setIdentifier, SoftwareSystemNode.setProperty, _parseParentChild, handleError | `elementParser.parseSoftwareSystem(tokens);`        |
+| ElementParser._parseIdentifier(List<Token>): String          | handleError                                                                                     | `elementParser._parseIdentifier(tokens);`           |
+| ElementParser._parseParentChild(List<Token>): void           | ModelParser._parseNestedElement, RelationshipParser.parse, ElementNode.addChild, ElementNode.setProperty, handleError | `elementParser._parseParentChild(tokens);`          | 

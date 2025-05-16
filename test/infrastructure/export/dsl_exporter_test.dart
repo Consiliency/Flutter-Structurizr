@@ -1,15 +1,18 @@
-import 'package:flutter/material.dart' hide Element, Container, View;
+import 'package:flutter/material.dart' hide Element, Container, View, Border;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_structurizr/domain/documentation/documentation.dart';
 import 'package:flutter_structurizr/domain/model/model.dart';
 import 'package:flutter_structurizr/domain/model/workspace.dart';
 import 'package:flutter_structurizr/domain/view/view.dart';
+import 'package:flutter_structurizr/domain/view/views.dart';
+import 'package:flutter_structurizr/domain/style/branding.dart';
 import 'package:flutter_structurizr/domain/style/styles.dart';
 import 'package:flutter_structurizr/infrastructure/export/diagram_exporter.dart';
 import 'package:flutter_structurizr/infrastructure/export/dsl_exporter.dart';
 
 void main() {
   /// Creates a test workspace with sample elements
-  Workspace createTestWorkspace() {
+  Workspace createTestWorkspace({bool includeDocumentation = false}) {
     // Create a simple model with a person and a system
     final person = Person.create(
       name: 'User',
@@ -66,6 +69,12 @@ void main() {
       relationships: [
         RelationshipView(id: 'rel1'),
       ],
+      automaticLayout: AutomaticLayout(
+        rankDirection: RankDirection.topBottom,
+        rankSeparation: 100,
+        nodeSeparation: 100,
+        edgeSeparation: 10,
+      ),
     );
     
     // Create container view
@@ -124,7 +133,7 @@ void main() {
       deploymentViews: [deploymentView],
     );
     
-    // Set up workspace configuration with styles
+    // Set up workspace styles
     final elementStyle = ElementStyle(
       tag: 'Person',
       shape: 'Person',
@@ -143,9 +152,49 @@ void main() {
       relationships: [relationshipStyle],
     );
     
+    // Set up workspace configuration
     final configuration = WorkspaceConfiguration(
-      styles: styles,
+      properties: {'terminology': 'standardization'},
     );
+    
+    // Add documentation if requested
+    Documentation? documentation;
+    if (includeDocumentation) {
+      documentation = Documentation(
+        sections: [
+          DocumentationSection(
+            title: 'Overview',
+            content: 'This is an overview of the system.\nIt has multiple lines.',
+            format: DocumentationFormat.markdown,
+            order: 1,
+          ),
+          DocumentationSection(
+            title: 'Context',
+            content: '= System Context\n\nThis section describes the system context.',
+            format: DocumentationFormat.asciidoc,
+            order: 2,
+          ),
+        ],
+        decisions: [
+          Decision(
+            id: 'ADR-001',
+            date: DateTime(2023, 5, 15),
+            status: 'Accepted',
+            title: 'Use Markdown for documentation',
+            content: '# ADR-001: Use Markdown\n\n## Decision\nWe will use Markdown for documentation...',
+            links: ['ADR-002'],
+          ),
+          Decision(
+            id: 'ADR-002',
+            date: DateTime(2023, 6, 20),
+            status: 'Proposed',
+            title: 'API Documentation Format',
+            content: '# ADR-002: API Documentation Format\n\n## Context\nWe need to document our APIs...',
+            format: DocumentationFormat.markdown,
+          ),
+        ],
+      );
+    }
     
     // Create and return the workspace
     return Workspace(
@@ -154,7 +203,9 @@ void main() {
       description: 'A test workspace for Structurizr DSL export',
       model: updatedModel,
       views: views,
+      styles: styles,
       configuration: configuration,
+      documentation: documentation,
     );
   }
 
@@ -232,8 +283,8 @@ void main() {
     });
     
     test('respects documentation inclusion setting', () async {
-      // Create test workspace and diagram reference
-      final workspace = createTestWorkspace();
+      // Create test workspace with documentation and diagram reference
+      final workspace = createTestWorkspace(includeDocumentation: true);
       final diagram = DiagramReference(
         workspace: workspace,
         viewKey: 'SystemContext',
@@ -252,9 +303,17 @@ void main() {
       final withDocsDsl = await withDocsExporter.export(diagram);
       final noDocsDsl = await noDocsExporter.export(diagram);
       
-      // Since our test workspace doesn't have documentation, we just verify
-      // that both exports work and have the same length in this case
-      expect(withDocsDsl.length, equals(noDocsDsl.length));
+      // Check that documentation is included when requested
+      expect(withDocsDsl, contains('documentation {'));
+      expect(withDocsDsl, contains('section "Overview"'));
+      expect(withDocsDsl, contains('section "Context"'));
+      expect(withDocsDsl, contains('decisions {'));
+      expect(withDocsDsl, contains('decision "ADR-001"'));
+      
+      // Check that documentation is excluded when not requested
+      expect(noDocsDsl, isNot(contains('documentation {')));
+      expect(noDocsDsl, isNot(contains('section "Overview"')));
+      expect(noDocsDsl, isNot(contains('decisions {')));
     });
     
     test('respects styles inclusion setting', () async {
@@ -441,6 +500,8 @@ void main() {
         name: 'Test "Quotes"',
         description: 'Description with "quotes" and \\ backslashes',
         model: model,
+        views: Views(),
+        styles: Styles(),
       );
       
       final diagram = DiagramReference(
@@ -458,6 +519,68 @@ void main() {
       expect(dsl, contains('name "Test \\"Quotes\\""'));
       expect(dsl, contains('description "Description with \\"quotes\\" and \\\\ backslashes"'));
       expect(dsl, contains('person "User with \\"quotes\\"" "A user with \\\\ backslashes and \\"quotes\\""'));
+    });
+    
+    test('exports documentation section correctly', () async {
+      // Create test workspace with documentation and diagram reference
+      final workspace = createTestWorkspace(includeDocumentation: true);
+      final diagram = DiagramReference(
+        workspace: workspace,
+        viewKey: 'SystemContext',
+      );
+      
+      // Create the exporter
+      final exporter = DslExporter(
+        includeDocumentation: true,
+      );
+      
+      // Export the diagram
+      final dsl = await exporter.export(diagram);
+      
+      // Check documentation format
+      expect(dsl, contains('documentation {'));
+      
+      // Check sections
+      expect(dsl, contains('section "Overview" {'));
+      expect(dsl, contains('content """This is an overview of the system.\\nIt has multiple lines."""'));
+      
+      // Check explicitly specified format (asciidoc)
+      expect(dsl, contains('section "Context" {'));
+      expect(dsl, contains('format "asciidoc"'));
+      expect(dsl, contains('content """= System Context\\n\\nThis section describes the system context."""'));
+    });
+    
+    test('exports decisions correctly', () async {
+      // Create test workspace with documentation and diagram reference
+      final workspace = createTestWorkspace(includeDocumentation: true);
+      final diagram = DiagramReference(
+        workspace: workspace,
+        viewKey: 'SystemContext',
+      );
+      
+      // Create the exporter
+      final exporter = DslExporter(
+        includeDocumentation: true,
+      );
+      
+      // Export the diagram
+      final dsl = await exporter.export(diagram);
+      
+      // Check decisions section
+      expect(dsl, contains('decisions {'));
+      
+      // Check decision 1
+      expect(dsl, contains('decision "ADR-001" {'));
+      expect(dsl, contains('title "Use Markdown for documentation"'));
+      expect(dsl, contains('status "Accepted"'));
+      expect(dsl, contains('date "2023-05-15"'));
+      expect(dsl, contains('links "ADR-002"'));
+      
+      // Check decision 2
+      expect(dsl, contains('decision "ADR-002" {'));
+      expect(dsl, contains('title "API Documentation Format"'));
+      expect(dsl, contains('status "Proposed"'));
+      expect(dsl, contains('date "2023-06-20"'));
     });
   });
 }

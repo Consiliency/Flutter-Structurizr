@@ -95,3 +95,6 @@ $RECYCLE.BIN/
 lite/
 ui/
 json/
+**/CLAUDE.local.md
+
+**/.claude/settings.local.json

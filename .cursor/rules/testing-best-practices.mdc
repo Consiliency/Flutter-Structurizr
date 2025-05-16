@@ -1,0 +1,37 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+- Use mock implementations for abstract classes in tests.
+- Use factory methods for easy test object creation.
+- Prefer Material components over basic Container widgets for layout.
+- Use `SingleChildScrollView` for long content and `Expanded` for flexible sizing.
+- Handle text overflow with `TextOverflow.ellipsis`.
+- Use `findsWidgets` instead of `findsOneWidget` when multiple instances may exist.
+- Use ancestor finders to locate specific widgets in the hierarchy:
+  ```dart
+  final specificWidget = find.ancestor(
+    of: find.text('Some Text'),
+    matching: find.byWidgetPredicate((widget) =>
+      widget is Text && widget.style?.fontWeight == FontWeight.bold
+    )
+  );
+  ```
+- Plan for future visual regression coverage using golden tests.
+- Use example applications for manual visual verification.
+- For context menus, verify `GestureDetector` presence and structure instead of fully simulating clicks.
+- Use `sendKeyEvent` in widget tests to simulate keyboard input and test modifier key combinations (Ctrl, Alt, Shift).
+- Replace Flutter's Container with DecoratedBox + SizedBox + Padding if you run into conflicts:
+  ```dart
+  DecoratedBox(
+    decoration: BoxDecoration(...),
+    child: SizedBox(
+      width: 200,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: childWidget,
+      ),
+    ),
+  )
+  ```

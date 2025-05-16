@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_structurizr/domain/documentation/documentation.dart';
 
 /// A widget that displays a table of contents for documentation.
-class TableOfContents extends StatelessWidget {
+class TableOfContents extends StatefulWidget {
   /// The list of documentation sections.
   final List<DocumentationSection> sections;
   
@@ -45,10 +45,70 @@ class TableOfContents extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<TableOfContents> createState() => _TableOfContentsState();
+}
+
+class _TableOfContentsState extends State<TableOfContents> {
+  /// Tracks which sections are expanded
+  final Map<int, bool> _expandedSections = {};
+  
+  @override
+  void initState() {
+    super.initState();
+    // Initialize all root sections as expanded
+    for (int i = 0; i < widget.sections.length; i++) {
+      _expandedSections[i] = true;
+    }
+  }
+  
+  /// Toggle the expanded state of a section
+  void _toggleSection(int index) {
+    setState(() {
+      _expandedSections[index] = !(_expandedSections[index] ?? false);
+    });
+  }
+  
+  /// Compute the parent-child relationships between sections based on title structure
+  /// Returns a map of parent indices to lists of child indices
+  Map<int, List<int>> _computeSectionHierarchy() {
+    final Map<int, List<int>> hierarchy = {};
+    final List<int> sectionLevels = [];
+    
+    // Determine section levels based on title prefixes (e.g., "1.", "1.1.", etc.)
+    for (var section in widget.sections) {
+      final parts = section.title.split('.');
+      sectionLevels.add(parts.length);
+    }
+    
+    // Build parent-child relationships
+    for (int i = 0; i < widget.sections.length; i++) {
+      final currentLevel = sectionLevels[i];
+      
+      // Find potential parents (sections that come before this one with lower level)
+      int parentIndex = -1;
+      for (int j = i - 1; j >= 0; j--) {
+        if (sectionLevels[j] < currentLevel) {
+          parentIndex = j;
+          break;
+        }
+      }
+      
+      if (parentIndex != -1) {
+        hierarchy.putIfAbsent(parentIndex, () => []).add(i);
+      }
+    }
+    
+    return hierarchy;
+  }
+  
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasSections = sections.isNotEmpty;
-    final hasDecisions = decisions.isNotEmpty;
+    final hasSections = widget.sections.isNotEmpty;
+    final hasDecisions = widget.decisions.isNotEmpty;
+    
+    // Compute the section hierarchy for nested display
+    final sectionHierarchy = _computeSectionHierarchy();
     
     // If there's neither sections nor decisions, show a message
     if (!hasSections && !hasDecisions) {
@@ -56,7 +116,7 @@ class TableOfContents extends StatelessWidget {
         child: Text(
           'No documentation available',
           style: TextStyle(
-            color: isDarkMode ? Colors.white70 : Colors.black54,
+            color: widget.isDarkMode ? Colors.white70 : Colors.black54,
             fontStyle: FontStyle.italic,
           ),
         ),
@@ -73,38 +133,38 @@ class TableOfContents extends StatelessWidget {
             decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(
-                  color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300,
+                  color: widget.isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300,
                 ),
               ),
-              color: isDarkMode ? Colors.grey.shade900 : Colors.grey.shade50,
+              color: widget.isDarkMode ? Colors.grey.shade900 : Colors.grey.shade50,
             ),
             child: Row(
               children: [
                 Expanded(
                   child: InkWell(
-                    onTap: viewingDecisions ? onToggleView : null,
+                    onTap: widget.viewingDecisions ? widget.onToggleView : null,
                     child: Container(
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         border: Border(
                           bottom: BorderSide(
-                            color: !viewingDecisions 
-                                ? (isDarkMode ? Colors.blue.shade300 : Colors.blue)
+                            color: !widget.viewingDecisions 
+                                ? (widget.isDarkMode ? Colors.blue.shade300 : Colors.blue)
                                 : Colors.transparent,
                             width: 2,
                           ),
                         ),
-                        color: !viewingDecisions
-                            ? (isDarkMode ? Colors.blue.withOpacity(0.1) : Colors.blue.withOpacity(0.05))
+                        color: !widget.viewingDecisions
+                            ? (widget.isDarkMode ? Colors.blue.withOpacity(0.1) : Colors.blue.withOpacity(0.05))
                             : Colors.transparent,
                       ),
                       child: Text(
                         'Documentation',
                         style: TextStyle(
-                          color: !viewingDecisions
-                              ? (isDarkMode ? Colors.blue.shade300 : Colors.blue)
-                              : (isDarkMode ? Colors.white70 : Colors.black54),
-                          fontWeight: !viewingDecisions
+                          color: !widget.viewingDecisions
+                              ? (widget.isDarkMode ? Colors.blue.shade300 : Colors.blue)
+                              : (widget.isDarkMode ? Colors.white70 : Colors.black54),
+                          fontWeight: !widget.viewingDecisions
                               ? FontWeight.bold
                               : FontWeight.normal,
                         ),
@@ -114,29 +174,29 @@ class TableOfContents extends StatelessWidget {
                 ),
                 Expanded(
                   child: InkWell(
-                    onTap: !viewingDecisions ? onToggleView : null,
+                    onTap: !widget.viewingDecisions ? widget.onToggleView : null,
                     child: Container(
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
                         border: Border(
                           bottom: BorderSide(
-                            color: viewingDecisions 
-                                ? (isDarkMode ? Colors.blue.shade300 : Colors.blue)
+                            color: widget.viewingDecisions 
+                                ? (widget.isDarkMode ? Colors.blue.shade300 : Colors.blue)
                                 : Colors.transparent,
                             width: 2,
                           ),
                         ),
-                        color: viewingDecisions
-                            ? (isDarkMode ? Colors.blue.withOpacity(0.1) : Colors.blue.withOpacity(0.05))
+                        color: widget.viewingDecisions
+                            ? (widget.isDarkMode ? Colors.blue.withOpacity(0.1) : Colors.blue.withOpacity(0.05))
                             : Colors.transparent,
                       ),
                       child: Text(
                         'Decisions',
                         style: TextStyle(
-                          color: viewingDecisions
-                              ? (isDarkMode ? Colors.blue.shade300 : Colors.blue)
-                              : (isDarkMode ? Colors.white70 : Colors.black54),
-                          fontWeight: viewingDecisions
+                          color: widget.viewingDecisions
+                              ? (widget.isDarkMode ? Colors.blue.shade300 : Colors.blue)
+                              : (widget.isDarkMode ? Colors.white70 : Colors.black54),
+                          fontWeight: widget.viewingDecisions
                               ? FontWeight.bold
                               : FontWeight.normal,
                         ),
@@ -155,17 +215,17 @@ class TableOfContents extends StatelessWidget {
             decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(
-                  color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300,
+                  color: widget.isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300,
                 ),
               ),
-              color: isDarkMode ? Colors.grey.shade900 : Colors.grey.shade50,
+              color: widget.isDarkMode ? Colors.grey.shade900 : Colors.grey.shade50,
             ),
             child: Text(
               hasSections ? 'Documentation' : 'Decisions',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: isDarkMode ? Colors.white : Colors.black87,
+                color: widget.isDarkMode ? Colors.white : Colors.black87,
               ),
             ),
           ),
@@ -173,13 +233,13 @@ class TableOfContents extends StatelessWidget {
         // Main scrollable content list
         Expanded(
           child: Container(
-            color: isDarkMode ? Colors.grey.shade900.withOpacity(0.7) : Colors.grey.shade50,
+            color: widget.isDarkMode ? Colors.grey.shade900.withOpacity(0.7) : Colors.grey.shade50,
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: viewingDecisions
+                children: widget.viewingDecisions
                     ? _buildDecisionsList(theme)
-                    : _buildSectionsList(theme),
+                    : _buildSectionsList(theme, sectionHierarchy),
               ),
             ),
           ),
@@ -188,15 +248,16 @@ class TableOfContents extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildSectionsList(ThemeData theme) {
-    if (sections.isEmpty) {
+  /// Builds a list of documentation sections with collapsible hierarchy.
+  List<Widget> _buildSectionsList(ThemeData theme, Map<int, List<int>> hierarchy) {
+    if (widget.sections.isEmpty) {
       return [
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: Text(
             'No documentation sections available',
             style: TextStyle(
-              color: isDarkMode ? Colors.white70 : Colors.grey.shade600,
+              color: widget.isDarkMode ? Colors.white70 : Colors.grey.shade600,
               fontStyle: FontStyle.italic,
             ),
           ),
@@ -204,50 +265,110 @@ class TableOfContents extends StatelessWidget {
       ];
     }
 
-    return sections.asMap().entries.map((entry) {
-      final index = entry.key;
-      final section = entry.value;
-      final isSelected = index == currentSectionIndex && !viewingDecisions;
-      
-      return ListTile(
-        title: Text(
-          section.title,
-          style: TextStyle(
-            color: isSelected
-                ? (isDarkMode ? Colors.blue.shade300 : theme.primaryColor)
-                : (isDarkMode ? Colors.white : Colors.black87),
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-        subtitle: section.elementId != null
-            ? Text(
-                'Related to: ${section.elementId}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+    // Build list with root sections first
+    List<Widget> result = [];
+    List<bool> isChildSection = List.filled(widget.sections.length, false);
+    
+    // Mark all children as non-root
+    hierarchy.forEach((parentIndex, children) {
+      for (final childIndex in children) {
+        isChildSection[childIndex] = true;
+      }
+    });
+    
+    // Add root sections first
+    for (int i = 0; i < widget.sections.length; i++) {
+      if (!isChildSection[i]) {
+        result.addAll(_buildSectionWithChildren(i, 0, theme, hierarchy));
+      }
+    }
+    
+    return result;
+  }
+  
+  /// Recursively builds a section and its children with proper indentation
+  List<Widget> _buildSectionWithChildren(
+    int sectionIndex, 
+    int depth, 
+    ThemeData theme, 
+    Map<int, List<int>> hierarchy
+  ) {
+    final section = widget.sections[sectionIndex];
+    final isSelected = sectionIndex == widget.currentSectionIndex && !widget.viewingDecisions;
+    final hasChildren = hierarchy.containsKey(sectionIndex) && hierarchy[sectionIndex]!.isNotEmpty;
+    final isExpanded = _expandedSections[sectionIndex] ?? false;
+    
+    List<Widget> result = [];
+    
+    // Add this section
+    result.add(
+      Padding(
+        padding: EdgeInsets.only(left: depth * 16.0),
+        child: ListTile(
+          leading: hasChildren
+            ? InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () => _toggleSection(sectionIndex),
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  alignment: Alignment.center,
+                  child: Icon(
+                    isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_right,
+                    size: 16,
+                    color: widget.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700,
+                  ),
                 ),
               )
-            : null,
-        tileColor: isSelected
-            ? (isDarkMode ? Colors.blue.withOpacity(0.1) : theme.primaryColor.withOpacity(0.05))
-            : Colors.transparent,
-        onTap: () => onSectionSelected(index),
-        selected: isSelected,
-        dense: true,
-        visualDensity: VisualDensity.compact,
-      );
-    }).toList();
+            : SizedBox(width: 24),
+          title: Text(
+            section.title,
+            style: TextStyle(
+              color: isSelected
+                  ? (widget.isDarkMode ? Colors.blue.shade300 : theme.primaryColor)
+                  : (widget.isDarkMode ? Colors.white : Colors.black87),
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+          subtitle: section.elementId != null
+              ? Text(
+                  'Related to: ${section.elementId}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: widget.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+                  ),
+                )
+              : null,
+          tileColor: isSelected
+              ? (widget.isDarkMode ? Colors.blue.withOpacity(0.1) : theme.primaryColor.withOpacity(0.05))
+              : Colors.transparent,
+          onTap: () => widget.onSectionSelected(sectionIndex),
+          selected: isSelected,
+          dense: true,
+          visualDensity: VisualDensity.compact,
+        ),
+      ),
+    );
+    
+    // Add children if expanded
+    if (hasChildren && isExpanded) {
+      for (final childIndex in hierarchy[sectionIndex]!) {
+        result.addAll(_buildSectionWithChildren(childIndex, depth + 1, theme, hierarchy));
+      }
+    }
+    
+    return result;
   }
 
   List<Widget> _buildDecisionsList(ThemeData theme) {
-    if (decisions.isEmpty) {
+    if (widget.decisions.isEmpty) {
       return [
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: Text(
             'No architecture decisions available',
             style: TextStyle(
-              color: isDarkMode ? Colors.white70 : Colors.grey.shade600,
+              color: widget.isDarkMode ? Colors.white70 : Colors.grey.shade600,
               fontStyle: FontStyle.italic,
             ),
           ),
@@ -255,10 +376,10 @@ class TableOfContents extends StatelessWidget {
       ];
     }
 
-    return decisions.asMap().entries.map((entry) {
+    return widget.decisions.asMap().entries.map((entry) {
       final index = entry.key;
       final decision = entry.value;
-      final isSelected = index == currentDecisionIndex && viewingDecisions;
+      final isSelected = index == widget.currentDecisionIndex && widget.viewingDecisions;
 
       // Map common decision statuses to colors
       Color statusColor;
@@ -287,8 +408,8 @@ class TableOfContents extends StatelessWidget {
           decision.title,
           style: TextStyle(
             color: isSelected
-                ? (isDarkMode ? Colors.blue.shade300 : theme.primaryColor)
-                : (isDarkMode ? Colors.white : Colors.black87),
+                ? (widget.isDarkMode ? Colors.blue.shade300 : theme.primaryColor)
+                : (widget.isDarkMode ? Colors.white : Colors.black87),
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
@@ -296,7 +417,7 @@ class TableOfContents extends StatelessWidget {
           '${decision.id} • ${_formatDate(decision.date)}',
           style: TextStyle(
             fontSize: 12,
-            color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+            color: widget.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
           ),
         ),
         leading: Container(
@@ -313,9 +434,9 @@ class TableOfContents extends StatelessWidget {
           ),
         ),
         tileColor: isSelected
-            ? (isDarkMode ? Colors.blue.withOpacity(0.1) : theme.primaryColor.withOpacity(0.05))
+            ? (widget.isDarkMode ? Colors.blue.withOpacity(0.1) : theme.primaryColor.withOpacity(0.05))
             : Colors.transparent,
-        onTap: () => onDecisionSelected(index),
+        onTap: () => widget.onDecisionSelected(index),
         selected: isSelected,
         dense: true,
         visualDensity: VisualDensity.compact,

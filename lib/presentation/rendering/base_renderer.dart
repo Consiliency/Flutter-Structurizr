@@ -18,12 +18,16 @@ abstract class BaseRenderer {
   /// [elementView] The view-specific properties for the element.
   /// [style] The style to apply when rendering the element.
   /// [selected] Whether the element is currently selected.
+  /// [hovered] Whether the element is currently being hovered over.
   void renderElement({
     required Canvas canvas,
     required Element element,
     required ElementView elementView,
     required ElementStyle style,
     bool selected = false,
+    bool hovered = false,
+    bool includeNames = true,
+    bool includeDescriptions = false,
   });
 
   /// Renders a relationship on the provided canvas.
@@ -43,6 +47,8 @@ abstract class BaseRenderer {
     required Rect sourceRect,
     required Rect targetRect,
     bool selected = false,
+    bool hovered = false,
+    bool includeDescription = true,
   });
 
   /// Calculates the bounds of an element.

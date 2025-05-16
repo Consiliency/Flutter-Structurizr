@@ -1,10 +1,63 @@
-import 'package:flutter/material.dart' hide Element, Container, View;
+import 'package:flutter/material.dart' hide Container, Border, Element, View;
 import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/workspace.dart';
-import 'package:flutter_structurizr/domain/view/view.dart';
+import 'package:flutter_structurizr/domain/view/model_view.dart';
+import 'package:flutter_structurizr/domain/model/model.dart' hide Container, Element;
+import 'package:flutter_structurizr/domain/style/styles.dart' hide Border;
+import 'package:flutter/material.dart' as flutter;
+import 'package:flutter_structurizr/domain/model/model.dart' as structurizr_model;
 
 /// Callback for when an element is selected in the explorer
 typedef ElementSelectedCallback = void Function(String elementId, Element element);
+
+/// Callback for when an element is dragged from the explorer
+typedef ElementDraggedCallback = void Function(String elementId, Element element);
+
+/// Callback for when a context menu item is selected for an element
+typedef ElementContextMenuCallback = void Function(String itemId, String elementId, Element element);
+
+/// Data class for dragged elements
+class DraggedElementData {
+  /// The ID of the dragged element
+  final String elementId;
+  
+  /// The element being dragged
+  final Element element;
+  
+  /// Creates a new dragged element data object
+  const DraggedElementData({
+    required this.elementId,
+    required this.element,
+  });
+}
+
+/// Context menu item definition
+class ElementContextMenuItem {
+  /// Unique ID for the menu item
+  final String id;
+  
+  /// Label to display in the menu
+  final String label;
+  
+  /// Icon to show in the menu
+  final IconData? icon;
+  
+  /// Whether the menu item is enabled
+  final bool enabled;
+  
+  /// Optional filter function to determine if this menu item should be shown
+  /// for a specific element
+  final bool Function(Element element)? filter;
+  
+  /// Creates a new context menu item
+  const ElementContextMenuItem({
+    required this.id,
+    required this.label,
+    this.icon,
+    this.enabled = true,
+    this.filter,
+  });
+}
 
 /// Configuration for the element explorer.
 class ElementExplorerConfig {
@@ -53,6 +106,15 @@ class ElementExplorerConfig {
   /// Badge background color
   final Color? badgeColor;
   
+  /// Whether to enable drag and drop of elements
+  final bool enableDragDrop;
+  
+  /// Whether to enable context menu on elements
+  final bool enableContextMenu;
+  
+  /// List of context menu items to display
+  final List<ElementContextMenuItem> contextMenuItems;
+  
   /// Creates a new configuration for the element explorer
   const ElementExplorerConfig({
     this.showIcons = true,
@@ -70,6 +132,9 @@ class ElementExplorerConfig {
     this.hoverColor,
     this.textColor,
     this.badgeColor,
+    this.enableDragDrop = false,
+    this.enableContextMenu = false,
+    this.contextMenuItems = const [],
   });
   
   /// Creates a copy of this configuration with the given fields replaced with new values
@@ -89,6 +154,9 @@ class ElementExplorerConfig {
     Color? hoverColor,
     Color? textColor,
     Color? badgeColor,
+    bool? enableDragDrop,
+    bool? enableContextMenu,
+    List<ElementContextMenuItem>? contextMenuItems,
   }) {
     return ElementExplorerConfig(
       showIcons: showIcons ?? this.showIcons,
@@ -106,6 +174,9 @@ class ElementExplorerConfig {
       hoverColor: hoverColor ?? this.hoverColor,
       textColor: textColor ?? this.textColor,
       badgeColor: badgeColor ?? this.badgeColor,
+      enableDragDrop: enableDragDrop ?? this.enableDragDrop,
+      enableContextMenu: enableContextMenu ?? this.enableContextMenu,
+      contextMenuItems: contextMenuItems ?? this.contextMenuItems,
     );
   }
 }
@@ -120,13 +191,19 @@ class ElementExplorer extends StatefulWidget {
   final Workspace workspace;
   
   /// The currently selected view, if any
-  final View? selectedView;
+  final ModelView? selectedView;
   
   /// The currently selected element ID, if any
   final String? selectedElementId;
   
   /// Called when an element is selected
   final ElementSelectedCallback? onElementSelected;
+  
+  /// Called when an element is dragged from the explorer
+  final ElementDraggedCallback? onElementDragged;
+  
+  /// Called when a context menu item is selected for an element
+  final ElementContextMenuCallback? onContextMenuItemSelected;
   
   /// Configuration options for the explorer
   final ElementExplorerConfig config;
@@ -138,6 +215,8 @@ class ElementExplorer extends StatefulWidget {
     this.selectedView,
     this.selectedElementId,
     this.onElementSelected,
+    this.onElementDragged,
+    this.onContextMenuItemSelected,
     this.config = const ElementExplorerConfig(),
   }) : super(key: key);
 
@@ -322,7 +401,7 @@ class _ElementExplorerState extends State<ElementExplorer> {
                   decoration: InputDecoration(
                     hintText: 'Search elements...',
                     prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
+                    border: flutter.OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     contentPadding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -883,7 +962,8 @@ class _ElementExplorerState extends State<ElementExplorer> {
     final isSelected = element.id == widget.selectedElementId;
     final isInView = widget.config.highlightViewElements && _elementInSelectedView(element.id);
     
-    return InkWell(
+    // Create the element node content
+    Widget elementContent = InkWell(
       onTap: () {
         if (widget.onElementSelected != null) {
           widget.onElementSelected!(element.id, element);
@@ -975,6 +1055,143 @@ class _ElementExplorerState extends State<ElementExplorer> {
         ),
       ),
     );
+    
+    // Apply context menu if enabled
+    if (widget.config.enableContextMenu) {
+      elementContent = GestureDetector(
+        onSecondaryTapUp: (details) {
+          _showContextMenu(context, details.globalPosition, element);
+        },
+        onLongPress: () {
+          final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+          final RenderBox box = context.findRenderObject() as RenderBox;
+          final Offset position = box.localToGlobal(Offset.zero, ancestor: overlay);
+          
+          _showContextMenu(
+            context,
+            Rect.fromLTWH(position.dx, position.dy, box.size.width, box.size.height).center,
+            element,
+          );
+        },
+        child: elementContent,
+      );
+    }
+    
+    // Wrap with drag and drop support if enabled
+    if (widget.config.enableDragDrop) {
+      return Draggable<DraggedElementData>(
+        // Drag data
+        data: DraggedElementData(
+          elementId: element.id,
+          element: element,
+        ),
+        // Feedback widget (what's shown while dragging)
+        feedback: Material(
+          elevation: 3.0,
+          borderRadius: BorderRadius.circular(4.0),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: selectedColor.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(4.0),
+              border: flutter.Border.all(
+                color: textColor.withOpacity(0.3),
+                width: 1.0,
+              ),
+            ),
+            child: SizedBox(
+              width: 250.0,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    if (widget.config.showIcons) ...[
+                      _buildElementIcon(element),
+                      const SizedBox(width: 8.0),
+                    ],
+                    Expanded(
+                      child: Text(
+                        element.name,
+                        style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        // Child widget (the actual tree item)
+        child: elementContent,
+        // Show a different cursor during drag
+        childWhenDragging: Opacity(
+          opacity: 0.5,
+          child: elementContent,
+        ),
+        // Callback when drag starts
+        onDragStarted: () {
+          if (widget.onElementDragged != null) {
+            widget.onElementDragged!(element.id, element);
+          }
+        },
+        // Add some bouncing animation
+        onDragEnd: (details) {
+          // Could add custom behavior when drag ends
+        },
+      );
+    }
+    
+    // Return regular widget if drag and drop is disabled
+    return elementContent;
+  }
+  
+  /// Shows the context menu for an element
+  void _showContextMenu(BuildContext context, Offset position, Element element) {
+    // If no context menu items are defined, don't show the menu
+    if (widget.config.contextMenuItems.isEmpty) return;
+    
+    // Filter menu items based on element
+    final filteredItems = widget.config.contextMenuItems
+        .where((item) => item.filter == null || item.filter!(element))
+        .toList();
+    
+    if (filteredItems.isEmpty) return;
+    
+    final theme = Theme.of(context);
+    
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        position.dx,
+        position.dy,
+        position.dx + 1,
+        position.dy + 1,
+      ),
+      items: filteredItems.map((item) {
+        return PopupMenuItem<String>(
+          value: item.id,
+          enabled: item.enabled,
+          child: Row(
+            children: [
+              if (item.icon != null) ...[
+                Icon(item.icon, size: 16),
+                const SizedBox(width: 8),
+              ],
+              Text(item.label),
+            ],
+          ),
+        );
+      }).toList(),
+    ).then<void>((String? itemId) {
+      if (itemId != null && widget.onContextMenuItemSelected != null) {
+        // Find the selected menu item
+        final selectedItem = filteredItems.firstWhere((item) => item.id == itemId);
+        widget.onContextMenuItemSelected!(itemId, element.id, element);
+      }
+    });
   }
   
   /// Build an icon for an element based on its type

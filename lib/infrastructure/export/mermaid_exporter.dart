@@ -376,10 +376,9 @@ class MermaidExporter implements DiagramExporter<String> {
         // Create a representation of this interaction
         final relationship = Relationship(
           id: interaction.id ?? '${sourceId}_${destinationId}_${result.length}',
-          sourceId: sourceId,
-          destinationId: destinationId,
-          description: description,
-          order: interaction.order,
+          sourceId: sourceId ?? '',
+          destinationId: destinationId ?? '',
+          description: description ?? '',
         );
 
         result.add(relationship);
@@ -757,7 +756,7 @@ class MermaidExporter implements DiagramExporter<String> {
   ) {
     // Find top-level deployment nodes for this environment
     final deploymentNodes = elements.whereType<DeploymentNode>()
-        .where((node) => node.environment == environment && node.parent == null)
+        .where((node) => node.environment == environment)
         .toList();
     
     for (final node in deploymentNodes) {

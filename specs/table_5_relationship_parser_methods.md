@@ -1,0 +1,10 @@
+## Table 5: **RelationshipParser Methods**
+| Method                                                      | Calls                                                                                           | Example Method Call                                  |
+|-------------------------------------------------------------|-------------------------------------------------------------------------------------------------|------------------------------------------------------|
+| RelationshipParser.parse(List<Token>): List<RelationshipNode> | ContextStack.push, ContextStack.pop, _parseExplicit, _parseImplicit, _parseGroup, _parseNested, handleError | `relationshipParser.parse(tokens);`                 |
+| RelationshipParser._parseExplicit(List<Token>): RelationshipNode | ElementParser._parseIdentifier, RelationshipNode.setSource, RelationshipNode.setDestination, handleError | `relationshipParser._parseExplicit(tokens);`        |
+| RelationshipParser._parseImplicit(List<Token>): RelationshipNode | ElementParser._parseIdentifier, RelationshipNode.setSource, RelationshipNode.setDestination, handleError | `relationshipParser._parseImplicit(tokens);`        |
+| RelationshipParser._parseGroup(List<Token>): void            | RelationshipParser.parse, handleError                                                           | `relationshipParser._parseGroup(tokens);`           |
+| RelationshipParser._parseNested(List<Token>): void           | RelationshipParser.parse, handleError                                                           | `relationshipParser._parseNested(tokens);`          |
+| RelationshipNode.setSource(String): void                    | -                                                                                               | `relationshipNode.setSource('user');`               |
+| RelationshipNode.setDestination(String): void               | -                                                                                               | `relationshipNode.setDestination('system');`       | 

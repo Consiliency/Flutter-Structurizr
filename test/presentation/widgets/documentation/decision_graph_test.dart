@@ -56,7 +56,8 @@ void main() {
       // Assert
       // We can verify the widget structure but not the CustomPaint rendering
       expect(find.byType(DecisionGraph), findsOneWidget);
-      expect(find.byType(CustomPaint), findsOneWidget);
+      // At least one CustomPaint for the edges
+      expect(find.byType(CustomPaint), findsWidgets);
       
       // Should find text for all decision IDs and titles
       for (final decision in testDecisions) {

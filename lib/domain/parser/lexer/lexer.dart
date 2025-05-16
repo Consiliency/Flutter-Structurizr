@@ -88,6 +88,18 @@ class Lexer {
         break;
       case '#': _addToken(TokenType.hash); break;
       case '@': _addToken(TokenType.at); break;
+      case '\$': 
+        // Handle $ as a valid character in identifiers, which is commonly used in various DSLs
+        if (_isAlphaNumeric(_peek())) {
+          // Treat $ followed by alphanumeric chars as part of an identifier
+          _current--; // Back up to include $ in the identifier
+          _column--;
+          _identifier();
+        } else {
+          // Otherwise, treat as a regular character (which might be an error later)
+          _addToken(TokenType.identifier, "\$");
+        }
+        break;
 
       // Arrow token (->)
       case '-':
@@ -186,27 +198,116 @@ class Lexer {
     }
   }
 
-  /// Processes a string literal.
+  /// Processes a string literal with enhanced error handling and support for
+  /// multi-line strings, block quotes, and all escape sequences defined in the Structurizr DSL.
   void _string([String delimiter = '"']) {
     final startLine = _line;
     final startColumn = _column - 1; // Account for the quote character
+    final startOffset = _current - 1; // The actual position of the opening quote
 
+    // Check for triple-quoted multiline strings ("""...""" or '''...''')
+    final isMultiLine = _checkMultilineString(delimiter);
+    
     // Start with empty string
     final sb = StringBuffer();
 
-    while (_peek() != delimiter && !_isAtEnd()) {
+    bool isEscaping = false; // Track whether we're currently processing an escape sequence
+    bool isEscapingUnicode = false; // Track whether we're processing a Unicode escape
+    String unicodeSequence = ''; // Collect Unicode escape sequence
+
+    while (!_isAtEnd()) {
+      // Check for ending delimiter
+      if (isMultiLine) {
+        // For multiline strings, check for triple delimiter
+        if (_peek() == delimiter && _peekNext() == delimiter && _peekNext(2) == delimiter) {
+          _advance(); // Consume first delimiter
+          _advance(); // Consume second delimiter
+          _advance(); // Consume third delimiter
+          break;
+        }
+      } else if (!isEscaping && _peek() == delimiter) {
+        // For regular strings, check for single delimiter (when not escaping)
+        _advance(); // Consume the closing quote
+        break;
+      }
+
+      // Process character
       final char = _peek();
 
+      // Handle line breaks
       if (char == '\n') {
+        if (!isMultiLine) {
+          // Regular strings don't allow unescaped newlines
+          errorReporter.reportStandardError(
+            'Unescaped newline in string literal - use \\n or a triple-quoted multiline string',
+            _current,
+          );
+          // Add partial string as a recovery measure and return
+          _addToken(
+            TokenType.string,
+            sb.toString(),
+            SourcePosition(
+              line: startLine,
+              column: startColumn,
+              offset: startOffset,
+            ),
+          );
+          return;
+        }
+        
+        // Update line tracking and add the newline to the string
         _line++;
         _column = 1;
+        sb.write(char);
+        _advance();
+        continue;
       }
 
       // Handle escape sequences
-      if (char == '\\') {
-        _advance(); // Consume backslash
+      if (isEscaping) {
+        isEscaping = false; // Reset escaping flag
+        
+        if (isEscapingUnicode) {
+          // Collecting Unicode escape sequence characters
+          unicodeSequence += char;
+          
+          if (unicodeSequence.length < 4) {
+            // Still need more hex digits
+            _advance();
+            continue;
+          } else {
+            // Process the complete unicode sequence
+            isEscapingUnicode = false;
+            
+            if (_isHex(unicodeSequence)) {
+              try {
+                final codePoint = int.parse(unicodeSequence, radix: 16);
+                sb.write(String.fromCharCode(codePoint));
+              } catch (e) {
+                errorReporter.reportStandardError(
+                  'Invalid Unicode escape sequence: \\u$unicodeSequence',
+                  _current - 4,
+                );
+                // Add the literal sequence as fallback
+                sb.write('u$unicodeSequence');
+              }
+            } else {
+              errorReporter.reportStandardError(
+                'Invalid Unicode escape sequence: \\u$unicodeSequence - should be 4 hex digits',
+                _current - 4,
+              );
+              // Add the literal sequence as fallback
+              sb.write('u$unicodeSequence');
+            }
+            
+            unicodeSequence = '';
+            _advance();
+            continue;
+          }
+        }
 
-        switch (_peek()) {
+        // Process standard escape sequences
+        switch (char) {
           case 'n': sb.write('\n'); break;
           case 'r': sb.write('\r'); break;
           case 't': sb.write('\t'); break;
@@ -215,40 +316,59 @@ class Lexer {
           case '\'': sb.write('\''); break;
           case '"': sb.write('"'); break;
           case '\\': sb.write('\\'); break;
+          case '\$': sb.write('\$'); break; // Handle $ in string (common issue with Dart string interpolation)
           case 'u':
-            // Unicode escape sequence (e.g., \u0061 for 'a')
-            if (_isAtEnd() || _isAtEnd(1) || _isAtEnd(2) || _isAtEnd(3)) {
+            // Start of Unicode escape sequence (e.g., \u0061 for 'a')
+            isEscapingUnicode = true;
+            unicodeSequence = '';
+            _advance();
+            continue;
+          // Additional escape sequences
+          case '0': sb.write('\0'); break; // Null character
+          case 'v': sb.write('\v'); break; // Vertical tab
+          case 'x': 
+            // Hexadecimal escape sequence \xHH (2 digits)
+            if (_isAtEnd() || _isAtEnd(1)) {
               errorReporter.reportStandardError(
-                'Incomplete Unicode escape sequence',
+                'Incomplete hexadecimal escape sequence',
                 _current,
               );
-              break;
-            }
-
-            final unicodeHex = _peek() + _peekNext() +
-                               _peekNext(2) + _peekNext(3);
-
-            if (_isHex(unicodeHex)) {
-              sb.write(String.fromCharCode(int.parse(unicodeHex, radix: 16)));
-              _advance(); // Consume all 4 hex digits
-              _advance();
-              _advance();
-              _advance();
+              sb.write('x');
             } else {
-              errorReporter.reportStandardError(
-                'Invalid Unicode escape sequence: \\u$unicodeHex',
-                _current,
-              );
+              final hexSeq = _peekNext() + _peekNext(2);
+              if (_isHex(hexSeq)) {
+                sb.write(String.fromCharCode(int.parse(hexSeq, radix: 16)));
+                _advance(); // Consume first hex digit
+                _advance(); // Consume second hex digit
+              } else {
+                errorReporter.reportStandardError(
+                  'Invalid hexadecimal escape sequence: \\x$hexSeq',
+                  _current,
+                );
+                sb.write('x$hexSeq');
+              }
             }
+            break;
+          case '\n':
+            // Line continuation - handle escaped newlines in non-multiline strings
+            // Just skip the newline, allowing for line breaks in strings
+            _line++;
+            _column = 1;
             break;
           default:
-            errorReporter.reportStandardError(
-              'Invalid escape sequence: \\${_peek()}',
-              _current,
+            errorReporter.reportWarning(
+              'Unknown escape sequence: \\$char - treating as literal character',
+              _current - 1,
             );
+            // For unknown escape sequences, include the character literally
+            sb.write(char);
             break;
         }
+      } else if (char == '\\') {
+        // Start of an escape sequence
+        isEscaping = true;
       } else {
+        // Regular character
         sb.write(char);
       }
 
@@ -257,14 +377,21 @@ class Lexer {
 
     if (_isAtEnd()) {
       errorReporter.reportStandardError(
-        'Unterminated string literal',
-        _start,
+        isMultiLine ? 'Unterminated multi-line string literal' : 'Unterminated string literal',
+        startOffset,
+      );
+      // Add partial string as a recovery measure
+      _addToken(
+        TokenType.string,
+        sb.toString(),
+        SourcePosition(
+          line: startLine,
+          column: startColumn,
+          offset: startOffset,
+        ),
       );
       return;
     }
-
-    // Consume the closing quote
-    _advance();
 
     // Add the string token with the parsed value
     final value = sb.toString();
@@ -274,9 +401,22 @@ class Lexer {
       SourcePosition(
         line: startLine,
         column: startColumn,
-        offset: _start,
+        offset: startOffset,
       ),
     );
+  }
+  
+  /// Checks if the current string is a multiline string (triple-quoted)
+  /// Returns true if this is a multiline string, false otherwise
+  bool _checkMultilineString(String delimiter) {
+    // Check if we have two more of the same delimiter character
+    if (_peek() == delimiter && _peekNext() == delimiter) {
+      // Triple-quoted string - advance past the additional quotes
+      _advance(); // Second quote
+      _advance(); // Third quote
+      return true;
+    }
+    return false;
   }
 
   /// Processes a number literal.
@@ -314,8 +454,25 @@ class Lexer {
     // Get the identifier text
     final text = source.substring(_start, _current);
 
+    // Special handling for documentation and decision keywords
+    // Force these to be the correct token types
+    if (text == 'documentation') {
+      print('LEXER DEBUG: Found documentation keyword, forcing TokenType.documentation');
+      _addToken(TokenType.documentation);
+      return;
+    } else if (text == 'decisions') {
+      print('LEXER DEBUG: Found decisions keyword, forcing TokenType.decisions');
+      _addToken(TokenType.decisions);
+      return;
+    }
+
     // Check if it's a keyword
     final type = keywords[text] ?? TokenType.identifier;
+    
+    // Debug for documentation and decisions keywords
+    if (text == 'documentation' || text == 'decisions') {
+      print('LEXER DEBUG: Found identifier: $text, recognized as token type: $type');
+    }
 
     // Special handling for 'this' keyword to avoid Dart reserved word conflict
     if (type == TokenType.this_) {
@@ -373,15 +530,16 @@ class Lexer {
            c.codeUnitAt(0) <= '9'.codeUnitAt(0);
   }
 
-  /// Checks if the given character is an alphabetic character or underscore.
+  /// Checks if the given character is an alphabetic character, underscore, or dollar sign.
   bool _isAlpha(String c) {
     final code = c.codeUnitAt(0);
     return (code >= 'a'.codeUnitAt(0) && code <= 'z'.codeUnitAt(0)) ||
            (code >= 'A'.codeUnitAt(0) && code <= 'Z'.codeUnitAt(0)) ||
-           c == '_';
+           c == '_' || 
+           c == '\$'; // Add $ as valid for identifiers
   }
 
-  /// Checks if the given character is alphanumeric or underscore.
+  /// Checks if the given character is alphanumeric, underscore, or dollar sign.
   bool _isAlphaNumeric(String c) {
     return _isAlpha(c) || _isDigit(c);
   }

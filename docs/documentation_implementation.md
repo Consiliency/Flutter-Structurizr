@@ -48,10 +48,12 @@ This document summarizes the implementation of the Documentation components for 
    - Tracks and manages navigation state
 
 3. **TableOfContents**: Sidebar component
-   - Displays structured list of documentation sections
+   - Displays hierarchical structure of documentation sections with collapsible controls
+   - Supports nested sections with proper indentation and visual hierarchy
    - Displays list of architecture decisions with status indicators
    - Provides tab navigation between documentation and decisions
    - Supports selection and highlighting of current item
+   - Tracks expanded/collapsed state for each section
 
 ## Implementation Details
 
@@ -101,9 +103,12 @@ A comprehensive test suite was created for all components:
 
 4. **TableOfContents Tests**:
    - Section and decision rendering
+   - Hierarchical section display with proper indentation
+   - Expand/collapse functionality for nested sections
    - Selection callbacks
    - Empty state handling
    - Theme support
+   - Keyboard accessibility for expand/collapse controls
 
 ## Usage Example
 
@@ -122,10 +127,11 @@ DocumentationNavigator(
 
 ## Next Steps
 
-1. **AsciiDoc Support**: Implement proper AsciiDoc rendering (currently just shows raw content)
+1. **AsciiDoc Optimization**: Further optimize AsciiDoc rendering for large documents
 2. **Documentation Editor**: Add editing capabilities for documentation and decisions
-3. **Search Functionality**: Implement full-text search across documentation
-4. **Responsive Design**: Enhance mobile support and responsive layouts
+3. **Search Enhancement**: Improve search functionality with more advanced filters
+4. **Integration Improvement**: Enhance integration between documentation components
+5. **Responsive Design**: Enhance mobile support and responsive layouts
 
 ## Running the Tests
 

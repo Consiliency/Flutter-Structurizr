@@ -10,6 +10,8 @@ import 'package:flutter_structurizr/infrastructure/export/export_manager.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// An example application demonstrating the Export capabilities of Flutter Structurizr.
+/// 
+/// Note: For a specialized C4 model export example, see the `c4_export_example.dart` file.
 void main() {
   runApp(const ExportExampleApp());
 }
@@ -194,6 +196,14 @@ class _ExportExampleScreenState extends State<ExportExampleScreen> {
                     DropdownMenuItem(
                       value: ExportFormat.c4plantuml,
                       child: Text('C4-PlantUML'),
+                    ),
+                    DropdownMenuItem(
+                      value: ExportFormat.c4json,
+                      child: Text('C4 Model (JSON)'),
+                    ),
+                    DropdownMenuItem(
+                      value: ExportFormat.c4yaml,
+                      child: Text('C4 Model (YAML)'),
                     ),
                   ],
                 ),

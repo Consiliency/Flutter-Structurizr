@@ -43,6 +43,14 @@ abstract class View {
 
   /// The type of this view (SystemLandscape, SystemContext, etc.).
   String get viewType;
+  
+  /// Tags to include in this view (elements with these tags will be included).
+  /// This may be element identifiers or tag expressions.
+  List<String> get includeTags => const [];
+  
+  /// Tags to exclude from this view (elements with these tags will be excluded).
+  /// This may be element identifiers or tag expressions.
+  List<String> get excludeTags => const [];
 
   /// Adds an element to this view.
   View addElement(ElementView element);
@@ -94,6 +102,8 @@ class BaseView with _$BaseView implements View {
     AutomaticLayout? automaticLayout,
     @Default([]) List<AnimationStep> animations,
     required String viewType,
+    @Default([]) List<String> includeTags,
+    @Default([]) List<String> excludeTags,
   }) = _BaseView;
 
   /// Creates a base view from a JSON object.
@@ -156,6 +166,8 @@ class SystemLandscapeView with _$SystemLandscapeView implements View {
     @Default([]) List<AnimationStep> animations,
     @Default('SystemLandscape') String viewType,
     String? enterpriseName,
+    @Default([]) List<String> includeTags,
+    @Default([]) List<String> excludeTags,
   }) = _SystemLandscapeView;
 
   /// Creates a system landscape view from a JSON object.
@@ -219,6 +231,8 @@ class SystemContextView with _$SystemContextView implements View {
     @Default('SystemContext') String viewType,
     required String softwareSystemId,
     String? enterpriseName,
+    @Default([]) List<String> includeTags,
+    @Default([]) List<String> excludeTags,
   }) = _SystemContextView;
 
   /// Creates a system context view from a JSON object.
@@ -282,6 +296,8 @@ class ContainerView with _$ContainerView implements View {
     @Default('Container') String viewType,
     required String softwareSystemId,
     @Default(false) bool externalSoftwareSystemBoundariesVisible,
+    @Default([]) List<String> includeTags,
+    @Default([]) List<String> excludeTags,
   }) = _ContainerView;
 
   /// Creates a container view from a JSON object.
@@ -346,6 +362,8 @@ class ComponentView with _$ComponentView implements View {
     required String softwareSystemId,
     required String containerId,
     @Default(false) bool externalContainerBoundariesVisible,
+    @Default([]) List<String> includeTags,
+    @Default([]) List<String> excludeTags,
   }) = _ComponentView;
 
   /// Creates a component view from a JSON object.
@@ -409,6 +427,8 @@ class DynamicView with _$DynamicView implements View {
     @Default('Dynamic') String viewType,
     String? elementId,
     @Default(true) bool autoAnimationInterval,
+    @Default([]) List<String> includeTags,
+    @Default([]) List<String> excludeTags,
   }) = _DynamicView;
 
   /// Creates a dynamic view from a JSON object.
@@ -472,6 +492,8 @@ class DeploymentView with _$DeploymentView implements View {
     @Default('Deployment') String viewType,
     String? softwareSystemId,
     required String environment,
+    @Default([]) List<String> includeTags,
+    @Default([]) List<String> excludeTags,
   }) = _DeploymentView;
 
   /// Creates a deployment view from a JSON object.
@@ -608,6 +630,9 @@ class ElementView with _$ElementView {
 
     /// Parent element ID for nested elements.
     String? parentId,
+    
+    /// Whether this element view is collapsed (for boundaries).
+    bool? collapsed,
   }) = _ElementView;
 
   /// Creates an element view from a JSON object.
@@ -795,6 +820,8 @@ class ImageView with _$ImageView implements View {
     String? imageType,
     String? content,
     @Default('A4_Landscape') String paperSize,
+    @Default([]) List<String> includeTags,
+    @Default([]) List<String> excludeTags,
   }) = _ImageView;
 
   /// Creates an image view from a JSON object.

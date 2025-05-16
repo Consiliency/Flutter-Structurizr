@@ -2,13 +2,15 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart' hide Element, Container, View;
 import 'package:flutter_structurizr/domain/model/workspace.dart';
-import 'package:flutter_structurizr/infrastructure/export/diagram_exporter.dart';
+import 'package:flutter_structurizr/infrastructure/export/rendering_pipeline.dart';
 import 'package:flutter_structurizr/infrastructure/export/png_exporter.dart';
 import 'package:flutter_structurizr/infrastructure/export/svg_exporter.dart';
 import 'package:flutter_structurizr/infrastructure/export/plantuml_exporter.dart';
 import 'package:flutter_structurizr/infrastructure/export/mermaid_exporter.dart';
 import 'package:flutter_structurizr/infrastructure/export/dot_exporter.dart';
 import 'package:flutter_structurizr/infrastructure/export/dsl_exporter.dart';
+import 'package:flutter_structurizr/infrastructure/export/c4_exporter.dart';
+import 'package:flutter_structurizr/infrastructure/export/diagram_exporter.dart' show DiagramReference;
 
 /// Format for diagram export
 enum ExportFormat {
@@ -35,6 +37,12 @@ enum ExportFormat {
 
   /// Structurizr DSL format
   dsl,
+  
+  /// C4 model JSON format
+  c4json,
+  
+  /// C4 model YAML format
+  c4yaml,
 }
 
 /// Configuration for diagram export
@@ -128,6 +136,11 @@ class ExportManager {
       includeLegend: options.includeLegend,
       includeTitle: options.includeTitle,
       includeMetadata: options.includeMetadata,
+      backgroundColor: options.backgroundColor,
+      includeElementNames: true,
+      includeElementDescriptions: false,
+      includeRelationshipDescriptions: true,
+      elementScaleFactor: 1.0,
     );
 
     // Choose the appropriate exporter
@@ -195,6 +208,28 @@ class ExportManager {
           includeMetadata: true,
           includeStyles: true,
           includeViews: true,
+          onProgress: options.onProgress,
+        );
+        return await exporter.export(diagram);
+        
+      case ExportFormat.c4json:
+        final exporter = C4Exporter(
+          style: C4DiagramStyle.standard,
+          format: C4OutputFormat.json,
+          includeMetadata: options.includeMetadata,
+          includeRelationships: true,
+          includeStyles: true,
+          onProgress: options.onProgress,
+        );
+        return await exporter.export(diagram);
+        
+      case ExportFormat.c4yaml:
+        final exporter = C4Exporter(
+          style: C4DiagramStyle.standard,
+          format: C4OutputFormat.yaml,
+          includeMetadata: options.includeMetadata,
+          includeRelationships: true,
+          includeStyles: true,
           onProgress: options.onProgress,
         );
         return await exporter.export(diagram);
@@ -218,6 +253,11 @@ class ExportManager {
       includeLegend: options.includeLegend,
       includeTitle: options.includeTitle,
       includeMetadata: options.includeMetadata,
+      backgroundColor: options.backgroundColor,
+      includeElementNames: true,
+      includeElementDescriptions: false,
+      includeRelationshipDescriptions: true,
+      elementScaleFactor: 1.0,
     );
 
     // Choose the appropriate exporter
@@ -288,6 +328,28 @@ class ExportManager {
           onProgress: options.onProgress,
         );
         return await exporter.exportBatch(diagrams, onProgress: options.onProgress);
+        
+      case ExportFormat.c4json:
+        final exporter = C4Exporter(
+          style: C4DiagramStyle.standard,
+          format: C4OutputFormat.json,
+          includeMetadata: options.includeMetadata,
+          includeRelationships: true,
+          includeStyles: true,
+          onProgress: options.onProgress,
+        );
+        return await exporter.exportBatch(diagrams, onProgress: options.onProgress);
+        
+      case ExportFormat.c4yaml:
+        final exporter = C4Exporter(
+          style: C4DiagramStyle.standard,
+          format: C4OutputFormat.yaml,
+          includeMetadata: options.includeMetadata,
+          includeRelationships: true,
+          includeStyles: true,
+          onProgress: options.onProgress,
+        );
+        return await exporter.exportBatch(diagrams, onProgress: options.onProgress);
     }
   }
   
@@ -308,6 +370,10 @@ class ExportManager {
         return 'dot';
       case ExportFormat.dsl:
         return 'dsl';
+      case ExportFormat.c4json:
+        return 'json';
+      case ExportFormat.c4yaml:
+        return 'yaml';
     }
   }
 
@@ -318,6 +384,10 @@ class ExportManager {
         return 'image/png';
       case ExportFormat.svg:
         return 'image/svg+xml';
+      case ExportFormat.c4json:
+        return 'application/json';
+      case ExportFormat.c4yaml:
+        return 'application/yaml';
       case ExportFormat.plantuml:
       case ExportFormat.c4plantuml:
       case ExportFormat.mermaid:

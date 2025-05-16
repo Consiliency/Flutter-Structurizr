@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_structurizr/domain/documentation/documentation.dart';
+import 'package:flutter_structurizr/domain/model/workspace.dart';
 import 'package:flutter_structurizr/presentation/widgets/documentation/documentation_search.dart';
+import 'package:flutter_structurizr/presentation/widgets/documentation/documentation_search_controller.dart';
+import 'package:flutter_structurizr/presentation/widgets/documentation/documentation_search_index.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('DocumentationSearchController', () {
+  group('Legacy DocumentationSearchController', () {
     late DocumentationSearchController controller;
     late Documentation documentation;
 
@@ -127,6 +130,140 @@ void main() {
       // Assert
       expect(controller.results, isEmpty);
       expect(controller.isSearching, false);
+    });
+  });
+  
+  group('Enhanced Documentation Search', () {
+    late DocumentationSearchIndex searchIndex;
+    late Workspace workspace;
+    
+    setUp(() {
+      // Create a test workspace with documentation
+      final documentation = Documentation(
+        sections: [
+          DocumentationSection(
+            title: 'Introduction',
+            content: 'This is the introduction to the project. It provides an overview of the system architecture.',
+            metadata: {
+              'author': 'John Doe',
+              'date': '2023-05-20',
+            },
+          ),
+          DocumentationSection(
+            title: 'Architecture',
+            content: 'The architecture follows a clean architecture approach with domain-driven design.',
+            metadata: {
+              'author': 'Jane Smith',
+              'date': '2023-05-21',
+            },
+          ),
+          DocumentationSection(
+            title: 'Components',
+            content: 'The system consists of multiple components including the backend API and frontend UI.',
+            metadata: {
+              'author': 'John Doe',
+              'date': '2023-05-22',
+            },
+          ),
+        ],
+        decisions: [
+          Decision(
+            id: 'ADR-001',
+            title: 'Use Markdown for Documentation',
+            status: 'Accepted',
+            date: DateTime(2023, 5, 15),
+            content: 'We will use Markdown for documentation because it is simple and widely supported.',
+          ),
+          Decision(
+            id: 'ADR-002',
+            title: 'Database Technology Selection',
+            status: 'Proposed',
+            date: DateTime(2023, 5, 16),
+            content: 'We are considering PostgreSQL for the database due to its robust features and reliability.',
+          ),
+          Decision(
+            id: 'ADR-003',
+            title: 'Frontend Framework',
+            status: 'Rejected',
+            date: DateTime(2023, 5, 17),
+            content: 'We considered using React but decided against it in favor of Flutter for cross-platform support.',
+          ),
+        ],
+      );
+      
+      workspace = Workspace(
+        name: 'Test Workspace',
+        documentation: documentation,
+      );
+      
+      searchIndex = DocumentationSearchIndex.fromWorkspace(workspace);
+    });
+    
+    test('indexWorkspace builds the search index correctly', () {
+      expect(searchIndex.isBuilt, isTrue);
+      expect(searchIndex.documentCount, equals(6)); // 3 sections + 3 decisions
+    });
+    
+    test('search returns results for basic query', () {
+      final results = searchIndex.search('architecture');
+      
+      expect(results, isNotEmpty);
+      expect(results.any((result) => result.title == 'Architecture'), isTrue);
+      expect(results.any((result) => result.content.contains('architecture')), isTrue);
+    });
+    
+    test('search returns empty list for empty query', () {
+      final results = searchIndex.search('');
+      expect(results, isEmpty);
+    });
+    
+    test('search prioritizes title matches over content matches', () {
+      final results = searchIndex.search('architecture');
+      
+      // The Architecture section should be ranked higher than sections that only
+      // mention architecture in their content
+      final titleMatch = results.firstWhere((result) => result.title == 'Architecture');
+      final contentMatch = results.firstWhere((result) => 
+          result.title != 'Architecture' && result.content.contains('architecture'));
+      
+      expect(titleMatch.relevance, greaterThan(contentMatch.relevance));
+    });
+    
+    test('search includes matched terms in results', () {
+      final results = searchIndex.search('architecture');
+      
+      expect(results, isNotEmpty);
+      for (final result in results) {
+        expect(result.matchedTerms, contains('architecture'));
+      }
+    });
+    
+    test('search supports filtering by type', () {
+      final results = searchIndex.search('type:decision');
+      
+      expect(results, isNotEmpty);
+      for (final result in results) {
+        expect(result.type, equals('decision'));
+      }
+    });
+    
+    test('search supports filtering by status', () {
+      final results = searchIndex.search('status:accepted');
+      
+      expect(results, isNotEmpty);
+      for (final result in results) {
+        expect(result.metadata['status']?.toLowerCase(), equals('accepted'));
+      }
+    });
+    
+    test('search supports combined filtering and terms', () {
+      final results = searchIndex.search('documentation type:decision');
+      
+      expect(results, isNotEmpty);
+      for (final result in results) {
+        expect(result.type, equals('decision'));
+        expect(result.content.toLowerCase().contains('documentation'), isTrue);
+      }
     });
   });
 

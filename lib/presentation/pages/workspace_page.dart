@@ -5,7 +5,7 @@ import 'package:flutter_structurizr/presentation/widgets/diagram_controls.dart';
 import 'package:flutter_structurizr/presentation/widgets/element_explorer.dart';
 import 'package:flutter_structurizr/presentation/widgets/export/batch_export_dialog.dart';
 import 'package:flutter_structurizr/presentation/widgets/export/export_dialog.dart';
-import 'package:flutter_structurizr/presentation/widgets/structurizr_diagram.dart';
+import 'package:flutter_structurizr/presentation/widgets/diagram/structurizr_diagram.dart';
 
 /// Tab options for the workspace page
 enum WorkspaceTab {
@@ -68,60 +68,63 @@ class _WorkspacePageState extends State<WorkspacePage> {
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
     
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.workspace.name),
-        actions: [
-          // Export button
-          IconButton(
-            icon: const Icon(Icons.download),
-            tooltip: 'Export',
-            onPressed: _selectedViewKey != null ? () {
-              _showExportDialog();
-            } : null,
-          ),
-
-          // Batch export button
-          IconButton(
-            icon: const Icon(Icons.download_for_offline),
-            tooltip: 'Batch Export',
-            onPressed: () {
-              _showBatchExportDialog();
-            },
-          ),
-          
-          // Settings button
-          IconButton(
-            icon: const Icon(Icons.settings),
-            tooltip: 'Settings',
-            onPressed: () {
-              // TODO: Show settings dialog
-            },
-          ),
-        ],
-        bottom: TabBar(
-          onTap: (index) {
-            setState(() {
-              _currentTab = WorkspaceTab.values[index];
-            });
-          },
-          tabs: [
-            Tab(
-              icon: const Icon(Icons.account_tree),
-              text: 'Diagrams',
-              iconMargin: const EdgeInsets.only(bottom: 4),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.workspace.name),
+          actions: [
+            // Export button
+            IconButton(
+              icon: const Icon(Icons.download),
+              tooltip: 'Export',
+              onPressed: _selectedViewKey != null ? () {
+                _showExportDialog();
+              } : null,
             ),
-            Tab(
-              icon: const Icon(Icons.description),
-              text: 'Documentation',
-              iconMargin: const EdgeInsets.only(bottom: 4),
+
+            // Batch export button
+            IconButton(
+              icon: const Icon(Icons.download_for_offline),
+              tooltip: 'Batch Export',
+              onPressed: () {
+                _showBatchExportDialog();
+              },
+            ),
+            
+            // Settings button
+            IconButton(
+              icon: const Icon(Icons.settings),
+              tooltip: 'Settings',
+              onPressed: () {
+                // TODO: Show settings dialog
+              },
             ),
           ],
+          bottom: TabBar(
+            onTap: (index) {
+              setState(() {
+                _currentTab = WorkspaceTab.values[index];
+              });
+            },
+            tabs: [
+              Tab(
+                icon: const Icon(Icons.account_tree),
+                text: 'Diagrams',
+                iconMargin: const EdgeInsets.only(bottom: 4),
+              ),
+              Tab(
+                icon: const Icon(Icons.description),
+                text: 'Documentation',
+                iconMargin: const EdgeInsets.only(bottom: 4),
+              ),
+            ],
+          ),
         ),
+        body: _currentTab == WorkspaceTab.diagrams
+            ? _buildDiagramsView(isDarkMode)
+            : _buildDocumentationView(isDarkMode),
       ),
-      body: _currentTab == WorkspaceTab.diagrams
-          ? _buildDiagramsView(isDarkMode)
-          : _buildDocumentationView(isDarkMode),
     );
   }
 
@@ -139,12 +142,9 @@ class _WorkspacePageState extends State<WorkspacePage> {
           width: 280,
           child: ElementExplorer(
             workspace: widget.workspace,
-            selectedViewKey: _selectedViewKey,
-            onViewSelected: (viewKey) {
-              setState(() {
-                _selectedViewKey = viewKey;
-              });
-            },
+            selectedView: _selectedViewKey != null 
+                ? widget.workspace.views.getViewByKey(_selectedViewKey!)
+                : null,
           ),
         ),
         
@@ -161,16 +161,26 @@ class _WorkspacePageState extends State<WorkspacePage> {
             children: [
               // Diagram controls
               DiagramControls(
-                onExport: () {
-                  _showExportDialog();
+                onZoomIn: () {
+                  // Implement zoom in functionality
                 },
+                onZoomOut: () {
+                  // Implement zoom out functionality
+                },
+                onResetView: () {
+                  // Implement reset view functionality
+                },
+                onFitToScreen: () {
+                  // Implement fit to screen functionality
+                },
+                // Custom config can be added here
               ),
               
               // Diagram canvas
               Expanded(
                 child: StructurizrDiagram(
                   workspace: widget.workspace,
-                  viewKey: _selectedViewKey!,
+                  view: widget.workspace.views.getViewByKey(_selectedViewKey!)!,
                 ),
               ),
             ],

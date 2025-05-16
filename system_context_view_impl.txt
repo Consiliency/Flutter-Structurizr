@@ -1,0 +1,28 @@
+  @override
+  void addSystemContextView(SystemContextViewNode node) {
+    print('DEBUG: [WorkspaceBuilderImpl] Delegating to SystemContextViewParser');
+    // Print all registered software system IDs and names
+    final allSystems = referenceResolver.getAllElements().values.where((e) => e.runtimeType.toString() == 'SoftwareSystem');
+    print('DEBUG: [WorkspaceBuilderImpl] Registered software systems:');
+    for (final sys in allSystems) {
+      print('  - id: ${sys.id}, name: ${sys.name}');
+    }
+    
+    // Create a parser for system context views
+    final parser = SystemContextViewParser(
+      errorReporter: errorReporter,
+      referenceResolver: referenceResolver,
+    );
+    
+    // Parse the view using the dedicated parser
+    final view = parser.parse(node, this);
+    
+    if (view != null) {
+      // Add to views collection
+      _currentViews = _currentViews.addSystemContextView(view);
+      
+      if (workspace != null) {
+        workspace = workspace!.updateViews(_currentViews);
+      }
+    }
+  }

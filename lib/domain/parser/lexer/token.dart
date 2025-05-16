@@ -132,6 +132,17 @@ enum TokenType {
   roundedboxShape,
   webBrowserShape,
 
+  // Documentation keywords
+  documentation,
+  section,
+  format,
+  content,
+  decisions,
+  decision,
+  status,
+  date,
+  diagram,
+
   // Directives
   identifiers, // For directives like !identifiers
 }
@@ -236,6 +247,17 @@ final Map<String, TokenType> keywords = {
   'Robot': TokenType.robotShape,
   'RoundedBox': TokenType.roundedboxShape,
   'WebBrowser': TokenType.webBrowserShape,
+  
+  // Documentation
+  'documentation': TokenType.documentation,
+  'section': TokenType.section,
+  'format': TokenType.format,
+  'content': TokenType.content,
+  'decisions': TokenType.decisions,
+  'decision': TokenType.decision,
+  'status': TokenType.status,
+  'date': TokenType.date,
+  'diagram': TokenType.diagram,
 
   // Directives
   'identifiers': TokenType.identifiers,

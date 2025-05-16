@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+// Re-enable these lines to make the code generation work
 part 'documentation.freezed.dart';
 part 'documentation.g.dart';
 
@@ -13,7 +14,7 @@ enum DocumentationFormat {
 @freezed
 class Documentation with _$Documentation {
   const Documentation._();
-
+  
   /// Creates a new documentation container with the given properties.
   const factory Documentation({
     /// Sections of documentation
@@ -34,7 +35,7 @@ class Documentation with _$Documentation {
 @freezed
 class DocumentationSection with _$DocumentationSection {
   const DocumentationSection._();
-
+  
   /// Creates a new documentation section with the given properties.
   const factory DocumentationSection({
     /// Title of the section
@@ -64,7 +65,7 @@ class DocumentationSection with _$DocumentationSection {
 @freezed
 class Decision with _$Decision {
   const Decision._();
-
+  
   /// Creates a new decision record with the given properties.
   const factory Decision({
     /// Unique identifier for this decision
@@ -100,14 +101,14 @@ class Decision with _$Decision {
 @freezed
 class Image with _$Image {
   const Image._();
-
+  
   /// Creates a new image with the given properties.
   const factory Image({
     /// Name of the image
     required String name,
     
     /// Base64 encoded content
-    required String content, 
+    required String content,
     
     /// MIME type (e.g., "image/png")
     required String type,

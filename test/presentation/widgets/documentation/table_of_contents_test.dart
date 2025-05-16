@@ -8,15 +8,30 @@ void main() {
     // Test data
     final sections = [
       DocumentationSection(
-        title: 'Introduction',
+        title: '1. Introduction',
         content: '# Introduction',
         order: 1,
       ),
       DocumentationSection(
-        title: 'Architecture',
-        content: '# Architecture',
+        title: '1.1. Getting Started',
+        content: '# Getting Started',
         order: 2,
+      ),
+      DocumentationSection(
+        title: '1.2. Installation',
+        content: '# Installation',
+        order: 3,
+      ),
+      DocumentationSection(
+        title: '2. Architecture',
+        content: '# Architecture',
+        order: 4,
         elementId: 'system-1',
+      ),
+      DocumentationSection(
+        title: '2.1. Components',
+        content: '# Components',
+        order: 5,
       ),
     ];
     
@@ -37,7 +52,7 @@ void main() {
       ),
     ];
 
-    testWidgets('renders with sections', (WidgetTester tester) async {
+    testWidgets('renders with sections and collapsible hierarchy', (WidgetTester tester) async {
       int selectedIndex = -1;
 
       await tester.pumpWidget(
@@ -59,18 +74,38 @@ void main() {
         ),
       );
 
-      // Verify section titles are displayed
-      expect(find.text('Introduction'), findsOneWidget);
-      expect(find.text('Architecture'), findsOneWidget);
+      // Verify section titles are displayed - initially only root sections should be visible with their direct children
+      expect(find.text('1. Introduction'), findsOneWidget);
+      expect(find.text('1.1. Getting Started'), findsOneWidget);
+      expect(find.text('1.2. Installation'), findsOneWidget);
+      expect(find.text('2. Architecture'), findsOneWidget);
+      expect(find.text('2.1. Components'), findsOneWidget);
       
       // Verify element ID is displayed
       expect(find.text('Related to: system-1'), findsOneWidget);
       
-      // Tap on the second section
-      await tester.tap(find.text('Architecture'));
+      // Tap on the collapse icon for Introduction section
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_down).first);
+      await tester.pump();
+      
+      // Verify that child sections are no longer visible
+      expect(find.text('1. Introduction'), findsOneWidget);
+      expect(find.text('1.1. Getting Started'), findsNothing);
+      expect(find.text('1.2. Installation'), findsNothing);
+      
+      // Expand it again
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_right).first);
+      await tester.pump();
+      
+      // Verify that child sections are visible again
+      expect(find.text('1.1. Getting Started'), findsOneWidget);
+      expect(find.text('1.2. Installation'), findsOneWidget);
+      
+      // Tap on a section to select it
+      await tester.tap(find.text('2. Architecture'));
       
       // Verify selection callback was called with correct index
-      expect(selectedIndex, equals(1));
+      expect(selectedIndex, equals(3));
     });
 
     testWidgets('renders with decisions', (WidgetTester tester) async {
@@ -190,6 +225,39 @@ void main() {
       
       // The actual visual check would require golden testing
       // In a real test, we'd verify specific color values
+    });
+    
+    testWidgets('keyboard accessibility for expand/collapse', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TableOfContents(
+              sections: sections,
+              decisions: [],
+              currentSectionIndex: 0,
+              currentDecisionIndex: -1,
+              viewingDecisions: false,
+              onSectionSelected: (_) {},
+              onDecisionSelected: (_) {},
+              onToggleView: () {},
+            ),
+          ),
+        ),
+      );
+
+      // Focus on the first expand/collapse button
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_down).first);
+      await tester.pump();
+      
+      // Verify state changed (section collapsed)
+      expect(find.text('1.1. Getting Started'), findsNothing);
+      
+      // Tap again to expand
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_right).first);
+      await tester.pump();
+      
+      // Verify state changed back (section expanded)
+      expect(find.text('1.1. Getting Started'), findsOneWidget);
     });
   });
 }

@@ -81,7 +81,7 @@ void main() {
     });
 
     test('String literals with escape sequences', () {
-      final lexer = Lexer(r'"Line1\nLine2\tTabbed\r\nCRLF"');
+      final lexer = Lexer('"Line1\\nLine2\\tTabbed\\r\\nCRLF"');
       final tokens = lexer.scanTokens();
 
       expect(tokens[0].type, equals(TokenType.string));
@@ -186,7 +186,7 @@ void main() {
     });
 
     test('Error reporting for invalid characters', () {
-      final lexer = Lexer('valid $ ~'); // $ and ~ are not valid in the language
+      final lexer = Lexer('valid \$ ~'); // $ and ~ are not valid in the language
       final tokens = lexer.scanTokens();
 
       expect(lexer.errorReporter.hasErrors, isTrue);

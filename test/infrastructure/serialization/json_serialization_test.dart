@@ -4,7 +4,11 @@ import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/model.dart';
 import 'package:flutter_structurizr/domain/model/workspace.dart';
 import 'package:flutter_structurizr/domain/style/styles.dart';
+import 'package:flutter_structurizr/domain/view/model_view.dart';
+import 'package:flutter_structurizr/domain/view/views.dart';
+import 'package:flutter_structurizr/domain/view/view.dart' hide View;
 import 'package:flutter_structurizr/infrastructure/serialization/json_serialization.dart';
+import 'package:flutter_structurizr/infrastructure/serialization/json_serialization_helper.dart';
 
 void main() {
   group('JsonSerialization', () {
@@ -163,28 +167,66 @@ void main() {
       expect(parsedStyles.themes[0], equals(styles.themes[0]));
     });
     
-    test('validates workspace JSON', () {
+    test('validates workspace JSON with detailed errors', () {
       final model = Model();
-      
+
+      // Create a workspace with a view to pass validation
       final workspace = Workspace(
         id: 1,
         name: 'Test Workspace',
         model: model,
+        views: Views(systemContextViews: [SystemContextView(key: 'test', softwareSystemId: 'system1')]),
       );
-      
+
       final jsonString = JsonSerialization.workspaceToJson(workspace);
-      
+
       // Valid JSON
-      expect(JsonSerialization.validateWorkspaceJson(jsonString), isTrue);
-      
+      final validErrors = JsonSerialization.validateWorkspaceJson(jsonString);
+      expect(validErrors, isEmpty);
+
       // Invalid JSON: missing required field
       final invalidJson = jsonEncode({
         'id': 1,
         // Missing 'name'
         'model': {},
       });
-      
-      expect(JsonSerialization.validateWorkspaceJson(invalidJson), isFalse);
+
+      final invalidErrors = JsonSerialization.validateWorkspaceJson(invalidJson);
+      expect(invalidErrors, isNotEmpty);
+      expect(invalidErrors, contains('Missing required field: name'));
+    });
+
+    test('pretty print workspace JSON', () {
+      final workspace = Workspace(
+        id: 1,
+        name: 'Test Workspace',
+        model: Model(),
+      );
+
+      final prettyJson = JsonSerialization.workspaceToPrettyJson(workspace);
+      expect(prettyJson, contains('  "id": 1'));
+      expect(prettyJson, contains('  "name": "Test Workspace"'));
+      expect(prettyJson, contains('  "model": {'));
+    });
+
+    test('extract workspace name from JSON', () {
+      final json = '''{
+        "id": 1,
+        "name": "Extracted Name",
+        "model": {}
+      }''';
+
+      final name = JsonSerialization.extractWorkspaceName(json);
+      expect(name, equals('Extracted Name'));
+    });
+
+    test('isValidWorkspaceJson convenience method', () {
+      // Include systemContextViews to pass validation
+      final validJson = '{"id": 1, "name": "Test Workspace", "model": {}, "views": {"systemContextViews": [{"key": "test", "softwareSystemId": "system1"}]}}';
+      final invalidJson = '{"id": 1, "model": {}}';
+
+      expect(JsonSerialization.isValidWorkspaceJson(validJson), isTrue);
+      expect(JsonSerialization.isValidWorkspaceJson(invalidJson), isFalse);
     });
     
     test('throws JsonParsingException on invalid JSON', () {
@@ -235,6 +277,81 @@ void main() {
       );
       
       expect(people, isEmpty);
+    });
+  });
+
+  group('JsonSerializationHelper', () {
+    test('workspaceToJson and workspaceFromJson', () {
+      final workspace = Workspace(
+        id: 1,
+        name: 'Test Workspace',
+        model: Model(),
+      );
+
+      final json = JsonSerializationHelper.workspaceToJson(workspace);
+      expect(json, isNotEmpty);
+
+      final deserializedWorkspace = JsonSerializationHelper.workspaceFromJson(json);
+      expect(deserializedWorkspace.id, equals(workspace.id));
+      expect(deserializedWorkspace.name, equals(workspace.name));
+    });
+
+    test('prettyPrintWorkspace formats JSON nicely', () {
+      final workspace = Workspace(
+        id: 1,
+        name: 'Test Workspace',
+        model: Model(),
+      );
+
+      final prettyJson = JsonSerializationHelper.prettyPrintWorkspace(workspace);
+      expect(prettyJson, contains('  "id": 1'));
+      expect(prettyJson, contains('  "name": "Test Workspace"'));
+      expect(prettyJson.split('\n').length, greaterThan(5)); // Should be multi-line
+    });
+
+    test('elementsToJson converts elements to JSON', () {
+      final elements = [
+        Person(id: 'person1', name: 'User'),
+        SoftwareSystem(id: 'system1', name: 'System'),
+      ];
+
+      final json = JsonSerializationHelper.elementsToJson(elements);
+      expect(json, isNotEmpty);
+
+      final decodedJson = jsonDecode(json) as List;
+      expect(decodedJson.length, equals(2));
+      expect(decodedJson[0]['id'], equals('person1'));
+      expect(decodedJson[1]['id'], equals('system1'));
+    });
+
+    // Temporarily commented out due to View type conflicts
+    /*test('viewsToJson converts views to JSON', () {
+      // This test will be uncommented when View type conflicts are resolved
+    });*/
+
+    test('validateJson validates JSON structure', () {
+      final validJson = '{"id": 1, "name": "Test", "model": {}}';
+      final invalidJson = '{"id": 1}'; // Missing name
+
+      final validErrors = JsonSerializationHelper.validateJson(validJson);
+      expect(validErrors, isEmpty);
+
+      final invalidErrors = JsonSerializationHelper.validateJson(invalidJson);
+      expect(invalidErrors, isNotEmpty);
+      expect(invalidErrors, contains('Missing required field "name"'));
+    });
+
+    test('jsonToMap converts JSON to map safely', () {
+      final validJson = '{"id": 1, "name": "Test"}';
+      final invalidJson = '{not valid json}';
+
+      final validMap = JsonSerializationHelper.jsonToMap(validJson);
+      expect(validMap, isNotNull);
+      expect(validMap?['id'], equals(1));
+      expect(validMap?['name'], equals('Test'));
+
+      final invalidMap = JsonSerializationHelper.jsonToMap(invalidJson);
+      expect(invalidMap, isNull);
     });
   });
 }

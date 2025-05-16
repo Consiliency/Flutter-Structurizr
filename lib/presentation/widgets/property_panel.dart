@@ -1,8 +1,11 @@
-import 'package:flutter/material.dart' hide Element, Container, View;
+import 'package:flutter/material.dart' hide Container, Border, Element, View;
 import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/relationship.dart';
-import 'package:flutter_structurizr/domain/style/styles.dart';
-import 'package:flutter_structurizr/domain/view/view.dart';
+import 'package:flutter_structurizr/domain/view/model_view.dart';
+import 'package:flutter_structurizr/domain/style/styles.dart' hide Border;
+import 'package:flutter_structurizr/domain/model/model.dart' hide Container, Element;
+import 'package:flutter/material.dart' as flutter;
+import 'package:flutter_structurizr/domain/model/model.dart' as structurizr_model;
 
 /// A panel for viewing and editing properties of Structurizr elements, relationships and views
 class PropertyPanel extends StatefulWidget {
@@ -132,7 +135,6 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
   /// Creates controllers for view properties
   void _createViewControllers(ModelView view) {
     _textControllers['key'] = TextEditingController(text: view.key);
-    _textControllers['name'] = TextEditingController(text: view.name);
     _textControllers['description'] = TextEditingController(text: view.description ?? '');
   }
   
@@ -218,7 +220,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
     } else if (widget.currentView != null) {
       return _buildViewProperties(widget.currentView!, theme);
     } else {
-      return Container();
+      return flutter.Container();
     }
   }
   
@@ -229,7 +231,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
     } else if (widget.selectedRelationship != null) {
       return _buildRelationshipStyles(widget.selectedRelationship!, theme);
     } else {
-      return Container();
+      return flutter.Container();
     }
   }
   
@@ -240,7 +242,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
     } else if (widget.selectedRelationship != null) {
       return _buildRelationshipTags(widget.selectedRelationship!, theme);
     } else {
-      return Container();
+      return flutter.Container();
     }
   }
   
@@ -475,16 +477,19 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'No styles defined for this element',
+              'No style defined for this element',
               style: theme.textTheme.bodyLarge,
             ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
                 // Create a new style for this element
-                // This would be implemented based on the style management system
+                final newStyle = ElementStyle(tag: element.tags.isNotEmpty ? element.tags.first : 'default');
+                if (widget.onElementPropertyChanged != null) {
+                  widget.onElementPropertyChanged?.call(element, 'style', newStyle);
+                }
               },
-              child: const Text('Create Style'),
+              child: const Text('Add Style'),
             ),
           ],
         ),
@@ -505,7 +510,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
           
           // Style properties
           ExpansionTile(
-            title: const Text('Visual Styles'),
+            title: const Text('Style Properties'),
             initiallyExpanded: _stylesExpanded,
             onExpansionChanged: (expanded) {
               setState(() {
@@ -518,13 +523,13 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                 title: const Text('Background Color'),
                 subtitle: Text(elementStyle.background?.toString() ?? 'Default'),
                 trailing: elementStyle.background != null
-                    ? Container(
+                    ? flutter.Container(
                         width: 24,
                         height: 24,
-                        decoration: BoxDecoration(
-                          color: Color(int.parse(elementStyle.background!.replaceAll('#', '0xFF'))),
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(4),
+                        decoration: flutter.BoxDecoration(
+                          color: elementStyle.background,
+                          border: flutter.Border.all(color: flutter.Colors.grey),
+                          borderRadius: flutter.BorderRadius.circular(4),
                         ),
                       )
                     : null,
@@ -586,7 +591,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'No styles defined for this relationship',
+              'No style defined for this relationship',
               style: theme.textTheme.bodyLarge,
             ),
             const SizedBox(height: 16),
@@ -595,7 +600,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                 // Create a new style for this relationship
                 // This would be implemented based on the style management system
               },
-              child: const Text('Create Style'),
+              child: const Text('Add Style'),
             ),
           ],
         ),
@@ -616,7 +621,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
           
           // Style properties
           ExpansionTile(
-            title: const Text('Visual Styles'),
+            title: const Text('Style Properties'),
             initiallyExpanded: _stylesExpanded,
             onExpansionChanged: (expanded) {
               setState(() {
@@ -629,13 +634,13 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                 title: const Text('Line Color'),
                 subtitle: Text(relationshipStyle.color?.toString() ?? 'Default'),
                 trailing: relationshipStyle.color != null
-                    ? Container(
+                    ? flutter.Container(
                         width: 24,
                         height: 24,
-                        decoration: BoxDecoration(
-                          color: Color(int.parse(relationshipStyle.color!.replaceAll('#', '0xFF'))),
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(4),
+                        decoration: flutter.BoxDecoration(
+                          color: relationshipStyle.color,
+                          border: flutter.Border.all(color: flutter.Colors.grey),
+                          borderRadius: flutter.BorderRadius.circular(4),
                         ),
                       )
                     : null,
@@ -829,11 +834,11 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
     if (controller == null && value != null) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 16),
-        child: TextField(
-          controller: TextEditingController(text: value),
-          decoration: InputDecoration(
+        child: flutter.TextField(
+          controller: flutter.TextEditingController(text: value),
+          decoration: flutter.InputDecoration(
             labelText: label,
-            border: const OutlineInputBorder(),
+            border: const flutter.OutlineInputBorder(),
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           ),
           readOnly: true,
@@ -844,11 +849,11 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
     
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: TextField(
+      child: flutter.TextField(
         controller: controller,
-        decoration: InputDecoration(
+        decoration: flutter.InputDecoration(
           labelText: label,
-          border: const OutlineInputBorder(),
+          border: const flutter.OutlineInputBorder(),
           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         ),
         readOnly: readOnly,
@@ -859,19 +864,19 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
   
   /// Shows a dialog to add a new tag
   void _showAddTagDialog(BuildContext context, ValueChanged<String> onTagAdded) {
-    final textController = TextEditingController();
+    final textController = flutter.TextEditingController();
     
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Add Tag'),
-          content: TextField(
+        return flutter.AlertDialog(
+          title: const flutter.Text('Add Tag'),
+          content: flutter.TextField(
             controller: textController,
-            decoration: const InputDecoration(
+            decoration: const flutter.InputDecoration(
               labelText: 'Tag',
               hintText: 'Enter tag name',
-              border: OutlineInputBorder(),
+              border: flutter.OutlineInputBorder(),
             ),
             autofocus: true,
             onSubmitted: (value) {
@@ -880,18 +885,18 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
             },
           ),
           actions: [
-            TextButton(
+            flutter.TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Cancel'),
+              child: const flutter.Text('Cancel'),
             ),
-            ElevatedButton(
+            flutter.ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 onTagAdded(textController.text);
               },
-              child: const Text('Add'),
+              child: const flutter.Text('Add'),
             ),
           ],
         );

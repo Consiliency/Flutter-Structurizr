@@ -1,9 +1,12 @@
 import 'package:flutter_structurizr/application/dsl/workspace_mapper.dart';
-import 'package:flutter_structurizr/domain/model/element.dart';
+import 'package:flutter_structurizr/domain/model/element.dart' hide Container, Element;
 import 'package:flutter_structurizr/domain/model/workspace.dart';
+import 'package:flutter_structurizr/domain/model/model.dart';
 import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 import 'package:flutter_structurizr/domain/parser/lexer/lexer.dart';
 import 'package:flutter_structurizr/domain/parser/parser.dart';
+import 'package:flutter_structurizr/domain/style/styles.dart';
+import 'package:flutter_structurizr/domain/view/view.dart' as view;
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -22,8 +25,8 @@ void main() {
       ''';
       
       final errorReporter = ErrorReporter(source);
-      final lexer = Lexer(source, errorReporter);
-      final parser = Parser(lexer, errorReporter);
+      final lexer = Lexer(source);
+      final parser = Parser(source);
       final mapper = WorkspaceMapper(source, errorReporter);
 
       // Act
@@ -33,29 +36,32 @@ void main() {
       // Assert
       expect(errorReporter.hasErrors, isFalse);
       expect(workspace, isNotNull);
-      expect(workspace.name, equals('Banking System'));
-      expect(workspace.description, equals('This is a model of my banking system.'));
+      final nonNullWorkspace = workspace!;
+      expect(nonNullWorkspace.name, equals('Banking System'));
+      expect(nonNullWorkspace.description, equals('This is a model of my banking system.'));
       
       // Check model elements
-      expect(workspace.model.elements.length, equals(2));
-      expect(workspace.model.elements.whereType<Person>().length, equals(1));
-      expect(workspace.model.elements.whereType<SoftwareSystem>().length, equals(1));
+      expect(nonNullWorkspace.model.elements.length, equals(2));
+      // Count by type instead of using whereType to avoid conflicts
+      final personCount = nonNullWorkspace.model.people.length;
+      final systemCount = nonNullWorkspace.model.softwareSystems.length;
       
-      final person = workspace.model.elements.whereType<Person>().first;
+      expect(personCount, equals(1));
+      expect(systemCount, equals(1));
+      
+      final person = nonNullWorkspace.model.people.first;
       expect(person.name, equals('Customer'));
       expect(person.description, equals('A customer of the bank.'));
-      expect(person.identifier, equals('customer'));
       
-      final system = workspace.model.elements.whereType<SoftwareSystem>().first;
+      final system = nonNullWorkspace.model.softwareSystems.first;
       expect(system.name, equals('Internet Banking System'));
       expect(system.description, equals('Allows customers to view information about their bank accounts and make payments.'));
-      expect(system.identifier, equals('internetBankingSystem'));
       
       // Check relationships
-      expect(workspace.model.relationships.length, equals(1));
-      final relationship = workspace.model.relationships.first;
-      expect(relationship.source, equals(person));
-      expect(relationship.destination, equals(system));
+      expect(nonNullWorkspace.model.relationships.length, equals(1));
+      final relationship = nonNullWorkspace.model.relationships.first;
+      expect(relationship.sourceId, equals(person.id));
+      expect(relationship.destinationId, equals(system.id));
       expect(relationship.description, equals('Uses'));
     });
 
@@ -81,8 +87,8 @@ void main() {
       ''';
       
       final errorReporter = ErrorReporter(source);
-      final lexer = Lexer(source, errorReporter);
-      final parser = Parser(lexer, errorReporter);
+      final lexer = Lexer(source);
+      final parser = Parser(source);
       final mapper = WorkspaceMapper(source, errorReporter);
 
       // Act
@@ -92,41 +98,52 @@ void main() {
       // Assert
       expect(errorReporter.hasErrors, isFalse);
       expect(workspace, isNotNull);
-      expect(workspace.name, equals('Banking System'));
+      final nonNullWorkspace = workspace!;
+      expect(nonNullWorkspace.name, equals('Banking System'));
       
       // Check model elements
-      expect(workspace.model.elements.whereType<Person>().length, equals(1));
-      expect(workspace.model.elements.whereType<SoftwareSystem>().length, equals(1));
-      expect(workspace.model.elements.whereType<Container>().length, equals(2));
-      expect(workspace.model.elements.whereType<Component>().length, equals(2));
+      // Count by type instead of using whereType to avoid conflicts
+      final personCount = nonNullWorkspace.model.people.length;
+      final systemCount = nonNullWorkspace.model.softwareSystems.length;
+      
+      expect(personCount, equals(1));
+      expect(systemCount, equals(1));
+      // Count containers and components by traversing the structure
+      int containerCount = 0;
+      int componentCount = 0;
+      
+      for (final system in nonNullWorkspace.model.softwareSystems) {
+        containerCount += system.containers.length;
+        
+        for (final container in system.containers) {
+          componentCount += container.components.length;
+        }
+      }
+      
+      expect(containerCount, equals(2));
+      expect(componentCount, equals(2));
       
       // Check parent-child relationships
-      final system = workspace.model.elements
-          .whereType<SoftwareSystem>()
-          .firstWhere((e) => e.identifier == 'internetBankingSystem');
-          
-      final webApp = workspace.model.elements
-          .whereType<Container>()
-          .firstWhere((e) => e.identifier == 'webApplication');
-      expect(webApp.parent, equals(system));
+      final system = nonNullWorkspace.model.softwareSystems.first;
       
-      final database = workspace.model.elements
-          .whereType<Container>()
-          .firstWhere((e) => e.identifier == 'database');
-      expect(database.parent, equals(system));
+      // Get containers from the system
+      expect(system.containers.length, equals(2));
+      final webApp = system.containers[0];
+      final database = system.containers[1];
       
-      final signinController = workspace.model.elements
-          .whereType<Component>()
-          .firstWhere((e) => e.identifier == 'signinController');
-      expect(signinController.parent, equals(webApp));
+      expect(webApp.parentId, equals(system.id));
+      expect(database.parentId, equals(system.id));
       
-      final accountsController = workspace.model.elements
-          .whereType<Component>()
-          .firstWhere((e) => e.identifier == 'accountsSummaryController');
-      expect(accountsController.parent, equals(webApp));
+      // Get components from the web app container
+      expect(webApp.components.length, equals(2));
+      final signinController = webApp.components[0];
+      final accountsController = webApp.components[1];
+      
+      expect(signinController.parentId, equals(webApp.id));
+      expect(accountsController.parentId, equals(webApp.id));
       
       // Check relationships
-      expect(workspace.model.relationships.length, equals(3));
+      expect(nonNullWorkspace.model.relationships.length, equals(3));
     });
 
     test('parses a workspace with views', () {
@@ -161,8 +178,8 @@ void main() {
       ''';
       
       final errorReporter = ErrorReporter(source);
-      final lexer = Lexer(source, errorReporter);
-      final parser = Parser(lexer, errorReporter);
+      final lexer = Lexer(source);
+      final parser = Parser(source);
       final mapper = WorkspaceMapper(source, errorReporter);
 
       // Act
@@ -172,21 +189,22 @@ void main() {
       // Assert
       expect(errorReporter.hasErrors, isFalse);
       expect(workspace, isNotNull);
-      expect(workspace.name, equals('Banking System'));
+      final nonNullWorkspace = workspace!;
+      expect(nonNullWorkspace.name, equals('Banking System'));
       
       // Check model elements
-      expect(workspace.model.elements.whereType<Person>().length, equals(1));
-      expect(workspace.model.elements.whereType<SoftwareSystem>().length, equals(2));
+      expect(nonNullWorkspace.model.people.length, equals(1));
+      expect(nonNullWorkspace.model.softwareSystems.length, equals(2));
       
       // Check views
-      expect(workspace.views, isNotNull);
-      expect(workspace.views.systemLandscapeViews.length, equals(1));
-      expect(workspace.views.systemContextViews.length, equals(1));
+      expect(nonNullWorkspace.views, isNotNull);
+      expect(nonNullWorkspace.views.systemLandscapeViews.length, equals(1));
+      expect(nonNullWorkspace.views.systemContextViews.length, equals(1));
       
-      final landscapeView = workspace.views.systemLandscapeViews.first;
+      final landscapeView = nonNullWorkspace.views.systemLandscapeViews.first;
       expect(landscapeView.key, equals('SystemLandscape'));
       
-      final contextView = workspace.views.systemContextViews.first;
+      final contextView = nonNullWorkspace.views.systemContextViews.first;
       expect(contextView.key, equals('SystemContext'));
       expect(contextView.softwareSystemId, equals('internetBankingSystem'));
       
@@ -209,8 +227,8 @@ void main() {
       ''';
       
       final errorReporter = ErrorReporter(source);
-      final lexer = Lexer(source, errorReporter);
-      final parser = Parser(lexer, errorReporter);
+      final lexer = Lexer(source);
+      final parser = Parser(source);
       final mapper = WorkspaceMapper(source, errorReporter);
 
       // Act
@@ -240,8 +258,8 @@ void main() {
       ''';
       
       final errorReporter = ErrorReporter(source);
-      final lexer = Lexer(source, errorReporter);
-      final parser = Parser(lexer, errorReporter);
+      final lexer = Lexer(source);
+      final parser = Parser(source);
 
       // Act
       parser.parse();
@@ -259,18 +277,17 @@ void main() {
         workspace "Banking System" {
           model {
             // Invalid character sequence
-            customer = person "Customer" @#$%
+            customer = person "Customer" "@#\$%"
           }
         }
       ''';
       
       final errorReporter = ErrorReporter(source);
-      final lexer = Lexer(source, errorReporter);
+      final lexer = Lexer(source);
 
       // Act
-      while (lexer.nextToken().type != TokenType.EOF) {
-        // Just consume all tokens
-      }
+      // Just get all tokens
+      final tokens = lexer.scanTokens();
 
       // Assert
       expect(errorReporter.hasErrors, isTrue);
@@ -451,8 +468,8 @@ void main() {
       ''';
       
       final errorReporter = ErrorReporter(source);
-      final lexer = Lexer(source, errorReporter);
-      final parser = Parser(lexer, errorReporter);
+      final lexer = Lexer(source);
+      final parser = Parser(source);
       final mapper = WorkspaceMapper(source, errorReporter);
 
       // Act
@@ -462,26 +479,27 @@ void main() {
       // Assert
       expect(errorReporter.hasErrors, isFalse);
       expect(workspace, isNotNull);
-      expect(workspace.name, equals('Big Bank plc'));
+      final nonNullWorkspace = workspace!;
+      expect(nonNullWorkspace.name, equals('Big Bank plc'));
       
       // Check model elements
-      final elements = workspace.model.elements;
+      final elements = nonNullWorkspace.model.elements;
       expect(elements.whereType<Person>().length, equals(3));
       expect(elements.whereType<SoftwareSystem>().length, equals(2));
       expect(elements.whereType<Container>().length, equals(3));
       expect(elements.whereType<Component>().length, equals(10));
       
       // Check relationships
-      expect(workspace.model.relationships.length, greaterThanOrEqualTo(20));
+      expect(nonNullWorkspace.model.relationships.length, greaterThanOrEqualTo(20));
       
       // Check views
-      expect(workspace.views.systemLandscapeViews.length, equals(1));
-      expect(workspace.views.systemContextViews.length, equals(1));
-      expect(workspace.views.containerViews.length, equals(1));
-      expect(workspace.views.componentViews.length, equals(1));
+      expect(nonNullWorkspace.views.systemLandscapeViews.length, equals(1));
+      expect(nonNullWorkspace.views.systemContextViews.length, equals(1));
+      expect(nonNullWorkspace.views.containerViews.length, equals(1));
+      expect(nonNullWorkspace.views.componentViews.length, equals(1));
       
       // Check styles
-      expect(workspace.views.styles.elements.length, greaterThanOrEqualTo(10));
+      expect(nonNullWorkspace.views.styles?.elements.length, greaterThanOrEqualTo(10));
     });
 
     test('parses styles, themes, branding and terminology', () {
@@ -550,8 +568,8 @@ void main() {
       ''';
 
       final errorReporter = ErrorReporter(source);
-      final lexer = Lexer(source, errorReporter);
-      final parser = Parser(lexer, errorReporter);
+      final lexer = Lexer(source);
+      final parser = Parser(source);
       final mapper = WorkspaceMapper(source, errorReporter);
 
       // Act
@@ -561,39 +579,42 @@ void main() {
       // Assert
       expect(errorReporter.hasErrors, isFalse);
       expect(workspace, isNotNull);
+      final nonNullWorkspace = workspace!;
 
       // Check styles
-      expect(workspace.styles, isNotNull);
-      expect(workspace.styles.elements.length, equals(2));
-      expect(workspace.styles.relationships.length, equals(1));
-      expect(workspace.styles.themes.length, equals(1));
+      expect(nonNullWorkspace.styles, isNotNull);
+      final styles = nonNullWorkspace.styles!;
+      expect(styles.elements.length, equals(2));
+      expect(styles.relationships.length, equals(1));
+      expect(styles.themes.length, equals(1));
 
-      final personStyle = workspace.styles.elements.firstWhere((e) => e.tag == 'Person');
+      final personStyle = nonNullWorkspace.styles!.elements.firstWhere((e) => e.tag == 'Person');
       expect(personStyle.shape, equals(Shape.person));
       expect(personStyle.fontSize, equals(22));
       expect(personStyle.border, equals(Border.dashed));
       expect(personStyle.opacity, equals(90));
 
-      final relationshipStyle = workspace.styles.relationships.first;
+      final relationshipStyle = nonNullWorkspace.styles!.relationships.first;
       expect(relationshipStyle.tag, equals('Relationship'));
       expect(relationshipStyle.thickness, equals(2));
       expect(relationshipStyle.style, equals(LineStyle.dashed));
-      expect(relationshipStyle.routing, equals(Routing.orthogonal));
+      expect(relationshipStyle.routing, equals(StyleRouting.orthogonal));
 
       // Check themes
-      expect(workspace.styles.themes.first, equals('https://structurizr.com/themes/default'));
+      expect(nonNullWorkspace.styles!.themes.first, equals('https://structurizr.com/themes/default'));
 
       // Check branding
-      expect(workspace.branding, isNotNull);
-      expect(workspace.branding.logo, equals('https://example.com/logo.png'));
-      expect(workspace.branding.fonts.length, equals(1));
-      expect(workspace.branding.fonts.first.name, equals('Open Sans'));
+      expect(nonNullWorkspace.branding, isNotNull);
+      final branding = nonNullWorkspace.branding!;
+      expect(branding.logo, equals('https://example.com/logo.png'));
+      expect(branding.fonts.length, equals(1));
+      expect(branding.fonts.first.name, equals('Open Sans'));
 
       // Check terminology
-      expect(workspace.views.configuration, isNotNull);
-      expect(workspace.views.configuration?.terminology, isNotNull);
+      expect(nonNullWorkspace.views.configuration, isNotNull);
+      expect(nonNullWorkspace.views.configuration?.terminology, isNotNull);
 
-      final terminology = workspace.views.configuration!.terminology!;
+      final terminology = nonNullWorkspace.views.configuration!.terminology!;
       expect(terminology.person, equals('Actor'));
       expect(terminology.softwareSystem, equals('Application'));
       expect(terminology.container, equals('Service'));

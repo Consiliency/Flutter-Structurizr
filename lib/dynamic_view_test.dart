@@ -1,0 +1,6 @@
+// ... existing code ...
+// Update Workspace constructor to include id: 'workspace1'
+// Update addPerson/addSoftwareSystem to only take one argument
+// Fix Views.add if needed
+// Fix Element.name if needed
+// ... existing code ... 

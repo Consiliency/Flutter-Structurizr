@@ -189,28 +189,113 @@ class JsonSerialization {
   }
 
   /// Validates a JSON string against the Structurizr JSON schema.
-  /// Returns true if valid, false otherwise.
-  static bool validateWorkspaceJson(String jsonString) {
+  /// Returns a list of validation errors, or an empty list if valid.
+  static List<String> validateWorkspaceJson(String jsonString) {
+    final errors = <String>[];
+
     try {
       final json = jsonDecode(jsonString) as Map<String, dynamic>;
-      
+
       // Basic schema validation
-      if (!json.containsKey('id')) return false;
-      if (!json.containsKey('name')) return false;
-      if (!json.containsKey('model')) return false;
-      
+      if (!json.containsKey('id')) {
+        errors.add('Missing required field: id');
+      }
+
+      if (!json.containsKey('name')) {
+        errors.add('Missing required field: name');
+      }
+
+      if (!json.containsKey('model')) {
+        errors.add('Missing required field: model');
+      }
+
       // Model validation
       final model = json['model'] as Map<String, dynamic>?;
-      if (model == null) return false;
-      
-      // Convert to a workspace and check business rules
-      final workspace = Workspace.fromJson(json);
-      final errors = workspace.validate();
-      
-      return errors.isEmpty;
+      if (model == null) {
+        errors.add('Model field must be an object');
+      } else {
+        // Check for valid model structure
+        if (model.containsKey('people') && !(model['people'] is List)) {
+          errors.add('Field model.people must be an array');
+        }
+
+        if (model.containsKey('softwareSystems') && !(model['softwareSystems'] is List)) {
+          errors.add('Field model.softwareSystems must be an array');
+        }
+
+        if (model.containsKey('deploymentNodes') && !(model['deploymentNodes'] is List)) {
+          errors.add('Field model.deploymentNodes must be an array');
+        }
+      }
+
+      // Views validation
+      final views = json['views'] as Map<String, dynamic>?;
+      if (views != null) {
+        // Check for valid views structure
+        if (views.containsKey('systemLandscapeViews') && !(views['systemLandscapeViews'] is List)) {
+          errors.add('Field views.systemLandscapeViews must be an array');
+        }
+
+        if (views.containsKey('systemContextViews') && !(views['systemContextViews'] is List)) {
+          errors.add('Field views.systemContextViews must be an array');
+        }
+
+        if (views.containsKey('containerViews') && !(views['containerViews'] is List)) {
+          errors.add('Field views.containerViews must be an array');
+        }
+
+        if (views.containsKey('componentViews') && !(views['componentViews'] is List)) {
+          errors.add('Field views.componentViews must be an array');
+        }
+
+        if (views.containsKey('dynamicViews') && !(views['dynamicViews'] is List)) {
+          errors.add('Field views.dynamicViews must be an array');
+        }
+
+        if (views.containsKey('deploymentViews') && !(views['deploymentViews'] is List)) {
+          errors.add('Field views.deploymentViews must be an array');
+        }
+      }
+
+      // Only try to construct a workspace if no basic validation errors
+      if (errors.isEmpty) {
+        try {
+          // Try to convert to a workspace and check business rules
+          final workspace = Workspace.fromJson(json);
+          errors.addAll(workspace.validate());
+        } catch (e) {
+          errors.add('Error constructing workspace object: ${e.toString()}');
+        }
+      }
+
     } catch (e) {
-      return false;
+      errors.add('Invalid JSON: ${e.toString()}');
     }
+
+    return errors;
+  }
+
+  /// Checks if a JSON string is valid against the Structurizr JSON schema.
+  /// Returns true if valid, false otherwise.
+  static bool isValidWorkspaceJson(String jsonString) {
+    return validateWorkspaceJson(jsonString).isEmpty;
+  }
+
+  /// Attempts to extract a workspace name from a JSON string, even if the JSON is invalid.
+  /// Returns null if unable to extract the name.
+  static String? extractWorkspaceName(String jsonString) {
+    try {
+      final json = jsonDecode(jsonString) as Map<String, dynamic>;
+      return json['name'] as String?;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Converts a workspace to a pretty-printed JSON string.
+  static String workspaceToPrettyJson(Workspace workspace) {
+    final encoder = JsonEncoder.withIndent('  ');
+    return encoder.convert(workspace.toJson());
   }
 
   /// Handles errors during JSON parsing.

@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_structurizr/domain/documentation/documentation.dart';
 
@@ -109,13 +110,17 @@ class _DecisionGraphState extends State<DecisionGraph> with SingleTickerProvider
     for (final decision in widget.decisions) {
       for (final linkedId in decision.links) {
         // Skip if the linked decision doesn't exist
-        if (!_positions.containsKey(linkedId)) continue;
+        if (!_positions.containsKey(linkedId) || !_positions.containsKey(decision.id)) continue;
         
         final pos1 = _positions[decision.id]!;
         final pos2 = _positions[linkedId]!;
         
         final delta = pos2 - pos1;
         final distance = delta.distance;
+        
+        // Avoid division by zero
+        if (distance < 0.1) continue;
+        
         final direction = delta / distance;
         
         // Calculate spring force (F = k * (x - rest_length))
@@ -130,8 +135,12 @@ class _DecisionGraphState extends State<DecisionGraph> with SingleTickerProvider
     for (var i = 0; i < widget.decisions.length; i++) {
       final decision1 = widget.decisions[i];
       
+      if (!_positions.containsKey(decision1.id)) continue;
+      
       for (var j = i + 1; j < widget.decisions.length; j++) {
         final decision2 = widget.decisions[j];
+        
+        if (!_positions.containsKey(decision2.id)) continue;
         
         final pos1 = _positions[decision1.id]!;
         final pos2 = _positions[decision2.id]!;
@@ -155,11 +164,16 @@ class _DecisionGraphState extends State<DecisionGraph> with SingleTickerProvider
     // Update velocities and positions
     var stable = true;
     for (final decision in widget.decisions) {
+      // Skip if the decision doesn't have a position or velocity yet
+      if (!_positions.containsKey(decision.id) || !_velocities.containsKey(decision.id)) continue;
+      
       // Apply damping to velocity
       var velocity = _velocities[decision.id]! * _damping;
       
       // Apply force to velocity (F = ma, a = F/m, v = v + a)
-      velocity += forces[decision.id]! / 5.0; // Mass = 5.0
+      if (forces.containsKey(decision.id)) {
+        velocity += forces[decision.id]! / 5.0; // Mass = 5.0
+      }
       
       // Update velocity
       _velocities[decision.id] = velocity;
@@ -184,32 +198,28 @@ class _DecisionGraphState extends State<DecisionGraph> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onScaleStart: (details) {
-        // Store initial scale and offset
-      },
-      onScaleUpdate: (details) {
-        setState(() {
-          _scale = details.scale;
-          _offset += details.focalPointDelta;
-        });
-      },
-      child: Container(
-        color: widget.isDarkMode ? Colors.grey.shade900 : Colors.grey.shade50,
-        child: Center(
-          child: InteractiveViewer(
+    return Container(
+      color: widget.isDarkMode ? Colors.grey.shade900 : Colors.grey.shade50,
+      child: Stack(
+        children: [
+          // Zooming and panning control with InteractiveViewer
+          InteractiveViewer(
             boundaryMargin: const EdgeInsets.all(500),
             minScale: 0.1,
             maxScale: 2.0,
-            child: CustomPaint(
-              size: Size.infinite,
-              painter: DecisionGraphPainter(
-                decisions: widget.decisions,
-                positions: _positions,
-                isDarkMode: widget.isDarkMode,
-              ),
-              child: Stack(
-                children: widget.decisions.map((decision) {
+            child: Stack(
+              children: [
+                // Custom painter for edges - only one CustomPaint widget in the hierarchy
+                CustomPaint(
+                  size: Size.infinite,
+                  painter: DecisionGraphPainter(
+                    decisions: widget.decisions,
+                    positions: _positions,
+                    isDarkMode: widget.isDarkMode,
+                  ),
+                ),
+                // Decision nodes
+                ...widget.decisions.map((decision) {
                   // Skip if position isn't calculated yet
                   if (!_positions.containsKey(decision.id)) {
                     return const SizedBox();
@@ -326,10 +336,82 @@ class _DecisionGraphState extends State<DecisionGraph> with SingleTickerProvider
                     ),
                   );
                 }).toList(),
-              ),
+              ],
             ),
           ),
-        ),
+          // Controls overlay
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Zoom controls
+                FloatingActionButton.small(
+                  heroTag: 'zoom_in',
+                  onPressed: () {
+                    setState(() {
+                      _scale = _scale * 1.2;
+                    });
+                  },
+                  backgroundColor: widget.isDarkMode ? Colors.grey.shade800 : Colors.white,
+                  child: Icon(
+                    Icons.add,
+                    color: widget.isDarkMode ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                FloatingActionButton.small(
+                  heroTag: 'zoom_out',
+                  onPressed: () {
+                    setState(() {
+                      _scale = _scale / 1.2;
+                    });
+                  },
+                  backgroundColor: widget.isDarkMode ? Colors.grey.shade800 : Colors.white,
+                  child: Icon(
+                    Icons.remove,
+                    color: widget.isDarkMode ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                FloatingActionButton.small(
+                  heroTag: 'zoom_reset',
+                  onPressed: () {
+                    setState(() {
+                      _scale = 1.0;
+                      _offset = Offset.zero;
+                    });
+                  },
+                  backgroundColor: widget.isDarkMode ? Colors.grey.shade800 : Colors.white,
+                  child: Icon(
+                    Icons.refresh,
+                    color: widget.isDarkMode ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Simulation controls
+                FloatingActionButton.small(
+                  heroTag: 'simulation_toggle',
+                  onPressed: () {
+                    setState(() {
+                      _isSimulating = !_isSimulating;
+                      if (_isSimulating && !_controller.isAnimating) {
+                        _controller.repeat();
+                      }
+                    });
+                  },
+                  backgroundColor: widget.isDarkMode ? Colors.grey.shade800 : Colors.white,
+                  child: Icon(
+                    _isSimulating ? Icons.pause : Icons.play_arrow,
+                    color: widget.isDarkMode ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -435,5 +517,3 @@ class Math {
   }
 }
 
-// Import the math library in a way that avoids naming conflicts with UI components
-import 'dart:math' as math;

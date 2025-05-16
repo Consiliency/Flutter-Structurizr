@@ -1,0 +1,10 @@
+00:00 +0: loading /home/jenner/Code/dart-structurizr/test/presentation/widgets/documentation/asciidoc_renderer_test.dart
+00:00 +0 -1: loading /home/jenner/Code/dart-structurizr/test/presentation/widgets/documentation/asciidoc_renderer_test.dart [E]
+  Failed to load "/home/jenner/Code/dart-structurizr/test/presentation/widgets/documentation/asciidoc_renderer_test.dart":
+  Compilation failed for testPath=/home/jenner/Code/dart-structurizr/test/presentation/widgets/documentation/asciidoc_renderer_test.dart: test/presentation/widgets/documentation/asciidoc_renderer_test.dart:261:27: Error: The argument type 'MockPlatformWebViewController' can't be assigned to the parameter type 'WebViewController?'.
+   - 'MockPlatformWebViewController' is from 'test/presentation/widgets/documentation/mock_webview.dart'.
+   - 'WebViewController' is from 'package:webview_flutter/src/webview_controller.dart' ('../../.pub-cache/hosted/pub.dev/webview_flutter-4.11.0/lib/src/webview_controller.dart').
+                controller: controller,
+                            ^
+  .
+00:00 +0 -1: Some tests failed.

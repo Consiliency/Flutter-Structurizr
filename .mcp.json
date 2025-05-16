@@ -1,0 +1,39 @@
+{
+    "mcpServers": {
+        "firecrawl-mcp": {
+        "command": "npx",
+        "args": ["-y", "firecrawl-mcp"],
+        "env": {
+                "FIRECRAWL_API_KEY": "fc-7760256f733841519d7625c1a2f8ed4d"
+            }
+        },
+        "puppeteer": {
+            "command": "npx",
+            "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
+        },
+        "aider-mcp-server": {
+            "type": "stdio",
+            "command": "uv",
+            "args": [
+                    "--directory",
+                    "/home/jenner/Code/aider-mcp-server",
+                    "run",
+                    "aider-mcp-server",
+                    "--editor-model",
+                    "gemini-2.5-flash-preview-04-17",
+                    "--current-working-dir",
+                    "/home/jenner/Code/dart-structurizr"
+            ],
+            "env": {
+                "OPENAI_API_KEY": "REDACTEDproj-OGyaRN0j2bncElLztuWvAr__AX6f7jdNisQI0PR6NahFgg-m4BhDC2ZtlcI5h0WWsssv4rQXIbT3BlbkFJopFpFEWvRpt3QD0NjLkMLCFqXWg-_HL5fGJ3-dZuh1JFRKkFJPQrM4h6fE2ElE-AybfmhRQC0A",
+                "ANTHROPIC_API_KEY": "REDACTEDant-api03-rr5mWXukF_JNzU85_d8vFp1ZcOwGO478NOsCSl4jEarz8iuEdkzpaKwLi_pCQluEZWqUUi_knDkCFoqR5MstyQ-Mds3_wAA",
+                "GEMINI_API_KEY": "AIzaSyD-tnwyZZv1ynuxhwLfT-a2HbdAUJeKbiQ",
+                "DEEPSEEK_API_KEY": "REDACTED554f6488f8a44d68a8bfa9f1d84b7b02",
+                "GROQ_API_KEY": "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",
+                "OPENROUTER_API_KEY": "REDACTEDor-v1-917792c266075013b81e9cf2a760e7da876e019a2197aee2ccaa0bf61645bcc4",
+                "OLLAMA_HOST": "http://localhost:11434",
+                "FIREWORKS_API_KEY": "fw_3ZVJaQdqU4VwvwjKYT7swrNn"
+            }
+        }
+    }
+}

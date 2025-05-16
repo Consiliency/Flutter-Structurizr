@@ -84,41 +84,25 @@ class ParserError {
     required this.position,
     required this.source,
   });
+}
 
-  /// Returns the line of source code where the error occurred.
-  String get errorLine {
-    final lines = source.split('\n');
-    final lineIndex = position.line - 1;
-    
-    if (lineIndex >= 0 && lineIndex < lines.length) {
-      return lines[lineIndex];
-    }
-    
-    return '';
-  }
-
-  /// Returns a formatted representation of this error with source context.
-  String format() {
-    final sb = StringBuffer();
-    
-    // Format header with severity, message and position
-    sb.write('${severity.name.toUpperCase()}: $message');
-    sb.write(' at ${position.toString()}');
-    sb.writeln();
-    
-    // Add source context
-    final errorLine = this.errorLine;
-    final lineNumber = position.line.toString();
-    final padding = ' ' * (lineNumber.length + 1);
-    
-    sb.writeln('$lineNumber | $errorLine');
-    sb.write(padding);
-    sb.write('| ');
-    sb.write(' ' * (position.column - 1));
-    sb.writeln('^');
-    
-    return sb.toString();
-  }
+/// Represents a simple parse error that can be passed around.
+/// This class is a simplified version of ParserError that can be used
+/// for error handling and reporting in the parser.
+class ParseError {
+  /// The error message
+  final String message;
+  
+  /// The position in source where the error occurred (may be null)
+  final SourcePosition? position;
+  
+  /// Creates a new parse error with a message and optional position.
+  ParseError(this.message, [this.position]);
+  
+  @override
+  String toString() => position != null 
+    ? '$message at $position'
+    : message;
 }
 
 /// A class for collecting and reporting parsing errors.

@@ -1,0 +1,14 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# UI/UX Guidelines
+
+- Provide keyboard shortcuts for all navigation-heavy interfaces.
+- Use debouncing for export preview and performance-intensive UI updates.
+- Implement help dialogs for keyboard shortcuts and advanced features.
+- Use chip-based filtering and color coding for status and type indicators.
+- Use responsive layouts and flexible sizing (Expanded, SingleChildScrollView) for complex UIs.
+- Prefer Material components for layout and interaction.
+- Clean up unused UI components and helpers after refactors.

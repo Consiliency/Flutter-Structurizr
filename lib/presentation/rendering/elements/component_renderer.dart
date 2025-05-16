@@ -35,6 +35,9 @@ class ComponentRenderer extends BaseRenderer {
     required ElementView elementView,
     required ElementStyle style,
     bool selected = false,
+    bool hovered = false,
+    bool includeNames = true,
+    bool includeDescriptions = false,
   }) {
     // Calculate the element bounds
     final rect = _calculateRenderRect(elementView);
@@ -71,19 +74,30 @@ class ComponentRenderer extends BaseRenderer {
       _drawShapedComponent(canvas, rect, backgroundPaint, borderPaint, style);
     }
     
-    // If selected, draw a selection indicator
-    if (selected) {
-      final selectionPaint = Paint()
-        ..color = Colors.blue.withOpacity(0.5)
+    // If selected or hovered, draw a visual indicator
+    if (selected || hovered) {
+      final indicatorPaint = Paint()
+        ..color = selected ? Colors.blue.withOpacity(0.5) : Colors.grey.withOpacity(0.3)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.0;
+        ..strokeWidth = selected ? 2.0 : 1.5;
       
-      // Draw selection indicator around the component
-      canvas.drawRect(rect.inflate(2.0), selectionPaint);
+      // Draw indicator around the component
+      canvas.drawRect(rect.inflate(selected ? 2.0 : 1.5), indicatorPaint);
+      
+      // Optional: add a subtle glow effect for hover state
+      if (hovered && !selected) {
+        final glowPaint = Paint()
+          ..color = Colors.grey.withOpacity(0.15)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.0)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3.0;
+        
+        canvas.drawRect(rect.inflate(3.0), glowPaint);
+      }
     }
     
     // Render the text
-    _renderText(canvas, element, rect, style);
+    _renderText(canvas, element, rect, style, includeNames, includeDescriptions);
   }
   
   /// Draws the standard component shape (rectangle with smaller square in corner)
@@ -390,7 +404,7 @@ class ComponentRenderer extends BaseRenderer {
   }
   
   /// Renders the text for the element
-  void _renderText(Canvas canvas, Element element, Rect rect, ElementStyle style) {
+  void _renderText(Canvas canvas, Element element, Rect rect, ElementStyle style, bool includeNames, bool includeDescriptions) {
     // For component shape, adjust text rect to account for the component indicator
     Rect textRect;
     
@@ -423,23 +437,28 @@ class ComponentRenderer extends BaseRenderer {
     // Calculate the total height of all text elements
     double totalTextHeight = 0;
     
-    // Name of the element
+    // Name of the element - only if we're showing names
     final nameTextPainter = createTextPainter(
       text: element.name,
       style: textStyle.copyWith(fontWeight: FontWeight.bold),
       maxWidth: textRect.width,
     );
-    totalTextHeight += nameTextPainter.height;
+    if (includeNames) {
+      totalTextHeight += nameTextPainter.height;
+    }
     
-    // Add space for description if it exists
+    // Add space for description if showing descriptions
     TextPainter? descTextPainter;
-    if ((style.description ?? true) && element.description != null) {
+    if (includeDescriptions && (style.description ?? true) && element.description != null) {
       descTextPainter = createTextPainter(
         text: element.description!,
         style: textStyle,
         maxWidth: textRect.width,
       );
-      totalTextHeight += descTextPainter.height + 8; // 8px gap
+      if (includeNames) {
+        totalTextHeight += 8; // 8px gap after name
+      }
+      totalTextHeight += descTextPainter.height;
     }
     
     // Add space for type/metadata if enabled
@@ -453,7 +472,10 @@ class ComponentRenderer extends BaseRenderer {
         ),
         maxWidth: textRect.width,
       );
-      totalTextHeight += typeTextPainter.height + 6; // 6px gap
+      if (totalTextHeight > 0) {
+        totalTextHeight += 6; // 6px gap before type
+      }
+      totalTextHeight += typeTextPainter.height;
     }
     
     // Center text block vertically in the available space
@@ -462,15 +484,17 @@ class ComponentRenderer extends BaseRenderer {
       startY += (textRect.height - totalTextHeight) / 2;
     }
     
-    // Paint the name
-    nameTextPainter.paint(
-      canvas, 
-      Offset(textRect.left + (textRect.width - nameTextPainter.width) / 2, startY),
-    );
-    startY += nameTextPainter.height + 8; // 8px gap
+    // Paint the name if showing names
+    if (includeNames) {
+      nameTextPainter.paint(
+        canvas, 
+        Offset(textRect.left + (textRect.width - nameTextPainter.width) / 2, startY),
+      );
+      startY += nameTextPainter.height + 8; // 8px gap
+    }
     
-    // Paint the description if available
-    if (descTextPainter != null && startY + descTextPainter.height <= textRect.bottom) {
+    // Paint the description if showing descriptions
+    if (includeDescriptions && descTextPainter != null && startY + descTextPainter.height <= textRect.bottom) {
       descTextPainter.paint(
         canvas, 
         Offset(textRect.left + (textRect.width - descTextPainter.width) / 2, startY),
@@ -616,6 +640,8 @@ class ComponentRenderer extends BaseRenderer {
     required Rect sourceRect,
     required Rect targetRect,
     bool selected = false,
+    bool hovered = false,
+    bool includeDescription = true,
   }) {
     // This is handled by the relationship renderer, not the element renderer
   }

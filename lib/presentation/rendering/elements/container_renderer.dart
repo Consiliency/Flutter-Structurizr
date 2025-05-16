@@ -34,6 +34,9 @@ class ContainerRenderer extends BaseRenderer {
     required ElementView elementView,
     required ElementStyle style,
     bool selected = false,
+    bool hovered = false,
+    bool includeNames = true,
+    bool includeDescriptions = false,
   }) {
     // Calculate the element bounds
     final rect = _calculateRenderRect(elementView);
@@ -113,32 +116,51 @@ class ContainerRenderer extends BaseRenderer {
         break;
     }
     
-    // If selected, draw a selection indicator
-    if (selected) {
-      final selectionPaint = Paint()
-        ..color = Colors.blue.withOpacity(0.5)
+    // If selected or hovered, draw a visual indicator
+    if (selected || hovered) {
+      final indicatorPaint = Paint()
+        ..color = selected ? Colors.blue.withOpacity(0.5) : Colors.grey.withOpacity(0.3)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.0;
+        ..strokeWidth = selected ? 2.0 : 1.5;
       
-      // Draw selection indicator based on shape
+      // Draw indicator based on shape
       if (style.shape == Shape.roundedBox) {
         canvas.drawRRect(
           RRect.fromRectAndRadius(
-            rect.inflate(2.0), 
-            const Radius.circular(defaultBorderRadius + 2.0),
+            rect.inflate(selected ? 2.0 : 1.5), 
+            Radius.circular(defaultBorderRadius + (selected ? 2.0 : 1.5)),
           ), 
-          selectionPaint,
+          indicatorPaint,
         );
-      } else if (style.shape == Shape.cylinder) {
-        // Use a rectangle around the cylinder for selection indicator
-        canvas.drawRect(rect.inflate(2.0), selectionPaint);
       } else {
-        canvas.drawRect(rect.inflate(2.0), selectionPaint);
+        // For other shapes, use a simple rectangle
+        canvas.drawRect(rect.inflate(selected ? 2.0 : 1.5), indicatorPaint);
+      }
+      
+      // Optional: add a subtle glow effect for hover state
+      if (hovered && !selected) {
+        final glowPaint = Paint()
+          ..color = Colors.grey.withOpacity(0.15)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.0)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3.0;
+        
+        if (style.shape == Shape.roundedBox) {
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(
+              rect.inflate(3.0),
+              const Radius.circular(defaultBorderRadius + 3.0),
+            ),
+            glowPaint,
+          );
+        } else {
+          canvas.drawRect(rect.inflate(3.0), glowPaint);
+        }
       }
     }
     
     // Render text content
-    _renderText(canvas, element, rect, style);
+    _renderText(canvas, element, rect, style, includeNames, includeDescriptions);
   }
   
   /// Draws a cylinder shape
@@ -333,7 +355,7 @@ class ContainerRenderer extends BaseRenderer {
   }
   
   /// Renders the text for the element
-  void _renderText(Canvas canvas, Element element, Rect rect, ElementStyle style) {
+  void _renderText(Canvas canvas, Element element, Rect rect, ElementStyle style, bool includeNames, bool includeDescriptions) {
     final padding = defaultPadding;
     
     // Adjust text rectangle based on shape
@@ -371,16 +393,24 @@ class ContainerRenderer extends BaseRenderer {
     
     // Calculate the starting Y position for centering
     double nextY = textRect.top;
-    double totalTextHeight = nameTextPainter.height;
+    double totalTextHeight = 0;
     
-    // Add description height if applicable
-    if ((style.description ?? true) && element.description != null) {
+    // Only include name height if we're showing names
+    if (includeNames) {
+      totalTextHeight += nameTextPainter.height;
+    }
+    
+    // Add description height if applicable and we're showing descriptions
+    if (includeDescriptions && (style.description ?? true) && element.description != null) {
       final descTextPainter = createTextPainter(
         text: element.description!,
         style: textStyle,
         maxWidth: textRect.width,
       );
-      totalTextHeight += descTextPainter.height + 8; // 8px gap
+      if (includeNames) {
+        totalTextHeight += 8; // 8px gap after name
+      }
+      totalTextHeight += descTextPainter.height;
     }
     
     // Type height if showing metadata
@@ -393,7 +423,10 @@ class ContainerRenderer extends BaseRenderer {
         ),
         maxWidth: textRect.width,
       );
-      totalTextHeight += typeTextPainter.height + 8; // 8px gap
+      if (totalTextHeight > 0) {
+        totalTextHeight += 8; // 8px gap before type
+      }
+      totalTextHeight += typeTextPainter.height;
     }
     
     // Center the text block vertically in the available space
@@ -401,15 +434,17 @@ class ContainerRenderer extends BaseRenderer {
       nextY = textRect.top + (textRect.height - totalTextHeight) / 2;
     }
     
-    // Render name
-    nameTextPainter.paint(
-      canvas, 
-      Offset(textRect.left + (textRect.width - nameTextPainter.width) / 2, nextY),
-    );
-    nextY += nameTextPainter.height + 8; // 8px gap
+    // Render name if we should show it
+    if (includeNames) {
+      nameTextPainter.paint(
+        canvas, 
+        Offset(textRect.left + (textRect.width - nameTextPainter.width) / 2, nextY),
+      );
+      nextY += nameTextPainter.height + 8; // 8px gap
+    }
     
     // Render description if we should show it and it exists
-    if ((style.description ?? true) && element.description != null) {
+    if (includeDescriptions && (style.description ?? true) && element.description != null) {
       final descTextPainter = createTextPainter(
         text: element.description!,
         style: textStyle,
@@ -589,6 +624,8 @@ class ContainerRenderer extends BaseRenderer {
     required Rect sourceRect,
     required Rect targetRect,
     bool selected = false,
+    bool hovered = false,
+    bool includeDescription = true,
   }) {
     // This is handled by the relationship renderer, not the element renderer
   }

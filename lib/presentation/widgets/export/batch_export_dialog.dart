@@ -7,6 +7,8 @@ import 'package:flutter_structurizr/domain/view/views.dart';
 import 'package:flutter_structurizr/infrastructure/export/diagram_exporter.dart';
 import 'package:flutter_structurizr/infrastructure/export/export_manager.dart';
 import 'package:path/path.dart' as path;
+import 'package:flutter_structurizr/domain/view/model_view.dart';
+import 'package:flutter/material.dart' as flutter;
 
 /// A dialog for batch exporting multiple diagrams
 class BatchExportDialog extends StatefulWidget {
@@ -318,7 +320,7 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
                       onTap: () {
                         _showColorPicker();
                       },
-                      child: Container(
+                      child: flutter.Container(
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
@@ -477,7 +479,7 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
   
   /// Builds a header for a view type section
   Widget _buildViewTypeHeader(String title, bool isDarkMode) {
-    return Container(
+    return flutter.Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       margin: const EdgeInsets.only(top: 8),
       decoration: BoxDecoration(
@@ -500,7 +502,7 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
   /// Builds a checkbox for a view
   Widget _buildViewCheckbox(ModelView view) {
     return CheckboxListTile(
-      title: Text(view.name),
+      title: Text(view.title ?? view.key),
       subtitle: Text(view.key),
       value: _selectedViews[view.key] ?? false,
       onChanged: (value) {
@@ -555,7 +557,7 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
         });
         Navigator.of(context).pop();
       },
-      child: Container(
+      child: flutter.Container(
         width: 100,
         height: 30,
         margin: const EdgeInsets.symmetric(vertical: 4),
@@ -651,7 +653,7 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
           diagrams.add(DiagramReference(
             workspace: widget.workspace,
             viewKey: view.key,
-            title: view.name,
+            title: view.title ?? view.key,
           ));
         }
       }
@@ -662,7 +664,7 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
           diagrams.add(DiagramReference(
             workspace: widget.workspace,
             viewKey: view.key,
-            title: view.name,
+            title: view.title ?? view.key,
           ));
         }
       }
@@ -673,7 +675,7 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
           diagrams.add(DiagramReference(
             workspace: widget.workspace,
             viewKey: view.key,
-            title: view.name,
+            title: view.title ?? view.key,
           ));
         }
       }
@@ -684,7 +686,7 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
           diagrams.add(DiagramReference(
             workspace: widget.workspace,
             viewKey: view.key,
-            title: view.name,
+            title: view.title ?? view.key,
           ));
         }
       }
@@ -695,7 +697,7 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
           diagrams.add(DiagramReference(
             workspace: widget.workspace,
             viewKey: view.key,
-            title: view.name,
+            title: view.title ?? view.key,
           ));
         }
       }
@@ -706,7 +708,7 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
           diagrams.add(DiagramReference(
             workspace: widget.workspace,
             viewKey: view.key,
-            title: view.name,
+            title: view.title ?? view.key,
           ));
         }
       }
@@ -717,7 +719,7 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
           diagrams.add(DiagramReference(
             workspace: widget.workspace,
             viewKey: view.key,
-            title: view.name,
+            title: view.title ?? view.key,
           ));
         }
       }

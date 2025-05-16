@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__aider-mcp-server__aider_ai_code"
+    ],
+    "deny": []
+  }
+}

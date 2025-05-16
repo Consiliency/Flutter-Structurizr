@@ -1,16 +1,16 @@
 import 'dart:ui';
+import 'package:flutter_structurizr/application/dsl/documentation_mapper.dart';
+import 'package:flutter_structurizr/domain/documentation/documentation.dart' as domain;
 import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/model.dart';
+import 'package:flutter_structurizr/domain/model/modeled_relationship.dart';
 import 'package:flutter_structurizr/domain/model/workspace.dart';
 import 'package:flutter_structurizr/domain/model/deployment_environment.dart';
 import 'package:flutter_structurizr/domain/model/group.dart';
-import 'package:flutter_structurizr/domain/parser/ast/ast_node.dart';
-import 'package:flutter_structurizr/domain/parser/ast/model_node.dart';
-import 'package:flutter_structurizr/domain/parser/ast/property_node.dart';
-import 'package:flutter_structurizr/domain/parser/ast/relationship_node.dart';
-import 'package:flutter_structurizr/domain/parser/ast/view_node.dart';
-import 'package:flutter_structurizr/domain/parser/ast/workspace_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/ast.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/documentation/documentation_node.dart';
 import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
+import 'package:flutter_structurizr/domain/parser/reference_resolver.dart';
 import 'package:flutter_structurizr/domain/style/branding.dart';
 import 'package:flutter_structurizr/domain/style/styles.dart';
 import 'package:flutter_structurizr/domain/view/view.dart';
@@ -23,7 +23,7 @@ import 'package:uuid/uuid.dart';
 /// and build the corresponding domain model objects.
 class WorkspaceMapper implements AstVisitor {
   /// The error reporter for reporting semantic errors.
-  final ErrorReporter _errorReporter;
+  final ErrorReporter errorReporter;
   
   /// The source code being processed.
   final String _source;
@@ -37,14 +37,8 @@ class WorkspaceMapper implements AstVisitor {
   /// The current views collection being built.
   Views _currentViews = const Views();
   
-  /// Maps element identifiers to their actual model objects
-  final Map<String, Element> _elementsById = {};
-  
   /// Queue of relationships to be resolved in the second phase
   final List<RelationshipNode> _pendingRelationships = [];
-  
-  /// Maps parent identifier references to their child elements for hierarchy building
-  final Map<String, List<Element>> _elementsByParent = {};
   
   /// Maps software system identifiers to their actual objects
   final Map<String, SoftwareSystem> _softwareSystemsById = {};
@@ -66,18 +60,29 @@ class WorkspaceMapper implements AstVisitor {
 
   /// Maps container instance identifiers to their actual objects
   final Map<String, ContainerInstance> _containerInstancesById = {};
-
-  /// Maps element name to element ID for lookups when relationships use names
+  
+  /// Maps element names to their IDs for name-based lookup
   final Map<String, String> _elementNameToId = {};
+  
+  /// Maps element IDs to their actual objects
+  final Map<String, Element> _elementsById = {};
+  
+  /// Current context element ID (for "this" references)
+  String? _currentContextId;
   
   /// Current parent element ID (for nested elements)
   String? _currentParentId;
 
-  /// The current context element ID (for "this" references)
-  String? _currentContextId;
+  /// The reference resolver for handling element references
+  final ReferenceResolver _referenceResolver;
+  
+  /// The documentation mapper for handling documentation nodes
+  final DocumentationMapper _documentationMapper;
   
   /// Creates a new workspace mapper.
-  WorkspaceMapper(this._source, this._errorReporter);
+  WorkspaceMapper(this._source, this.errorReporter) 
+      : _referenceResolver = ReferenceResolver(errorReporter),
+        _documentationMapper = DocumentationMapper(errorReporter);
   
   /// Maps an AST to a domain model workspace.
   /// 
@@ -94,7 +99,7 @@ class WorkspaceMapper implements AstVisitor {
       return _workspace;
     } catch (e, stackTrace) {
       // Log any errors during mapping
-      _errorReporter.reportStandardError(
+      errorReporter.reportStandardError(
         'Error mapping workspace: ${e.toString()}\n$stackTrace',
         workspaceNode.sourcePosition?.offset ?? 0,
       );
@@ -104,8 +109,34 @@ class WorkspaceMapper implements AstVisitor {
   
   /// Resolves relationships between elements.
   void _resolveRelationships() {
+    // First process all relationships to create basic relationships
     for (final relationshipNode in _pendingRelationships) {
       _processRelationship(relationshipNode);
+    }
+    
+    // Now that all relationships are created and added to the model, 
+    // we can access them via model.findRelationshipBetween which will
+    // provide ModeledRelationship objects with proper source/destination access
+    
+    // Check for any unresolved or problematic relationships
+    _validateRelationships();
+  }
+  
+  /// Validates all relationships in the model for consistency
+  void _validateRelationships() {
+    // Get all elements
+    final allElements = _referenceResolver.getAllElements();
+    
+    // Check for relationships to non-existent elements
+    for (final element in allElements.values) {
+      for (final relationship in element.relationships) {
+        if (!allElements.containsKey(relationship.destinationId)) {
+          errorReporter.reportStandardError(
+            'Relationship from ${element.name} references non-existent destination: ${relationship.destinationId}',
+            0, // Offset not available here
+          );
+        }
+      }
     }
   }
   
@@ -134,11 +165,104 @@ class WorkspaceMapper implements AstVisitor {
     return result;
   }
   
-  /// Resolves a reference to an element, supporting special keywords like "this".
+  /// Helper method to resolve an element by name as a specific type.
+  /// This is useful for handling references by names in component references.
+  T? _resolveElementByName<T extends Element>(String name) {
+    // First try direct lookup by name in the element name to ID map
+    if (_elementNameToId.containsKey(name)) {
+      final id = _elementNameToId[name];
+      if (id != null) {
+        final element = _elementsById[id];
+        if (element is T) {
+          return element as T;
+        }
+      }
+    }
+    
+    // Then try finding by name (case sensitive)
+    for (final element in _elementsById.values) {
+      if (element is T && element.name == name) {
+        return element as T;
+      }
+    }
+    
+    // Finally try case-insensitive match
+    final lowerName = name.toLowerCase();
+    for (final element in _elementsById.values) {
+      if (element is T && element.name.toLowerCase() == lowerName) {
+        return element as T;
+      }
+    }
+    
+    return null;
+  }
+  
+  /// Resolves a composite reference path like "System.Container.Component".
+  /// This allows for qualified path-based references.
+  Element? _resolveCompositePath(String path, {SourcePosition? sourcePosition}) {
+    final parts = path.split('.');
+    if (parts.isEmpty) {
+      return null;
+    }
+    
+    if (parts.length == 1) {
+      // Single part, just use regular element reference
+      return _resolveElementReference(parts[0], sourcePosition: sourcePosition, searchByName: true);
+    }
+    
+    // Multi-part path, start with the first element
+    Element? current = _resolveElementReference(parts[0], sourcePosition: sourcePosition, searchByName: true);
+    
+    // Traverse the path
+    for (int i = 1; i < parts.length && current != null; i++) {
+      final part = parts[i];
+      bool found = false;
+      
+      // Find the child element with the matching name
+      for (final element in _elementsById.values) {
+        if (element.parentId == current!.id && 
+           (element.name == part || element.name.toLowerCase() == part.toLowerCase())) {
+          current = element;
+          found = true;
+          break;
+        }
+      }
+      
+      if (!found) {
+        if (sourcePosition != null) {
+          errorReporter.reportStandardError(
+            'Could not resolve path component "$part" in path "$path"',
+            sourcePosition.offset,
+          );
+        }
+        return null;
+      }
+    }
+    
+    return current;
+  }
+  
+  /// Resolves a reference to an element, supporting special keywords like "this" and "parent".
   Element? _resolveElementReference(String reference, {SourcePosition? sourcePosition, bool searchByName = false}) {
     // Handle "this" keyword which refers to the current context element
     if (reference == 'this' && _currentContextId != null) {
       return _elementsById[_currentContextId];
+    }
+    
+    // Handle "parent" keyword which refers to the parent of the current context element
+    if (reference == 'parent' && _currentContextId != null) {
+      final currentElement = _elementsById[_currentContextId];
+      if (currentElement != null && currentElement.parentId != null) {
+        return _elementsById[currentElement.parentId!];
+      } else {
+        if (sourcePosition != null) {
+          errorReporter.reportStandardError(
+            'Cannot resolve parent reference: current element has no parent',
+            sourcePosition.offset,
+          );
+        }
+        return null;
+      }
     }
 
     // Try direct lookup by ID
@@ -151,6 +275,14 @@ class WorkspaceMapper implements AstVisitor {
       final id = _elementNameToId[reference];
       if (id != null && _elementsById.containsKey(id)) {
         return _elementsById[id];
+      }
+    }
+
+    // If the reference contains dots, it might be a path reference (e.g., "System.Container.Component")
+    if (reference.contains('.')) {
+      final pathResult = _resolveCompositePath(reference, sourcePosition: sourcePosition);
+      if (pathResult != null) {
+        return pathResult;
       }
     }
 
@@ -171,7 +303,7 @@ class WorkspaceMapper implements AstVisitor {
 
     // Element not found
     if (sourcePosition != null) {
-      _errorReporter.reportStandardError(
+      errorReporter.reportStandardError(
         'Element reference not found: $reference',
         sourcePosition.offset,
       );
@@ -185,29 +317,41 @@ class WorkspaceMapper implements AstVisitor {
     String sourceId = node.sourceId;
     String destinationId = node.destinationId;
     
-    // Resolve source and destination references
-    final sourceElement = _resolveElementReference(
+    // Resolve source and destination references with improved context handling
+    // We'll save the current context to restore it later
+    final previousContextId = _referenceResolver.getCurrentContextId();
+    
+    // Resolve source element reference
+    final sourceElement = _referenceResolver.resolveReference(
       sourceId, 
       sourcePosition: node.sourcePosition,
       searchByName: true,
     );
     
-    final destinationElement = _resolveElementReference(
-      destinationId, 
-      sourcePosition: node.sourcePosition,
-      searchByName: true,
-    );
-    
     if (sourceElement == null) {
-      _errorReporter.reportStandardError(
+      errorReporter.reportStandardError(
         'Relationship source element not found: $sourceId',
         node.sourcePosition?.offset ?? 0,
       );
       return;
     }
     
+    // Set the source element as the context for resolving the destination
+    // This enables proper resolution of references like "parent" from the source's context
+    _referenceResolver.setCurrentContext(sourceElement.id);
+    
+    // Resolve destination element reference with the source as context
+    final destinationElement = _referenceResolver.resolveReference(
+      destinationId, 
+      sourcePosition: node.sourcePosition,
+      searchByName: true,
+    );
+    
+    // Restore the previous context
+    _referenceResolver.setCurrentContext(previousContextId);
+    
     if (destinationElement == null) {
-      _errorReporter.reportStandardError(
+      errorReporter.reportStandardError(
         'Relationship destination element not found: $destinationId',
         node.sourcePosition?.offset ?? 0,
       );
@@ -227,11 +371,29 @@ class WorkspaceMapper implements AstVisitor {
       properties: _mapProperties(node.properties),
     );
     
-    // Update the element in our elements map
-    _elementsById[sourceId] = newElement;
+    // Update the reference resolver with the updated element
+    _referenceResolver.registerElement(newElement);
     
     // Update the model with the new element
     _updateModelWithElement(newElement);
+    
+    // Get the relationship that was just added
+    final addedRelationship = newElement.relationships.firstWhere(
+      (rel) => rel.destinationId == destinationId && 
+               rel.description == (node.description ?? ''),
+      orElse: () => throw Exception('Failed to find added relationship'),
+    );
+    
+    // Create a modeled relationship for better source/destination access
+    if (addedRelationship is! ModeledRelationship) {
+      // This allows us to access the source and destination elements directly
+      final modeledRelationship = ModeledRelationship.fromRelationship(
+        addedRelationship, 
+        _currentModel,
+      );
+      
+      // The model will handle the modeled relationships via the findRelationshipBetween method
+    }
   }
   
   /// Updates the model with a modified element.
@@ -371,7 +533,7 @@ class WorkspaceMapper implements AstVisitor {
       rootEnvId = rootEnvironment.id;
     } else {
       // Could not find the root environment
-      _errorReporter.reportStandardError(
+      errorReporter.reportStandardError(
         'Could not find root environment for deployment node: ${node.name}',
         0,
       );
@@ -462,7 +624,7 @@ class WorkspaceMapper implements AstVisitor {
     // Find the parent deployment node
     final parentNode = _deploymentNodesById[node.parentId];
     if (parentNode == null) {
-      _errorReporter.reportStandardError(
+      errorReporter.reportStandardError(
         'Parent deployment node not found for infrastructure node: ${node.name}',
         0,
       );
@@ -489,7 +651,7 @@ class WorkspaceMapper implements AstVisitor {
     // Find the parent deployment node
     final parentNode = _deploymentNodesById[node.parentId];
     if (parentNode == null) {
-      _errorReporter.reportStandardError(
+      errorReporter.reportStandardError(
         'Parent deployment node not found for container instance: ${node.id}',
         0,
       );
@@ -513,11 +675,14 @@ class WorkspaceMapper implements AstVisitor {
   
   /// Adds an element to the current model.
   void _addElementToModel(Element element) {
-    // Store the element by ID for easy lookup later
-    _elementsById[element.id] = element;
+    // Register the element with the reference resolver
+    _referenceResolver.registerElement(element);
     
-    // Store element name to ID mapping for lookup by name
-    _elementNameToId[element.name] = element.id;
+    // Register in global element maps for faster lookups
+    _elementsById[element.id] = element;
+    if (element.name.isNotEmpty) {  // Some elements like ContainerInstance don't have a name
+      _elementNameToId[element.name] = element.id;
+    }
     
     // Store in type-specific maps for faster lookups
     if (element is Person) {
@@ -543,7 +708,7 @@ class WorkspaceMapper implements AstVisitor {
         _softwareSystemsById[updatedSystem.id] = updatedSystem;
         _containersById[element.id] = element;
       } else {
-        _errorReporter.reportStandardError(
+        errorReporter.reportStandardError(
           'Parent software system not found for container: ${element.name}',
           0, // Offset not available here
         );
@@ -577,7 +742,7 @@ class WorkspaceMapper implements AstVisitor {
           _componentsById[element.id] = element;
         }
       } else {
-        _errorReporter.reportStandardError(
+        errorReporter.reportStandardError(
           'Parent container not found for component: ${element.name}',
           0, // Offset not available here
         );
@@ -602,7 +767,7 @@ class WorkspaceMapper implements AstVisitor {
           // Update caches
           _softwareSystemsById[updatedSystem.id] = updatedSystem;
         } else {
-          _errorReporter.reportStandardError(
+          errorReporter.reportStandardError(
             'Parent software system not found for deployment environment: ${element.name}',
             0, // Offset not available here
           );
@@ -619,7 +784,7 @@ class WorkspaceMapper implements AstVisitor {
     } else if (element is DeploymentNode) {
       // Add the node to the parent
       final parentId = element.parentId!;
-      final parentElement = _elementsById[parentId];
+      final parentElement = _referenceResolver.resolveReference(parentId);
       
       if (parentElement is DeploymentEnvironment) {
         // Add to environment
@@ -659,6 +824,9 @@ class WorkspaceMapper implements AstVisitor {
         
         // Update environment cache
         _environmentsById[updatedEnvironment.id] = updatedEnvironment;
+        
+        // Update in reference resolver
+        _referenceResolver.registerElement(updatedEnvironment);
       } else if (parentElement is DeploymentNode) {
         // Add to parent deployment node
         final updatedParentNode = parentElement.copyWith(
@@ -667,8 +835,11 @@ class WorkspaceMapper implements AstVisitor {
         
         // Update the parent node in the model
         _updateDeploymentNodeInModel(updatedParentNode);
+        
+        // Update in reference resolver
+        _referenceResolver.registerElement(updatedParentNode);
       } else {
-        _errorReporter.reportStandardError(
+        errorReporter.reportStandardError(
           'Invalid parent type for deployment node: ${element.name}',
           0, // Offset not available here
         );
@@ -689,8 +860,11 @@ class WorkspaceMapper implements AstVisitor {
         
         // Update infrastructure node cache
         _infrastructureNodesById[element.id] = element;
+        
+        // Update in reference resolver
+        _referenceResolver.registerElement(updatedParentNode);
       } else {
-        _errorReporter.reportStandardError(
+        errorReporter.reportStandardError(
           'Parent deployment node not found for infrastructure node: ${element.name}',
           0, // Offset not available here
         );
@@ -708,18 +882,15 @@ class WorkspaceMapper implements AstVisitor {
         
         // Update container instance cache
         _containerInstancesById[element.id] = element;
+        
+        // Update in reference resolver
+        _referenceResolver.registerElement(updatedParentNode);
       } else {
-        _errorReporter.reportStandardError(
+        errorReporter.reportStandardError(
           'Parent deployment node not found for container instance: ${element.id}',
           0, // Offset not available here
         );
       }
-    }
-    
-    // If this element has a parent, store it for hierarchy building
-    if (element.parentId != null) {
-      final parentId = element.parentId!;
-      _elementsByParent.putIfAbsent(parentId, () => []).add(element);
     }
   }
   
@@ -761,6 +932,43 @@ class WorkspaceMapper implements AstVisitor {
     if (node.terminology != null) {
       node.terminology!.accept(this);
     }
+    
+    // Process documentation
+    domain.Documentation? documentation;
+    if (node.documentation != null) {
+      // Map documentation using the documentation mapper
+      final mappedDoc = _documentationMapper.mapDocumentation(node.documentation!);
+      if (mappedDoc != null) {
+        documentation = mappedDoc;
+      }
+    }
+    
+    // Process decisions
+    if (node.decisions != null && node.decisions!.isNotEmpty) {
+      final mappedDecisions = _documentationMapper.mapDecisions(node.decisions!);
+      
+      // If documentation already exists, add decisions to it
+      if (documentation != null) {
+        documentation = documentation.copyWith(
+          decisions: [...documentation.decisions, ...mappedDecisions],
+        );
+      } else {
+        // Create a new documentation object with just the decisions
+        documentation = domain.Documentation(
+          decisions: mappedDecisions,
+        );
+      }
+    }
+    
+    // Extra logging to debug documentation mapping
+    if (node.documentation != null || (node.decisions != null && node.decisions!.isNotEmpty)) {
+      if (documentation == null) {
+        errorReporter.reportInfo(
+          'Documentation mapping failed: documentation is null',
+          node.sourcePosition?.offset ?? 0,
+        );
+      }
+    }
 
     // Create the workspace object
     _workspace = Workspace(
@@ -770,6 +978,7 @@ class WorkspaceMapper implements AstVisitor {
       model: _currentModel,
       views: _currentViews,
       configuration: configuration,
+      documentation: documentation,
     );
   }
   
@@ -804,10 +1013,12 @@ class WorkspaceMapper implements AstVisitor {
   @override
   void visitPersonNode(PersonNode node) {
     // Save current context for "this" references
-    final previousContextId = _currentContextId;
+    final previousContextId = _referenceResolver.getCurrentContextId();
+    _referenceResolver.setCurrentContext(node.id);
     _currentContextId = node.id;
     
-    final person = Person.create(
+    // Create Person directly with the AST node ID instead of using create()
+    final person = Person(
       id: node.id, // Use the ID from the AST
       name: node.name,
       description: node.description,
@@ -815,6 +1026,11 @@ class WorkspaceMapper implements AstVisitor {
       properties: node.properties != null ? _mapProperties(node.properties) : const {},
       location: node.location ?? 'Internal',
     );
+    
+    // Register any alias for this person if we have one in the variable
+    if (node.variableName != null && node.variableName!.isNotEmpty) {
+      _referenceResolver.registerAlias(node.variableName!, node.id);
+    }
     
     _addElementToModel(person);
 
@@ -824,20 +1040,22 @@ class WorkspaceMapper implements AstVisitor {
     }
     
     // Restore previous context
+    _referenceResolver.setCurrentContext(previousContextId);
     _currentContextId = previousContextId;
   }
   
   @override
   void visitSoftwareSystemNode(SoftwareSystemNode node) {
     // Save the previous context ID and parent ID to support nesting
-    final previousContextId = _currentContextId;
+    final previousContextId = _referenceResolver.getCurrentContextId();
     final previousParentId = _currentParentId;
     
     // Set this element as the current context for "this" references
+    _referenceResolver.setCurrentContext(node.id);
     _currentContextId = node.id;
     
-    // Create the software system
-    final system = SoftwareSystem.create(
+    // Create the software system directly with the AST node ID
+    final system = SoftwareSystem(
       id: node.id, // Use the ID from the AST
       name: node.name,
       description: node.description,
@@ -845,6 +1063,11 @@ class WorkspaceMapper implements AstVisitor {
       properties: node.properties != null ? _mapProperties(node.properties) : const {},
       location: node.location ?? 'Internal',
     );
+    
+    // Register any alias for this system if we have one in the variable
+    if (node.variableName != null && node.variableName!.isNotEmpty) {
+      _referenceResolver.registerAlias(node.variableName!, node.id);
+    }
     
     // Add to model
     _addElementToModel(system);
@@ -869,13 +1092,14 @@ class WorkspaceMapper implements AstVisitor {
     
     // Restore previous parent ID and context ID
     _currentParentId = previousParentId;
+    _referenceResolver.setCurrentContext(previousContextId);
     _currentContextId = previousContextId;
   }
   
   @override
   void visitContainerNode(ContainerNode node) {
     if (_currentParentId == null) {
-      _errorReporter.reportStandardError(
+      errorReporter.reportStandardError(
         'Container must be defined within a software system: ${node.name}',
         node.sourcePosition?.offset ?? 0,
       );
@@ -883,14 +1107,15 @@ class WorkspaceMapper implements AstVisitor {
     }
     
     // Save the previous context ID and parent ID to support nesting
-    final previousContextId = _currentContextId;
+    final previousContextId = _referenceResolver.getCurrentContextId();
     final previousParentId = _currentParentId;
     
     // Set this element as the current context for "this" references
+    _referenceResolver.setCurrentContext(node.id);
     _currentContextId = node.id;
     
     // Create the container
-    final container = Container.create(
+    final container = Container(
       id: node.id, // Use the ID from the AST
       name: node.name,
       description: node.description,
@@ -899,6 +1124,11 @@ class WorkspaceMapper implements AstVisitor {
       tags: node.tags != null ? _mapTags(node.tags) : const ['Container'],
       properties: node.properties != null ? _mapProperties(node.properties) : const {},
     );
+    
+    // Register any alias for this container if we have one in the variable
+    if (node.variableName != null && node.variableName!.isNotEmpty) {
+      _referenceResolver.registerAlias(node.variableName!, node.id);
+    }
     
     // Add to model
     _addElementToModel(container);
@@ -918,13 +1148,14 @@ class WorkspaceMapper implements AstVisitor {
     
     // Restore previous parent ID and context ID
     _currentParentId = previousParentId;
+    _referenceResolver.setCurrentContext(previousContextId);
     _currentContextId = previousContextId;
   }
   
   @override
   void visitComponentNode(ComponentNode node) {
     if (_currentParentId == null) {
-      _errorReporter.reportStandardError(
+      errorReporter.reportStandardError(
         'Component must be defined within a container: ${node.name}',
         node.sourcePosition?.offset ?? 0,
       );
@@ -932,13 +1163,14 @@ class WorkspaceMapper implements AstVisitor {
     }
     
     // Save the previous context ID
-    final previousContextId = _currentContextId;
+    final previousContextId = _referenceResolver.getCurrentContextId();
     
     // Set this element as the current context for "this" references
+    _referenceResolver.setCurrentContext(node.id);
     _currentContextId = node.id;
     
     // Create the component
-    final component = Component.create(
+    final component = Component(
       id: node.id, // Use the ID from the AST
       name: node.name,
       description: node.description,
@@ -947,6 +1179,11 @@ class WorkspaceMapper implements AstVisitor {
       tags: node.tags != null ? _mapTags(node.tags) : const ['Component'],
       properties: node.properties != null ? _mapProperties(node.properties) : const {},
     );
+    
+    // Register any alias for this component if we have one in the variable
+    if (node.variableName != null && node.variableName!.isNotEmpty) {
+      _referenceResolver.registerAlias(node.variableName!, node.id);
+    }
     
     // Add to model
     _addElementToModel(component);
@@ -957,35 +1194,15 @@ class WorkspaceMapper implements AstVisitor {
     }
     
     // Restore previous context ID
+    _referenceResolver.setCurrentContext(previousContextId);
     _currentContextId = previousContextId;
   }
   
   @override
   void visitRelationshipNode(RelationshipNode node) {
-    // Transform "this" references based on current context
-    String sourceId = node.sourceId;
-    String destinationId = node.destinationId;
-    
-    // If using "this" keyword and we have a current context, replace with the actual ID
-    if (sourceId == 'this' && _currentContextId != null) {
-      sourceId = _currentContextId!;
-    }
-    
-    if (destinationId == 'this' && _currentContextId != null) {
-      destinationId = _currentContextId!;
-    }
-    
-    // Queue relationship for processing in the second phase
-    // with the transformed IDs
-    _pendingRelationships.add(RelationshipNode(
-      sourceId: sourceId,
-      destinationId: destinationId,
-      description: node.description,
-      technology: node.technology,
-      tags: node.tags,
-      properties: node.properties,
-      sourcePosition: node.sourcePosition,
-    ));
+    // Queue the relationship for processing in the second phase
+    // The reference resolution is now handled by our ReferenceResolver
+    _pendingRelationships.add(node);
   }
   
   @override
@@ -1091,7 +1308,7 @@ class WorkspaceMapper implements AstVisitor {
     ) as SoftwareSystem?;
 
     if (softwareSystem == null) {
-      _errorReporter.reportStandardError(
+      errorReporter.reportStandardError(
         'Software system not found for system context view: ${node.key}, systemId: ${node.systemId}',
         node.sourcePosition?.offset ?? 0,
       );
@@ -1150,7 +1367,7 @@ class WorkspaceMapper implements AstVisitor {
     ) as SoftwareSystem?;
 
     if (softwareSystem == null) {
-      _errorReporter.reportStandardError(
+      errorReporter.reportStandardError(
         'Software system not found for container view: ${node.key}, systemId: ${node.systemId}',
         node.sourcePosition?.offset ?? 0,
       );
@@ -1209,7 +1426,7 @@ class WorkspaceMapper implements AstVisitor {
     ) as Container?;
 
     if (container == null) {
-      _errorReporter.reportStandardError(
+      errorReporter.reportStandardError(
         'Container not found for component view: ${node.key}, containerId: ${node.containerId}',
         node.sourcePosition?.offset ?? 0,
       );
@@ -1247,7 +1464,7 @@ class WorkspaceMapper implements AstVisitor {
     }
 
     if (softwareSystem == null) {
-      _errorReporter.reportStandardError(
+      errorReporter.reportStandardError(
         'Could not find parent software system for container: ${container.name}',
         node.sourcePosition?.offset ?? 0,
       );
@@ -1288,7 +1505,7 @@ class WorkspaceMapper implements AstVisitor {
       );
 
       if (scopeElement == null) {
-        _errorReporter.reportStandardError(
+        errorReporter.reportStandardError(
           'Scope element not found for dynamic view: ${node.key}, scope: $scopeId',
           node.sourcePosition?.offset ?? 0,
         );
@@ -1357,7 +1574,7 @@ class WorkspaceMapper implements AstVisitor {
     ) as SoftwareSystem?;
 
     if (softwareSystem == null) {
-      _errorReporter.reportStandardError(
+      errorReporter.reportStandardError(
         'Software system not found for deployment view: ${node.key}, systemId: ${node.systemId}',
         node.sourcePosition?.offset ?? 0,
       );
@@ -1428,7 +1645,7 @@ class WorkspaceMapper implements AstVisitor {
     }
 
     if (baseView == null) {
-      _errorReporter.reportStandardError(
+      errorReporter.reportStandardError(
         'Base view not found for filtered view: ${node.key}, baseViewKey: ${node.baseViewKey}',
         node.sourcePosition?.offset ?? 0,
       );
@@ -1516,14 +1733,15 @@ class WorkspaceMapper implements AstVisitor {
   @override
   void visitDeploymentEnvironmentNode(DeploymentEnvironmentNode node) {
     // Save the previous context ID and parent ID to support nesting
-    final previousContextId = _currentContextId;
+    final previousContextId = _referenceResolver.getCurrentContextId();
     final previousParentId = _currentParentId;
     
     // Set this element as the current context for "this" references
+    _referenceResolver.setCurrentContext(node.id);
     _currentContextId = node.id;
 
     // Create a new deployment environment
-    final environment = DeploymentEnvironment.create(
+    final environment = DeploymentEnvironment(
       id: node.id, // Use the ID from the AST
       name: node.name,
       description: node.description,
@@ -1531,6 +1749,11 @@ class WorkspaceMapper implements AstVisitor {
       tags: node.tags != null ? _mapTags(node.tags) : const [],
       properties: node.properties != null ? _mapProperties(node.properties) : const {},
     );
+    
+    // Register any alias for this environment if we have one in the variable
+    if (node.variableName != null && node.variableName!.isNotEmpty) {
+      _referenceResolver.registerAlias(node.variableName!, node.id);
+    }
 
     // Add to our element map for reference resolution
     _addElementToModel(environment);
@@ -1550,13 +1773,14 @@ class WorkspaceMapper implements AstVisitor {
 
     // Restore previous parent ID and context ID
     _currentParentId = previousParentId;
+    _referenceResolver.setCurrentContext(previousContextId);
     _currentContextId = previousContextId;
   }
   
   @override
   void visitDeploymentNodeNode(DeploymentNodeNode node) {
     if (_currentParentId == null) {
-      _errorReporter.reportStandardError(
+      errorReporter.reportStandardError(
         'Deployment node must be defined within a deployment environment or another deployment node: ${node.name}',
         node.sourcePosition?.offset ?? 0,
       );
@@ -1564,14 +1788,15 @@ class WorkspaceMapper implements AstVisitor {
     }
 
     // Save the previous context ID and parent ID to support nesting
-    final previousContextId = _currentContextId;
+    final previousContextId = _referenceResolver.getCurrentContextId();
     final previousParentId = _currentParentId;
     
     // Set this element as the current context for "this" references
+    _referenceResolver.setCurrentContext(node.id);
     _currentContextId = node.id;
 
     // Create the deployment node
-    final deploymentNode = DeploymentNode.create(
+    final deploymentNode = DeploymentNode(
       id: node.id, // Use the ID from the AST
       name: node.name,
       description: node.description,
@@ -1581,6 +1806,11 @@ class WorkspaceMapper implements AstVisitor {
       tags: node.tags != null ? _mapTags(node.tags) : const [],
       properties: node.properties != null ? _mapProperties(node.properties) : const {},
     );
+
+    // Register any alias for this deployment node if we have one in the variable
+    if (node.variableName != null && node.variableName!.isNotEmpty) {
+      _referenceResolver.registerAlias(node.variableName!, node.id);
+    }
 
     // Add the new node to our element map
     _addElementToModel(deploymentNode);
@@ -1610,13 +1840,14 @@ class WorkspaceMapper implements AstVisitor {
 
     // Restore previous parent ID and context ID
     _currentParentId = previousParentId;
+    _referenceResolver.setCurrentContext(previousContextId);
     _currentContextId = previousContextId;
   }
   
   @override
   void visitInfrastructureNodeNode(InfrastructureNodeNode node) {
     if (_currentParentId == null) {
-      _errorReporter.reportStandardError(
+      errorReporter.reportStandardError(
         'Infrastructure node must be defined within a deployment node: ${node.name}',
         node.sourcePosition?.offset ?? 0,
       );
@@ -1624,13 +1855,14 @@ class WorkspaceMapper implements AstVisitor {
     }
 
     // Save the previous context ID
-    final previousContextId = _currentContextId;
+    final previousContextId = _referenceResolver.getCurrentContextId();
     
     // Set this element as the current context for "this" references
+    _referenceResolver.setCurrentContext(node.id);
     _currentContextId = node.id;
 
     // Create the infrastructure node
-    final infraNode = InfrastructureNode.create(
+    final infraNode = InfrastructureNode(
       id: node.id, // Use the ID from the AST
       name: node.name,
       description: node.description,
@@ -1639,6 +1871,11 @@ class WorkspaceMapper implements AstVisitor {
       tags: node.tags != null ? _mapTags(node.tags) : const [],
       properties: node.properties != null ? _mapProperties(node.properties) : const {},
     );
+
+    // Register any alias for this infrastructure node if we have one in the variable
+    if (node.variableName != null && node.variableName!.isNotEmpty) {
+      _referenceResolver.registerAlias(node.variableName!, node.id);
+    }
 
     // Add the infrastructure node to our element map
     _addElementToModel(infraNode);
@@ -1649,13 +1886,14 @@ class WorkspaceMapper implements AstVisitor {
     }
 
     // Restore previous context ID
+    _referenceResolver.setCurrentContext(previousContextId);
     _currentContextId = previousContextId;
   }
   
   @override
   void visitContainerInstanceNode(ContainerInstanceNode node) {
     if (_currentParentId == null) {
-      _errorReporter.reportStandardError(
+      errorReporter.reportStandardError(
         'Container instance must be defined within a deployment node: ${node.containerId}',
         node.sourcePosition?.offset ?? 0,
       );
@@ -1670,7 +1908,7 @@ class WorkspaceMapper implements AstVisitor {
     ) as Container?;
 
     if (container == null) {
-      _errorReporter.reportStandardError(
+      errorReporter.reportStandardError(
         'Referenced container not found: ${node.containerId}',
         node.sourcePosition?.offset ?? 0,
       );
@@ -1678,13 +1916,14 @@ class WorkspaceMapper implements AstVisitor {
     }
 
     // Save the previous context ID
-    final previousContextId = _currentContextId;
+    final previousContextId = _referenceResolver.getCurrentContextId();
     
     // Set this element as the current context for "this" references
+    _referenceResolver.setCurrentContext(node.id);
     _currentContextId = node.id;
 
     // Create the container instance
-    final instance = ContainerInstance.create(
+    final instance = ContainerInstance(
       id: node.id, // Use the ID from the AST
       containerId: container.id, // Use the resolved container ID
       parentId: _currentParentId!,
@@ -1693,6 +1932,11 @@ class WorkspaceMapper implements AstVisitor {
       properties: node.properties != null ? _mapProperties(node.properties) : const {},
     );
 
+    // Register any alias for this container instance if we have one in the variable
+    if (node.variableName != null && node.variableName!.isNotEmpty) {
+      _referenceResolver.registerAlias(node.variableName!, node.id);
+    }
+    
     // Add the container instance to our element map
     _addElementToModel(instance);
 
@@ -1702,6 +1946,7 @@ class WorkspaceMapper implements AstVisitor {
     }
 
     // Restore previous context ID
+    _referenceResolver.setCurrentContext(previousContextId);
     _currentContextId = previousContextId;
   }
 
@@ -1723,7 +1968,7 @@ class WorkspaceMapper implements AstVisitor {
   @override
   void visitGroupNode(GroupNode node) {
     if (_currentParentId == null) {
-      _errorReporter.reportStandardError(
+      errorReporter.reportStandardError(
         'Group must be defined within a parent context: ${node.name}',
         node.sourcePosition?.offset ?? 0,
       );
@@ -1734,12 +1979,15 @@ class WorkspaceMapper implements AstVisitor {
     final previousContextId = _currentContextId;
     final previousParentId = _currentParentId;
     
+    // Generate a unique ID for this group since GroupNode doesn't have an id property
+    final groupId = const Uuid().v4();
+    
     // Set this element as the current context for "this" references
-    _currentContextId = node.id;
+    _currentContextId = groupId;
 
     // Create the group
-    final group = Group.create(
-      id: node.id, // Use the ID from the AST
+    final group = Group(
+      id: groupId, // Generate a unique ID since GroupNode doesn't have an id property
       name: node.name,
       parentId: _currentParentId!,
       tags: node.tags != null ? _mapTags(node.tags) : const [],
@@ -1748,6 +1996,9 @@ class WorkspaceMapper implements AstVisitor {
 
     // Add group to our element map
     _elementsById[group.id] = group;
+    
+    // Also add to name-to-id mapping for lookup by name
+    _elementNameToId[group.name] = group.id;
 
     // Set this group as the current parent for nested elements
     _currentParentId = group.id;
@@ -1839,7 +2090,7 @@ class WorkspaceMapper implements AstVisitor {
           orElse: () => Shape.box,
         );
       } catch (e) {
-        _errorReporter.reportStandardError(
+        errorReporter.reportStandardError(
           'Unknown shape: ${node.shape}',
           node.sourcePosition?.offset ?? 0,
         );
@@ -1855,7 +2106,7 @@ class WorkspaceMapper implements AstVisitor {
           orElse: () => Border.solid,
         );
       } catch (e) {
-        _errorReporter.reportStandardError(
+        errorReporter.reportStandardError(
           'Unknown border style: ${node.border}',
           node.sourcePosition?.offset ?? 0,
         );
@@ -1917,7 +2168,7 @@ class WorkspaceMapper implements AstVisitor {
           orElse: () => LineStyle.solid,
         );
       } catch (e) {
-        _errorReporter.reportStandardError(
+        errorReporter.reportStandardError(
           'Unknown line style: ${node.style}',
           node.sourcePosition?.offset ?? 0,
         );
@@ -1933,7 +2184,7 @@ class WorkspaceMapper implements AstVisitor {
           orElse: () => StyleRouting.direct,
         );
       } catch (e) {
-        _errorReporter.reportStandardError(
+        errorReporter.reportStandardError(
           'Unknown routing: ${node.routing}',
           node.sourcePosition?.offset ?? 0,
         );
@@ -2066,16 +2317,36 @@ class WorkspaceMapper implements AstVisitor {
     if (node.type.toLowerCase() == 'include') {
       // In a production implementation, this would include content from other files
       // For this implementation, we'll log a message but not actually include the file
-      _errorReporter.reportInfo(
+      errorReporter.reportInfo(
         'Include directive found: ${node.value}. File inclusion is not implemented in this version.',
         node.sourcePosition?.offset ?? 0,
       );
     } else {
       // Log unknown directive
-      _errorReporter.reportInfo(
+      errorReporter.reportInfo(
         'Unknown directive: ${node.type}',
         node.sourcePosition?.offset ?? 0,
       );
     }
+  }
+  
+  @override
+  void visitDocumentationNode(DocumentationNode node) {
+    // Documentation is handled by the DocumentationMapper
+  }
+  
+  @override
+  void visitDocumentationSectionNode(DocumentationSectionNode node) {
+    // Documentation sections are handled by the DocumentationMapper
+  }
+  
+  @override
+  void visitDiagramReferenceNode(DiagramReferenceNode node) {
+    // Diagram references are handled by the DocumentationMapper
+  }
+  
+  @override
+  void visitDecisionNode(DecisionNode node) {
+    // Decisions are handled by the DocumentationMapper
   }
 }

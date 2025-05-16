@@ -64,23 +64,33 @@ class _DecisionTimelineState extends State<DecisionTimeline> {
   
   /// Gets the filtered list of decisions.
   List<Decision> _getFilteredDecisions() {
-    return _sortedDecisions.where((decision) {
-      // Filter by date range
-      if (_startDate != null && decision.date.isBefore(_startDate!)) {
-        return false;
-      }
-      
-      if (_endDate != null && decision.date.isAfter(_endDate!)) {
-        return false;
-      }
-      
-      // Filter by status
-      if (_selectedStatuses.isNotEmpty && !_selectedStatuses.contains(decision.status)) {
-        return false;
-      }
-      
-      return true;
-    }).toList();
+    // Start with sorted decisions
+    var filtered = List<Decision>.from(_sortedDecisions);
+    
+    // Apply date range filter
+    if (_startDate != null) {
+      filtered = filtered.where((decision) => 
+        decision.date.isAtSameMomentAs(_startDate!) || 
+        decision.date.isAfter(_startDate!)
+      ).toList();
+    }
+    
+    if (_endDate != null) {
+      // Add one day to include decisions on the end date
+      final adjustedEndDate = DateTime(_endDate!.year, _endDate!.month, _endDate!.day + 1);
+      filtered = filtered.where((decision) => 
+        decision.date.isBefore(adjustedEndDate)
+      ).toList();
+    }
+    
+    // Apply status filter
+    if (_selectedStatuses.isNotEmpty) {
+      filtered = filtered.where((decision) => 
+        _selectedStatuses.contains(decision.status)
+      ).toList();
+    }
+    
+    return filtered;
   }
   
   /// Gets all unique statuses from the decisions.

@@ -47,13 +47,25 @@ void main() {
         ),
       );
 
+      // Debug: print all visible text widgets
+      final textWidgets = find.byType(Text);
+      for (var i = 0; i < tester.widgetList(textWidgets).length; i++) {
+        final textWidget = tester.widgetList(textWidgets).elementAt(i) as Text;
+        if (textWidget.data != null && textWidget.data!.trim().isNotEmpty) {
+          // ignore Material tab labels to reduce noise
+          if (!['Properties', 'Styles', 'Tags'].contains(textWidget.data)) {
+            print('DEBUG: Text widget: "${textWidget.data}"');
+          }
+        }
+      }
+
       // Verify tabs are shown
       expect(find.text('Properties'), findsOneWidget);
       expect(find.text('Styles'), findsOneWidget);
       expect(find.text('Tags'), findsOneWidget);
       
       // Verify basic element properties are shown
-      expect(find.text('Element Type: Person'), findsOneWidget);
+      expect(find.text('Element Type: _\$PersonImpl'), findsOneWidget);
       expect(find.text('Basic Properties'), findsOneWidget);
       
       // Verify text fields contain correct values

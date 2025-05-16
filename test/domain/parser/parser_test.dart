@@ -1,12 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 import 'package:flutter_structurizr/domain/parser/parser.dart';
-import 'package:flutter_structurizr/domain/parser/ast/ast_node.dart';
-import 'package:flutter_structurizr/domain/parser/ast/model_node.dart';
-import 'package:flutter_structurizr/domain/parser/ast/property_node.dart';
-import 'package:flutter_structurizr/domain/parser/ast/relationship_node.dart';
-import 'package:flutter_structurizr/domain/parser/ast/view_node.dart';
-import 'package:flutter_structurizr/domain/parser/ast/workspace_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/ast.dart';
 
 void main() {
   group('Parser', () {

@@ -1,0 +1,9 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+- All specification, testing progress, and implementation plan markdown files must be kept in the `/specs/` directory.
+- Do **not** duplicate user-facing status or documentation in `CLAUDE.md`. Use `README.md` and `/specs` for those.
+- `CLAUDE.md` is for developer memory, best practices, and lessons learned only.
+- When in doubt, check the latest specs and implementation status for guidance.

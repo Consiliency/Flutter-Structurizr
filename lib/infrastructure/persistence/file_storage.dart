@@ -1,14 +1,15 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:convert'; // Add for utf8
+import 'dart:convert';
 import 'package:flutter_structurizr/application/workspace/workspace_repository.dart';
 import 'package:flutter_structurizr/domain/model/workspace.dart';
 import 'package:flutter_structurizr/infrastructure/serialization/json_serialization.dart';
-import 'package:flutter_structurizr/infrastructure/persistence/file_workspace_repository.dart'; // Add for FileWorkspaceRepository
+import 'package:flutter_structurizr/infrastructure/persistence/file_workspace_repository.dart';
+import 'package:flutter_structurizr/infrastructure/persistence/file_system_helper.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart' if (dart.library.html) 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:path_provider/path_provider.dart' as path_provider;
 
 /// Enhanced file storage for workspaces, extending [FileWorkspaceRepository]
 /// with more advanced features such as versioning, backups, and progress reporting.
@@ -369,36 +370,49 @@ class FileStorage {
   
   /// Gets the default workspace directory for the current platform.
   static Future<String> getDefaultWorkspaceDirectory() async {
-    try {
-      if (kIsWeb) {
-        // Web doesn't have file system access in the same way
-        // Browser storage is handled differently
-        return '/';
-      }
-      
-      if (Platform.isAndroid || Platform.isIOS) {
-        // Use documents directory on mobile platforms
-        final directory = await getApplicationDocumentsDirectory();
-        return path.join(directory.path, 'structurizr', 'workspaces');
-      } else if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
-        // Use app data directory on desktop platforms
-        final directory = await getApplicationSupportDirectory();
-        return path.join(directory.path, 'structurizr', 'workspaces');
-      } else {
-        // Fallback for other platforms
-        final directory = await getTemporaryDirectory();
-        return path.join(directory.path, 'structurizr', 'workspaces');
-      }
-    } catch (e) {
-      // If path_provider fails, fall back to a relative path
-      return 'structurizr/workspaces';
-    }
+    return FileSystemHelper.getDefaultWorkspacesPath();
   }
   
   /// Gets the default backup directory for the current platform.
   static Future<String> getDefaultBackupDirectory() async {
-    final workspaceDir = await getDefaultWorkspaceDirectory();
-    return path.join(workspaceDir, 'backups');
+    return FileSystemHelper.getDefaultBackupsPath();
+  }
+  
+  /// Gets the exports directory path
+  static Future<String> getExportsDirectory() async {
+    final documentDir = await path_provider.getApplicationDocumentsDirectory();
+    final exportsDir = path.join(documentDir.path, 'structurizr', 'exports');
+    
+    // Create the directory if it doesn't exist
+    final dir = Directory(exportsDir);
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+    
+    return exportsDir;
+  }
+  
+  /// Saves exported diagram data to a file
+  /// 
+  /// [data] The exported data as bytes
+  /// [filename] Filename for the exported data
+  /// 
+  /// Returns the path to the saved file
+  Future<String> saveExportedDiagram(Uint8List data, String filename) async {
+    final exportsDir = await getExportsDirectory();
+    final filePath = path.join(exportsDir, filename);
+    
+    // Create the directory if it doesn't exist
+    final dir = Directory(path.dirname(filePath));
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+    
+    // Write the file
+    final file = File(filePath);
+    await file.writeAsBytes(data);
+    
+    return filePath;
   }
 }
 

@@ -2,10 +2,7 @@ import 'package:flutter_structurizr/application/dsl/workspace_mapper.dart';
 import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/model.dart';
 import 'package:flutter_structurizr/domain/model/workspace.dart';
-import 'package:flutter_structurizr/domain/parser/ast/ast_node.dart';
-import 'package:flutter_structurizr/domain/parser/ast/model_node.dart';
-import 'package:flutter_structurizr/domain/parser/ast/relationship_node.dart';
-import 'package:flutter_structurizr/domain/parser/ast/workspace_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/ast.dart';
 import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -75,13 +72,13 @@ void main() {
     test('maps a workspace with a software system', () {
       // Arrange
       final systemNode = SoftwareSystemNode(
+        id: 'system',
         name: 'System',
         description: 'A software system',
-        sourcePosition: SourcePosition(0, 2, 1),
-        identifier: 'system',
-        properties: [],
+        sourcePosition: SourcePosition(line: 2, column: 1, offset: 0),
+        properties: null,
         relationships: [],
-        children: [],
+        containers: [],
       );
 
       final workspaceNode = WorkspaceNode(

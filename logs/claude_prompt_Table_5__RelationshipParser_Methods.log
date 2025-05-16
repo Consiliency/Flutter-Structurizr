@@ -1,0 +1,946 @@
+Based on this information, I'll now create comprehensive tests for the RelationshipParser methods in a dedicated test file. Let me generate the tests based on the implementation details I've seen.
+
+```dart
+import 'package:flutter_structurizr/domain/parser/ast/ast.dart';
+import 'package:flutter_structurizr/domain/parser/context_stack.dart';
+import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
+import 'package:flutter_structurizr/domain/parser/lexer/lexer.dart';
+import 'package:flutter_structurizr/domain/parser/lexer/token.dart';
+import 'package:flutter_structurizr/domain/parser/relationship_parser.dart';
+import 'package:test/test.dart';
+
+void main() {
+  group('RelationshipParser', () {
+    late RelationshipParser parser;
+    late ErrorReporter errorReporter;
+    late ContextStack contextStack;
+
+    setUp(() {
+      errorReporter = ErrorReporter('');
+      contextStack = ContextStack();
+      parser = RelationshipParser(errorReporter: errorReporter);
+    });
+
+    // Helper function to convert string to tokens
+    List<Token> tokensFromString(String source) {
+      final lexer = Lexer(source);
+      return lexer.scanTokens();
+    }
+
+    group('parse method', () {
+      test('should return an empty list for empty tokens', () {
+        final tokens = <Token>[];
+        final result = parser.parse(tokens);
+        expect(result, isEmpty);
+      });
+
+      test('should parse explicit relationships correctly', () {
+        final tokens = tokensFromString('user -> system "Uses" "HTTP"');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('user'));
+        expect(result[0].destinationId, equals('system'));
+        expect(result[0].description, equals('Uses'));
+        expect(result[0].technology, equals('HTTP'));
+      });
+
+      test('should parse implicit relationships correctly', () {
+        final tokens = tokensFromString('user uses system "For authentication" "HTTPS"');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('user'));
+        expect(result[0].destinationId, equals('system'));
+        expect(result[0].description, equals('For authentication'));
+        expect(result[0].technology, equals('HTTPS'));
+      });
+
+      test('should use verb as description for implicit relationships if not provided', () {
+        final tokens = tokensFromString('user uses system');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('user'));
+        expect(result[0].destinationId, equals('system'));
+        expect(result[0].description, equals('Uses')); // Capitalized verb
+        expect(result[0].technology, isNull);
+      });
+
+      test('should handle complex element identifiers', () {
+        final tokens = tokensFromString('External User -> Payment System "Makes payment"');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('External User'));
+        expect(result[0].destinationId, equals('Payment System'));
+        expect(result[0].description, equals('Makes payment'));
+      });
+
+      test('should handle different relationship verbs', () {
+        final verbs = ['uses', 'delivers', 'influences', 'syncs', 'reads', 'writes'];
+        
+        for (final verb in verbs) {
+          final tokens = tokensFromString('component $verb database');
+          final result = parser.parse(tokens);
+          
+          expect(result, hasLength(1), reason: 'Failed for verb: $verb');
+          expect(result[0].sourceId, equals('component'));
+          expect(result[0].destinationId, equals('database'));
+          expect(result[0].description, equals(verb.capitalize()));
+        }
+      });
+
+      test('should not parse invalid relationship syntax', () {
+        final tokens = tokensFromString('user system'); // Missing arrow or verb
+        final result = parser.parse(tokens);
+        
+        expect(result, isEmpty);
+      });
+    });
+
+    group('_parseExplicit method', () {
+      test('should parse relationship with arrow syntax', () {
+        final tokens = tokensFromString('user -> system "Uses"');
+        // Using the private method through reflection or making it public for testing would be ideal,
+        // but for now, we'll test via the public parse method
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('user'));
+        expect(result[0].destinationId, equals('system'));
+        expect(result[0].description, equals('Uses'));
+      });
+
+      test('should parse relationship with technology information', () {
+        final tokens = tokensFromString('user -> system "Uses" "HTTP"');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('user'));
+        expect(result[0].destinationId, equals('system'));
+        expect(result[0].description, equals('Uses'));
+        expect(result[0].technology, equals('HTTP'));
+      });
+
+      test('should handle missing description', () {
+        final tokens = tokensFromString('user -> system');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('user'));
+        expect(result[0].destinationId, equals('system'));
+        expect(result[0].description, isNull);
+      });
+
+      test('should handle complex identifiers with spaces', () {
+        final tokens = tokensFromString('Payment Gateway -> Banking System "Sends transactions"');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('Payment Gateway'));
+        expect(result[0].destinationId, equals('Banking System'));
+        expect(result[0].description, equals('Sends transactions'));
+      });
+
+      test('should not parse if arrow is missing', () {
+        final tokens = tokensFromString('user system "Uses"');
+        final result = parser.parse(tokens);
+        
+        expect(result, isEmpty);
+      });
+
+      test('should not parse if arrow is at wrong position', () {
+        final tokens = tokensFromString('-> user system "Uses"');
+        final result = parser.parse(tokens);
+        
+        expect(result, isEmpty);
+      });
+
+      test('should not parse if destination is missing', () {
+        final tokens = tokensFromString('user ->');
+        final result = parser.parse(tokens);
+        
+        expect(result, isEmpty);
+      });
+    });
+
+    group('_parseImplicit method', () {
+      test('should parse relationship with verb', () {
+        final tokens = tokensFromString('user uses system');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('user'));
+        expect(result[0].destinationId, equals('system'));
+        expect(result[0].description, equals('Uses'));
+      });
+
+      test('should parse relationship with description and technology', () {
+        final tokens = tokensFromString('user uses system "For authentication" "HTTPS"');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('user'));
+        expect(result[0].destinationId, equals('system'));
+        expect(result[0].description, equals('For authentication'));
+        expect(result[0].technology, equals('HTTPS'));
+      });
+
+      test('should handle different relationship verbs', () {
+        final verbs = ['uses', 'delivers', 'influences', 'syncs', 'reads', 'writes'];
+        
+        for (final verb in verbs) {
+          final tokens = tokensFromString('component $verb database');
+          final result = parser.parse(tokens);
+          
+          expect(result, hasLength(1), reason: 'Failed for verb: $verb');
+          expect(result[0].sourceId, equals('component'));
+          expect(result[0].destinationId, equals('database'));
+          expect(result[0].description, equals(verb.capitalize()));
+        }
+      });
+
+      test('should handle complex identifiers with spaces', () {
+        final tokens = tokensFromString('Mobile App uses Payment Gateway "For transactions"');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('Mobile App'));
+        expect(result[0].destinationId, equals('Payment Gateway'));
+        expect(result[0].description, equals('For transactions'));
+      });
+
+      test('should not parse if verb is missing', () {
+        final tokens = tokensFromString('user system');
+        final result = parser.parse(tokens);
+        
+        expect(result, isEmpty);
+      });
+
+      test('should not parse if destination is missing', () {
+        final tokens = tokensFromString('user uses');
+        final result = parser.parse(tokens);
+        
+        expect(result, isEmpty);
+      });
+    });
+
+    group('_parseGroup method', () {
+      // Since _parseGroup returns void and doesn't directly affect the parsing result
+      // in the current implementation, we can check that it's called and handles
+      // basic group structure validation.
+
+      test('should handle basic group syntax', () {
+        final tokens = tokensFromString('group "External Users" { user -> system "Uses" }');
+        
+        // Validate it doesn't throw
+        expect(() => parser._parseGroup(tokens), returnsNormally);
+      });
+
+      test('should detect missing group keyword', () {
+        final tokens = tokensFromString('"External Users" { user -> system "Uses" }');
+        
+        // Should report error through errorReporter
+        parser._parseGroup(tokens);
+        expect(errorReporter.hasErrors(), isTrue);
+      });
+
+      test('should detect missing opening brace', () {
+        final tokens = tokensFromString('group "External Users" user -> system "Uses" }');
+        
+        // Should report error through errorReporter
+        parser._parseGroup(tokens);
+        expect(errorReporter.hasErrors(), isTrue);
+      });
+
+      test('should handle nested group syntax', () {
+        final tokens = tokensFromString('group "External" { group "Users" { user -> system "Uses" } }');
+        
+        // Validate it doesn't throw
+        expect(() => parser._parseGroup(tokens), returnsNormally);
+      });
+    });
+
+    group('_parseNested method', () {
+      // Similar to _parseGroup, _parseNested returns void and doesn't directly
+      // affect the parsing result in the current implementation.
+
+      test('should handle basic nested element syntax', () {
+        final tokens = tokensFromString('softwareSystem "System" { container "Web App" { -> database "Reads from" } }');
+        
+        // Validate it doesn't throw
+        expect(() => parser._parseNested(tokens), returnsNormally);
+      });
+
+      test('should detect missing tokens', () {
+        final tokens = <Token>[];
+        
+        // Should report error through errorReporter
+        parser._parseNested(tokens);
+        expect(errorReporter.hasErrors(), isTrue);
+      });
+
+      test('should detect missing opening brace', () {
+        final tokens = tokensFromString('softwareSystem "System" container "Web App" { -> database "Reads from" } }');
+        
+        // Should report error through errorReporter
+        parser._parseNested(tokens);
+        expect(errorReporter.hasErrors(), isTrue);
+      });
+
+      test('should handle deeply nested syntax', () {
+        final tokens = tokensFromString('softwareSystem "System" { container "Web App" { component "Service" { -> database "Reads from" } } }');
+        
+        // Validate it doesn't throw
+        expect(() => parser._parseNested(tokens), returnsNormally);
+      });
+    });
+
+    group('RelationshipNode extensions', () {
+      test('setSource should create a new node with updated source', () {
+        final node = RelationshipNode(
+          sourceId: 'original',
+          destinationId: 'destination',
+          description: 'description',
+          technology: 'technology',
+        );
+        
+        final updated = node.setSource('newSource');
+        
+        expect(updated.sourceId, equals('newSource'));
+        expect(updated.destinationId, equals('destination'));
+        expect(updated.description, equals('description'));
+        expect(updated.technology, equals('technology'));
+      });
+
+      test('setDestination should create a new node with updated destination', () {
+        final node = RelationshipNode(
+          sourceId: 'source',
+          destinationId: 'original',
+          description: 'description',
+          technology: 'technology',
+        );
+        
+        final updated = node.setDestination('newDestination');
+        
+        expect(updated.sourceId, equals('source'));
+        expect(updated.destinationId, equals('newDestination'));
+        expect(updated.description, equals('description'));
+        expect(updated.technology, equals('technology'));
+      });
+
+      test('setSource should preserve all properties', () {
+        final tags = TagsNode(tags: 'tag1,tag2');
+        final properties = PropertiesNode(properties: [
+          PropertyNode(name: 'prop', value: 'value')
+        ]);
+        
+        final node = RelationshipNode(
+          sourceId: 'original',
+          destinationId: 'destination',
+          description: 'description',
+          technology: 'technology',
+          tags: tags,
+          properties: properties,
+        );
+        
+        final updated = node.setSource('newSource');
+        
+        expect(updated.sourceId, equals('newSource'));
+        expect(updated.tags, equals(tags));
+        expect(updated.properties, equals(properties));
+      });
+
+      test('setDestination should preserve all properties', () {
+        final tags = TagsNode(tags: 'tag1,tag2');
+        final properties = PropertiesNode(properties: [
+          PropertyNode(name: 'prop', value: 'value')
+        ]);
+        
+        final node = RelationshipNode(
+          sourceId: 'source',
+          destinationId: 'original',
+          description: 'description',
+          technology: 'technology',
+          tags: tags,
+          properties: properties,
+        );
+        
+        final updated = node.setDestination('newDestination');
+        
+        expect(updated.destinationId, equals('newDestination'));
+        expect(updated.tags, equals(tags));
+        expect(updated.properties, equals(properties));
+      });
+    });
+  });
+}
+
+// Helper extension to match StringHelpers in the implementation
+extension StringHelper on String {
+  String capitalize() {
+    if (isEmpty) return this;
+    return this[0].toUpperCase() + substring(1);
+  }
+}
+```
+
+Now, let's create tests for `relationship_node_extensions_test.dart` to thoroughly test the extension methods:
+
+```dart
+import 'package:flutter_structurizr/domain/parser/ast/ast.dart';
+import 'package:flutter_structurizr/domain/parser/relationship_parser.dart';
+import 'package:test/test.dart';
+
+void main() {
+  group('RelationshipNode Extensions', () {
+    test('setSource should create a new node with updated source ID', () {
+      // Arrange
+      final originalNode = RelationshipNode(
+        sourceId: 'oldSource',
+        destinationId: 'destination',
+        description: 'Some relationship',
+        technology: 'HTTP',
+      );
+      
+      // Act
+      final updatedNode = originalNode.setSource('newSource');
+      
+      // Assert
+      expect(updatedNode, isA<RelationshipNode>());
+      expect(updatedNode.sourceId, equals('newSource'));
+      expect(updatedNode.destinationId, equals('destination'));
+      expect(updatedNode.description, equals('Some relationship'));
+      expect(updatedNode.technology, equals('HTTP'));
+    });
+
+    test('setSource should preserve all other properties', () {
+      // Arrange
+      final tags = TagsNode(tags: 'tag1,tag2');
+      final properties = PropertiesNode(properties: [
+        PropertyNode(name: 'prop1', value: 'value1'),
+        PropertyNode(name: 'prop2', value: 'value2'),
+      ]);
+      
+      final originalNode = RelationshipNode(
+        sourceId: 'oldSource',
+        destinationId: 'destination',
+        description: 'Some relationship',
+        technology: 'HTTP',
+        tags: tags,
+        properties: properties,
+        sourcePosition: SourcePosition(line: 1, column: 1, offset: 0),
+      );
+      
+      // Act
+      final updatedNode = originalNode.setSource('newSource');
+      
+      // Assert
+      expect(updatedNode.sourceId, equals('newSource'));
+      expect(updatedNode.destinationId, equals('destination'));
+      expect(updatedNode.description, equals('Some relationship'));
+      expect(updatedNode.technology, equals('HTTP'));
+      expect(updatedNode.tags, same(tags));
+      expect(updatedNode.properties, same(properties));
+      expect(updatedNode.sourcePosition, originalNode.sourcePosition);
+    });
+
+    test('setSource with empty string should set empty source ID', () {
+      // Arrange
+      final originalNode = RelationshipNode(
+        sourceId: 'oldSource',
+        destinationId: 'destination',
+      );
+      
+      // Act
+      final updatedNode = originalNode.setSource('');
+      
+      // Assert
+      expect(updatedNode.sourceId, equals(''));
+      expect(updatedNode.destinationId, equals('destination'));
+    });
+
+    test('setDestination should create a new node with updated destination ID', () {
+      // Arrange
+      final originalNode = RelationshipNode(
+        sourceId: 'source',
+        destinationId: 'oldDestination',
+        description: 'Some relationship',
+        technology: 'HTTP',
+      );
+      
+      // Act
+      final updatedNode = originalNode.setDestination('newDestination');
+      
+      // Assert
+      expect(updatedNode, isA<RelationshipNode>());
+      expect(updatedNode.sourceId, equals('source'));
+      expect(updatedNode.destinationId, equals('newDestination'));
+      expect(updatedNode.description, equals('Some relationship'));
+      expect(updatedNode.technology, equals('HTTP'));
+    });
+
+    test('setDestination should preserve all other properties', () {
+      // Arrange
+      final tags = TagsNode(tags: 'tag1,tag2');
+      final properties = PropertiesNode(properties: [
+        PropertyNode(name: 'prop1', value: 'value1'),
+        PropertyNode(name: 'prop2', value: 'value2'),
+      ]);
+      
+      final originalNode = RelationshipNode(
+        sourceId: 'source',
+        destinationId: 'oldDestination',
+        description: 'Some relationship',
+        technology: 'HTTP',
+        tags: tags,
+        properties: properties,
+        sourcePosition: SourcePosition(line: 1, column: 1, offset: 0),
+      );
+      
+      // Act
+      final updatedNode = originalNode.setDestination('newDestination');
+      
+      // Assert
+      expect(updatedNode.sourceId, equals('source'));
+      expect(updatedNode.destinationId, equals('newDestination'));
+      expect(updatedNode.description, equals('Some relationship'));
+      expect(updatedNode.technology, equals('HTTP'));
+      expect(updatedNode.tags, same(tags));
+      expect(updatedNode.properties, same(properties));
+      expect(updatedNode.sourcePosition, originalNode.sourcePosition);
+    });
+
+    test('setDestination with empty string should set empty destination ID', () {
+      // Arrange
+      final originalNode = RelationshipNode(
+        sourceId: 'source',
+        destinationId: 'oldDestination',
+      );
+      
+      // Act
+      final updatedNode = originalNode.setDestination('');
+      
+      // Assert
+      expect(updatedNode.sourceId, equals('source'));
+      expect(updatedNode.destinationId, equals(''));
+    });
+
+    test('chaining setSource and setDestination should work correctly', () {
+      // Arrange
+      final originalNode = RelationshipNode(
+        sourceId: 'oldSource',
+        destinationId: 'oldDestination',
+        description: 'Some relationship',
+      );
+      
+      // Act
+      final updatedNode = originalNode
+          .setSource('newSource')
+          .setDestination('newDestination');
+      
+      // Assert
+      expect(updatedNode.sourceId, equals('newSource'));
+      expect(updatedNode.destinationId, equals('newDestination'));
+      expect(updatedNode.description, equals('Some relationship'));
+    });
+  });
+}
+```
+
+Let's also create another test file for more comprehensive relationship parsing tests:
+
+```dart
+import 'package:flutter_structurizr/domain/parser/ast/ast.dart';
+import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
+import 'package:flutter_structurizr/domain/parser/lexer/lexer.dart';
+import 'package:flutter_structurizr/domain/parser/lexer/token.dart';
+import 'package:flutter_structurizr/domain/parser/relationship_parser.dart';
+import 'package:test/test.dart';
+
+void main() {
+  group('RelationshipParser Comprehensive Tests', () {
+    late RelationshipParser parser;
+    late ErrorReporter errorReporter;
+
+    setUp(() {
+      errorReporter = ErrorReporter('');
+      parser = RelationshipParser(errorReporter: errorReporter);
+    });
+
+    // Helper function to convert string to tokens
+    List<Token> tokensFromString(String source) {
+      final lexer = Lexer(source);
+      return lexer.scanTokens();
+    }
+
+    group('Explicit Relationships', () {
+      test('should parse basic arrow relationship', () {
+        final tokens = tokensFromString('user -> system "Uses"');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('user'));
+        expect(result[0].destinationId, equals('system'));
+        expect(result[0].description, equals('Uses'));
+      });
+
+      test('should parse relationship with multi-word identifiers', () {
+        final tokens = tokensFromString('Mobile User -> Payment System "Makes payment"');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('Mobile User'));
+        expect(result[0].destinationId, equals('Payment System'));
+        expect(result[0].description, equals('Makes payment'));
+      });
+
+      test('should parse relationship with technology', () {
+        final tokens = tokensFromString('web -> api "Calls" "REST"');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('web'));
+        expect(result[0].destinationId, equals('api'));
+        expect(result[0].description, equals('Calls'));
+        expect(result[0].technology, equals('REST'));
+      });
+
+      test('should parse relationship without description', () {
+        final tokens = tokensFromString('component -> database');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('component'));
+        expect(result[0].destinationId, equals('database'));
+        expect(result[0].description, isNull);
+      });
+
+      test('should parse relationship with quoted identifiers', () {
+        final tokens = tokensFromString('"User Service" -> "Authentication Service" "Authenticates users"');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('"User Service"'));
+        expect(result[0].destinationId, equals('"Authentication Service"'));
+        expect(result[0].description, equals('Authenticates users'));
+      });
+
+      test('should handle special characters in descriptions', () {
+        final tokens = tokensFromString('system -> database "Stores & retrieves data"');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].description, equals('Stores & retrieves data'));
+      });
+    });
+
+    group('Implicit Relationships', () {
+      test('should parse uses relationship', () {
+        final tokens = tokensFromString('web uses api "For user data"');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('web'));
+        expect(result[0].destinationId, equals('api'));
+        expect(result[0].description, equals('For user data'));
+      });
+
+      test('should parse delivers relationship', () {
+        final tokens = tokensFromString('api delivers data "To dashboard"');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('api'));
+        expect(result[0].destinationId, equals('data'));
+        expect(result[0].description, equals('To dashboard'));
+      });
+
+      test('should parse reads relationship', () {
+        final tokens = tokensFromString('app reads database');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('app'));
+        expect(result[0].destinationId, equals('database'));
+        expect(result[0].description, equals('Reads')); // Capitalized verb
+      });
+
+      test('should parse writes relationship', () {
+        final tokens = tokensFromString('app writes database "User records"');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('app'));
+        expect(result[0].destinationId, equals('database'));
+        expect(result[0].description, equals('User records'));
+      });
+
+      test('should parse complex implicit relationship', () {
+        final tokens = tokensFromString('Backend Service uses Authentication Database "For user validation" "MongoDB"');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('Backend Service'));
+        expect(result[0].destinationId, equals('Authentication Database'));
+        expect(result[0].description, equals('For user validation'));
+        expect(result[0].technology, equals('MongoDB'));
+      });
+
+      test('should handle case insensitivity in relationship verbs', () {
+        final verbs = ['USES', 'Uses', 'uses'];
+        
+        for (final verb in verbs) {
+          final tokens = tokensFromString('client $verb server');
+          final result = parser.parse(tokens);
+          
+          expect(result, hasLength(1), reason: 'Failed for verb: $verb');
+          expect(result[0].sourceId, equals('client'));
+          expect(result[0].destinationId, equals('server'));
+          expect(result[0].description?.toLowerCase(), equals('uses'));
+        }
+      });
+    });
+
+    group('Error Handling', () {
+      test('should report error for invalid explicit relationship syntax', () {
+        final tokens = tokensFromString('user -> "Uses"'); // Missing destination
+        parser.parse(tokens);
+        
+        expect(errorReporter.hasErrors(), isTrue);
+      });
+
+      test('should report error for invalid implicit relationship syntax', () {
+        final tokens = tokensFromString('user uses'); // Missing destination
+        parser.parse(tokens);
+        
+        expect(errorReporter.hasErrors(), isTrue);
+      });
+
+      test('should report error for invalid group syntax', () {
+        // Missing opening brace
+        final tokens = tokensFromString('group "External Users" user -> system "Uses"');
+        parser._parseGroup(tokens);
+        
+        expect(errorReporter.hasErrors(), isTrue);
+      });
+
+      test('should report error for invalid nested element syntax', () {
+        // Missing opening brace
+        final tokens = tokensFromString('softwareSystem "System" container "Web App" -> database "Reads from"');
+        parser._parseNested(tokens);
+        
+        expect(errorReporter.hasErrors(), isTrue);
+      });
+    });
+
+    group('Edge Cases', () {
+      test('should handle relationship with numeric identifiers', () {
+        final tokens = tokensFromString('Component1 -> Database2 "Stores data"');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('Component1'));
+        expect(result[0].destinationId, equals('Database2'));
+      });
+
+      test('should handle relationship with special character identifiers', () {
+        final tokens = tokensFromString('Api_Service -> User-Database "Queries"');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('Api_Service'));
+        expect(result[0].destinationId, equals('User-Database'));
+      });
+
+      test('should handle empty strings as description or technology', () {
+        final tokens = tokensFromString('app -> db "" ""');
+        final result = parser.parse(tokens);
+        
+        expect(result, hasLength(1));
+        expect(result[0].sourceId, equals('app'));
+        expect(result[0].destinationId, equals('db'));
+        expect(result[0].description, equals(''));
+        expect(result[0].technology, equals(''));
+      });
+    });
+  });
+}
+```
+
+Finally, let's create one more test file for more specific group and nested relationship tests:
+
+```dart
+import 'package:flutter_structurizr/domain/parser/ast/ast.dart';
+import 'package:flutter_structurizr/domain/parser/context_stack.dart';
+import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
+import 'package:flutter_structurizr/domain/parser/lexer/lexer.dart';
+import 'package:flutter_structurizr/domain/parser/lexer/token.dart';
+import 'package:flutter_structurizr/domain/parser/relationship_parser.dart';
+import 'package:test/test.dart';
+
+void main() {
+  group('RelationshipParser Group and Nested Tests', () {
+    late RelationshipParser parser;
+    late ErrorReporter errorReporter;
+
+    setUp(() {
+      errorReporter = ErrorReporter('');
+      parser = RelationshipParser(errorReporter: errorReporter);
+    });
+
+    // Helper function to convert string to tokens
+    List<Token> tokensFromString(String source) {
+      final lexer = Lexer(source);
+      return lexer.scanTokens();
+    }
+    
+    group('Group Relationships', () {
+      test('should correctly identify group relationship tokens', () {
+        final tokens = tokensFromString('group "External Users" { user -> system "Uses" }');
+        expect(parser._isGroupRelationship(tokens), isTrue);
+      });
+      
+      test('should not identify non-group tokens as group relationships', () {
+        final tokens = tokensFromString('user -> system "Uses"');
+        expect(parser._isGroupRelationship(tokens), isFalse);
+      });
+      
+      test('should report error for missing opening brace in group', () {
+        final tokens = tokensFromString('group "External Users" user -> system "Uses"');
+        parser._parseGroup(tokens);
+        expect(errorReporter.hasErrors(), isTrue);
+      });
+      
+      test('should handle empty group', () {
+        final tokens = tokensFromString('group "Empty" { }');
+        expect(() => parser._parseGroup(tokens), returnsNormally);
+      });
+      
+      test('should handle nested groups', () {
+        final tokens = tokensFromString('group "External" { group "Users" { user -> system "Uses" } }');
+        expect(() => parser._parseGroup(tokens), returnsNormally);
+      });
+      
+      test('should handle multiple relationships in a group', () {
+        final tokens = tokensFromString(
+          'group "Users" { '
+          '  admin -> system "Administers" '
+          '  user -> system "Uses" '
+          '}'
+        );
+        expect(() => parser._parseGroup(tokens), returnsNormally);
+      });
+    });
+    
+    group('Nested Relationships', () {
+      test('should correctly identify nested relationship tokens', () {
+        final containerElements = [
+          'softwareSystem', 'container', 'component', 'deploymentEnvironment', 
+          'deploymentNode', 'infrastructureNode'
+        ];
+        
+        for (final element in containerElements) {
+          final tokens = tokensFromString('$element "Name" { -> database "Uses" }');
+          expect(parser._isNestedRelationship(tokens), isTrue, reason: 'Failed for element: $element');
+        }
+      });
+      
+      test('should not identify non-nested tokens as nested relationships', () {
+        final tokens = tokensFromString('user -> system "Uses"');
+        expect(parser._isNestedRelationship(tokens), isFalse);
+      });
+      
+      test('should report error for missing opening brace in nested element', () {
+        final tokens = tokensFromString('softwareSystem "System" -> database "Uses"');
+        parser._parseNested(tokens);
+        expect(errorReporter.hasErrors(), isTrue);
+      });
+      
+      test('should handle empty nested element', () {
+        final tokens = tokensFromString('container "Empty" { }');
+        expect(() => parser._parseNested(tokens), returnsNormally);
+      });
+      
+      test('should handle deeply nested elements', () {
+        final tokens = tokensFromString(
+          'softwareSystem "System" { '
+          '  container "API" { '
+          '    component "Controller" { '
+          '      -> database "Reads from" '
+          '    } '
+          '  } '
+          '}'
+        );
+        expect(() => parser._parseNested(tokens), returnsNormally);
+      });
+      
+      test('should handle multiple relationships in nested elements', () {
+        final tokens = tokensFromString(
+          'container "API" { '
+          '  -> database "Reads from" '
+          '  -> cache "Caches data" '
+          '}'
+        );
+        expect(() => parser._parseNested(tokens), returnsNormally);
+      });
+    });
+    
+    group('Mixed Relationship Scenarios', () {
+      test('should handle groups with explicit relationships', () {
+        final tokens = tokensFromString(
+          'group "External" { '
+          '  user -> system "Uses" '
+          '}'
+        );
+        expect(() => parser._parseGroup(tokens), returnsNormally);
+      });
+      
+      test('should handle groups with implicit relationships', () {
+        final tokens = tokensFromString(
+          'group "Users" { '
+          '  admin uses system "For administration" '
+          '}'
+        );
+        expect(() => parser._parseGroup(tokens), returnsNormally);
+      });
+      
+      test('should handle nested elements with explicit relationships', () {
+        final tokens = tokensFromString(
+          'softwareSystem "System" { '
+          '  container "API" { '
+          '    -> database "Reads from" '
+          '  } '
+          '}'
+        );
+        expect(() => parser._parseNested(tokens), returnsNormally);
+      });
+      
+      test('should handle nested elements with implicit relationships', () {
+        final tokens = tokensFromString(
+          'softwareSystem "System" { '
+          '  container "API" { '
+          '    component uses database "For data access" '
+          '  } '
+          '}'
+        );
+        expect(() => parser._parseNested(tokens), returnsNormally);
+      });
+    });
+  });
+}
+```
+
+These comprehensive test files cover all the critical aspects of the RelationshipParser implementation:
+
+1. Basic functionality tests for the main `parse` method
+2. Specific tests for the implementation details of `_parseExplicit` and `_parseImplicit`
+3. Tests for group and nested relationship handling
+4. Dedicated tests for the RelationshipNode extension methods
+5. Error handling and edge case tests
+6. Comprehensive tests covering various DSL syntax forms
+
+The tests are structured to match the implementation details from the source code while providing thorough coverage of all functionality specified in the table of RelationshipParser methods.
+
+<Complete>

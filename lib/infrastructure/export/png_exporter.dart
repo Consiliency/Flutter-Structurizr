@@ -2,17 +2,18 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
-import 'package:flutter/material.dart' hide Element, Container, View;
+import 'package:flutter/material.dart' hide Element, Container, View, Border;
 import 'package:flutter/rendering.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_structurizr/infrastructure/export/diagram_exporter.dart';
+import 'package:flutter_structurizr/domain/style/styles.dart';
+import 'package:flutter_structurizr/infrastructure/export/diagram_exporter.dart' as diagram;
 import 'package:flutter_structurizr/infrastructure/export/rendering_pipeline.dart';
-import 'package:flutter_structurizr/presentation/widgets/structurizr_diagram.dart';
+import 'package:flutter_structurizr/presentation/widgets/diagram/structurizr_diagram.dart';
+import 'package:image/image.dart' as img;
 
 /// An exporter for PNG format images of diagrams
-class PngExporter implements DiagramExporter<Uint8List> {
+class PngExporter implements diagram.DiagramExporter<Uint8List> {
   /// Render parameters for the diagram
-  final DiagramRenderParameters? renderParameters;
+  final DiagramRenderParameters renderParameters;
 
   /// Whether to use a transparent background (true) or white (false)
   final bool transparentBackground;
@@ -23,46 +24,42 @@ class PngExporter implements DiagramExporter<Uint8List> {
   /// Progress callback for the export operation
   final ValueChanged<double>? onProgress;
 
-  /// Image quality for JPEG compression (0.0 to 1.0, only used for JPEG format)
-  final double jpegQuality;
-
   /// Whether to use memory-efficient rendering (recommended for large diagrams)
   final bool useMemoryEfficientRendering;
 
   /// Creates a new PNG exporter
   const PngExporter({
-    this.renderParameters,
+    required this.renderParameters,
     this.transparentBackground = false,
     this.scaleFactor = 2.0, // High quality by default
-    this.jpegQuality = 0.9,
     this.onProgress,
     this.useMemoryEfficientRendering = true, // Enable by default
   });
 
   @override
-  Future<Uint8List> export(DiagramReference diagram) async {
+  Future<Uint8List> export(diagram.DiagramReference diagram) async {
     try {
-      // Use memory-efficient rendering pipeline for large diagrams
-      if (useMemoryEfficientRendering) {
-        return await _exportMemoryEfficient(diagram);
-      } else {
-        return await _exportStandard(diagram);
-      }
+      // Always use the memory-efficient rendering pipeline now
+      return await _exportWithRenderingPipeline(diagram);
     } catch (e) {
       throw Exception('Failed to export diagram to PNG: $e');
     }
   }
 
-  /// Exports a diagram using the memory-efficient rendering pipeline
-  Future<Uint8List> _exportMemoryEfficient(DiagramReference diagram) async {
-    // Get render parameters
-    final width = renderParameters?.width ?? 1920;
-    final height = renderParameters?.height ?? 1080;
-    final includeLegend = renderParameters?.includeLegend ?? true;
-    final includeTitle = renderParameters?.includeTitle ?? true;
-    final includeMetadata = renderParameters?.includeMetadata ?? true;
+  /// Exports a diagram using the unified rendering pipeline
+  Future<Uint8List> _exportWithRenderingPipeline(diagram.DiagramReference diagram) async {
+    // Get render parameters with defaults
+    final width = renderParameters.width ?? 1920;
+    final height = renderParameters.height ?? 1080;
+    final includeLegend = renderParameters.includeLegend ?? true;
+    final includeTitle = renderParameters.includeTitle ?? true;
+    final includeMetadata = renderParameters.includeMetadata ?? true;
+    final includeElementNames = renderParameters.includeElementNames ?? true;
+    final includeElementDescriptions = renderParameters.includeElementDescriptions ?? false;
+    final includeRelationshipDescriptions = renderParameters.includeRelationshipDescriptions ?? true;
+    final elementScaleFactor = renderParameters.elementScaleFactor ?? 1.0;
 
-    // Render using the efficient pipeline
+    // Render using the unified pipeline
     final byteData = await RenderingPipeline.renderToBuffer(
       workspace: diagram.workspace,
       viewKey: diagram.viewKey,
@@ -71,159 +68,73 @@ class PngExporter implements DiagramExporter<Uint8List> {
       includeLegend: includeLegend,
       includeTitle: includeTitle,
       includeMetadata: includeMetadata,
-      backgroundColor: Colors.white,
+      backgroundColor: transparentBackground ? Colors.transparent : Colors.white,
       transparentBackground: transparentBackground,
+      includeElementNames: includeElementNames,
+      includeElementDescriptions: includeElementDescriptions,
+      includeRelationshipDescriptions: includeRelationshipDescriptions,
+      elementScaleFactor: elementScaleFactor,
       onProgress: onProgress,
     );
 
-    // Convert to PNG bytes
-    final bytes = byteData.buffer.asUint8List();
-
-    return bytes;
-  }
-
-  /// Exports a diagram using the standard rendering approach
-  Future<Uint8List> _exportStandard(DiagramReference diagram) async {
-    // Create a boundary key for the RepaintBoundary
-    final boundaryKey = GlobalKey();
-
-    // Report starting progress
-    onProgress?.call(0.1);
-
-    // Create a widget to render offscreen
-    final offscreenWidget = MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        backgroundColor: transparentBackground ? Colors.transparent : Colors.white,
-        body: RepaintBoundary(
-          key: boundaryKey,
-          child: StructurizrDiagram(
-            workspace: diagram.workspace,
-            viewKey: diagram.viewKey,
-            enablePanAndZoom: false, // Static rendering for export
-            showControls: false, // Hide controls
-            renderParameters: renderParameters,
-          ),
-        ),
-      ),
-    );
-
-    // Render the widget to a virtual display
-    final RenderRepaintBoundary boundary = await _renderOffscreen(
-      offscreenWidget,
-      boundaryKey,
-    );
-
-    // Report rendering progress
-    onProgress?.call(0.5);
-
-    // Capture image from the boundary
-    final image = await boundary.toImage(pixelRatio: scaleFactor);
-    final byteData = await image.toByteData(format: transparentBackground
-        ? ui.ImageByteFormat.png
-        : ui.ImageByteFormat.rawRgba);
-
-    if (byteData == null) {
-      throw Exception("Failed to export diagram: couldn't capture image data");
-    }
-
-    // Convert to appropriate format
-    Uint8List bytes;
+    // For PNG format, we need to properly encode the raw bytes
     if (transparentBackground) {
-      // PNG format for transparency
-      bytes = byteData.buffer.asUint8List();
+      // If transparent, we already have PNG format data
+      return byteData.buffer.asUint8List();
     } else {
-      // Convert RGBA to PNG
-      final codec = await ui.instantiateImageCodec(
-        byteData.buffer.asUint8List(),
-        targetHeight: image.height,
-        targetWidth: image.width,
-      );
-      final frameInfo = await codec.getNextFrame();
-      final pngByteData = await frameInfo.image.toByteData(
-        format: ui.ImageByteFormat.png,
-      );
-      if (pngByteData == null) {
-        throw Exception("Failed to convert image to PNG format");
-      }
-      bytes = pngByteData.buffer.asUint8List();
+      // For non-transparent, convert RGBA to PNG using image library
+      return _convertRgbaToEncodedPng(byteData, width * scaleFactor, height * scaleFactor);
     }
-
-    // Report completion
-    onProgress?.call(1.0);
-
-    return bytes;
   }
 
-  /// Renders the widget offscreen to capture its image
-  Future<RenderRepaintBoundary> _renderOffscreen(
-    Widget widget,
-    GlobalKey boundaryKey,
-  ) async {
-    // Create a test widget binding
-    final binding = TestWidgetsFlutterBinding.ensureInitialized();
-
-    // Define a reasonable size for the virtual screen
-    final width = renderParameters?.width ?? 1920;
-    final height = renderParameters?.height ?? 1080;
-    binding.window.physicalSizeTestValue = Size(width, height);
-    binding.window.devicePixelRatioTestValue = 1.0;
-
-    // Pump the widget to render it
-    final testWidget = binding.pipelineOwner.rootNode;
-    binding.pipelineOwner.rootNode = widget as RenderObject;
-
-    // Allow layout and animations to complete
-    await binding.pump(const Duration(milliseconds: 20));
-    await binding.pump(const Duration(milliseconds: 20));
-
-    // Get the RenderObject from the boundary key
-    final RenderRepaintBoundary boundary =
-        boundaryKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-    return boundary;
+  /// Converts raw RGBA data to properly encoded PNG
+  Uint8List _convertRgbaToEncodedPng(ByteData rgbaData, double width, double height) {
+    final widthInt = width.toInt();
+    final heightInt = height.toInt();
+    
+    // Create an image from the RGBA data
+    final image = img.Image(width: widthInt, height: heightInt);
+    final rgbaBytes = rgbaData.buffer.asUint8List();
+    
+    // Copy pixel data
+    for (int y = 0; y < heightInt; y++) {
+      for (int x = 0; x < widthInt; x++) {
+        final pixelIndex = (y * widthInt + x) * 4;
+        
+        if (pixelIndex + 3 < rgbaBytes.length) {
+          final red = rgbaBytes[pixelIndex];
+          final green = rgbaBytes[pixelIndex + 1];
+          final blue = rgbaBytes[pixelIndex + 2];
+          final alpha = rgbaBytes[pixelIndex + 3];
+          
+          // Set the pixel in the image
+          image.setPixel(x, y, img.ColorRgba8(red, green, blue, alpha));
+        }
+      }
+    }
+    
+    // Encode as PNG
+    final pngBytes = img.encodePng(image);
+    return pngBytes;
   }
 
   @override
   Future<List<Uint8List>> exportBatch(
-    List<DiagramReference> diagrams, {
-    ValueChanged<double>? onProgress,
-  }) async {
-    // If using memory-efficient rendering, use the optimized batch export
-    if (useMemoryEfficientRendering) {
-      return await _exportBatchMemoryEfficient(diagrams, onProgress: onProgress);
-    }
-
-    // Otherwise, use the standard approach
-    final results = <Uint8List>[];
-
-    for (var i = 0; i < diagrams.length; i++) {
-      // Call progress callback with approximate progress
-      onProgress?.call(i / diagrams.length);
-
-      // Export diagram and add to results
-      final result = await export(diagrams[i]);
-      results.add(result);
-    }
-
-    // Call progress callback with completion
-    onProgress?.call(1.0);
-
-    return results;
-  }
-
-  /// Exports multiple diagrams using memory-efficient rendering
-  Future<List<Uint8List>> _exportBatchMemoryEfficient(
-    List<DiagramReference> diagrams, {
+    List<diagram.DiagramReference> diagrams, {
     ValueChanged<double>? onProgress,
   }) async {
     // Get common render parameters
-    final width = renderParameters?.width ?? 1920;
-    final height = renderParameters?.height ?? 1080;
-    final includeLegend = renderParameters?.includeLegend ?? true;
-    final includeTitle = renderParameters?.includeTitle ?? true;
-    final includeMetadata = renderParameters?.includeMetadata ?? true;
+    final width = renderParameters.width ?? 1920;
+    final height = renderParameters.height ?? 1080;
+    final includeLegend = renderParameters.includeLegend ?? true;
+    final includeTitle = renderParameters.includeTitle ?? true;
+    final includeMetadata = renderParameters.includeMetadata ?? true;
+    final includeElementNames = renderParameters.includeElementNames ?? true;
+    final includeElementDescriptions = renderParameters.includeElementDescriptions ?? false;
+    final includeRelationshipDescriptions = renderParameters.includeRelationshipDescriptions ?? true;
+    final elementScaleFactor = renderParameters.elementScaleFactor ?? 1.0;
 
-    // Create list of diagram parameters
+    // Create list of diagram parameters for batch processing
     final diagramParams = diagrams.map((diagram) => <String, dynamic>{
       'workspace': diagram.workspace,
       'viewKey': diagram.viewKey,
@@ -232,11 +143,15 @@ class PngExporter implements DiagramExporter<Uint8List> {
       'includeLegend': includeLegend,
       'includeTitle': includeTitle,
       'includeMetadata': includeMetadata,
+      'includeElementNames': includeElementNames,
+      'includeElementDescriptions': includeElementDescriptions, 
+      'includeRelationshipDescriptions': includeRelationshipDescriptions,
+      'elementScaleFactor': elementScaleFactor,
       'backgroundColor': Colors.white,
       'transparentBackground': transparentBackground,
     }).toList();
 
-    // Render each diagram sequentially to limit memory usage
+    // Process each diagram one by one to avoid memory issues
     final results = <Uint8List>[];
 
     for (int i = 0; i < diagrams.length; i++) {
@@ -259,13 +174,31 @@ class PngExporter implements DiagramExporter<Uint8List> {
         includeLegend: includeLegend,
         includeTitle: includeTitle,
         includeMetadata: includeMetadata,
-        backgroundColor: Colors.white,
+        backgroundColor: transparentBackground ? Colors.transparent : Colors.white,
         transparentBackground: transparentBackground,
+        includeElementNames: includeElementNames,
+        includeElementDescriptions: includeElementDescriptions,
+        includeRelationshipDescriptions: includeRelationshipDescriptions,
+        elementScaleFactor: elementScaleFactor,
         onProgress: diagramProgress,
       );
 
+      // Convert to properly encoded PNG
+      Uint8List pngBytes;
+      if (transparentBackground) {
+        // If transparent, we already have PNG format data
+        pngBytes = byteData.buffer.asUint8List();
+      } else {
+        // For non-transparent, convert RGBA to PNG using image library
+        pngBytes = _convertRgbaToEncodedPng(
+          byteData, 
+          width * scaleFactor, 
+          height * scaleFactor
+        );
+      }
+
       // Add to results
-      results.add(byteData.buffer.asUint8List());
+      results.add(pngBytes);
     }
 
     // Report completion
