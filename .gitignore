@@ -100,3 +100,5 @@ json/
 **/.claude/settings.local.json
 flutter.tar.xz
 test_results/last_run.txt
+flutter.tar.xz
+test_results/last_run.txt
