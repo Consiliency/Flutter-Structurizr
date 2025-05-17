@@ -338,8 +338,8 @@ class MarkdownRenderer extends StatelessWidget {
         isDarkMode: isDarkMode,
       ),
       'table': md_ext.EnhancedTableBuilder(isDarkMode: isDarkMode),
-      'taREDACTEDlist': md_ext.TaskListBuilder(isDarkMode: isDarkMode),
-      'taREDACTEDlist-item': md_ext.TaskListBuilder(isDarkMode: isDarkMode),
+      'task-list': md_ext.TaskListBuilder(isDarkMode: isDarkMode),
+      'task-list-item': md_ext.TaskListBuilder(isDarkMode: isDarkMode),
       if (enableEnhancedImages) 'enhanced-image': md_ext.EnhancedImageBuilder(
         isDarkMode: isDarkMode,
         enableCaching: enableImageCaching,

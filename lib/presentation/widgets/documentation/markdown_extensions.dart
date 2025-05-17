@@ -45,7 +45,7 @@ class TaskListSyntax extends md.BlockSyntax {
     final content = itemLines.join('\n');
     final taskItem = TaskListItem(bullet, checked, content);
     
-    return md.Element('taREDACTEDlist', [taskItem]);
+    return md.Element('task-list', [taskItem]);
   }
 }
 
@@ -56,7 +56,7 @@ class TaskListItem extends md.Element {
   final String content;
 
   TaskListItem(this.bullet, this.checked, this.content)
-      : super('taREDACTEDlist-item', [md.Text(content)]) {
+      : super('task-list-item', [md.Text(content)]) {
     attributes['bullet'] = bullet;
     attributes['checked'] = checked.toString();
   }
@@ -72,7 +72,7 @@ class TaskListBuilder extends flutter_md.MarkdownElementBuilder {
   Widget? visitElementAfter(md.Element element, TextStyle? preferredStyle) {
     if (element is TaskListItem) {
       return _buildTaskItem(element, preferredStyle);
-    } else if (element.tag == 'taREDACTEDlist') {
+    } else if (element.tag == 'task-list') {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: (element.children ?? [])
