@@ -291,8 +291,10 @@ lib/
 - For macOS: Xcode command line tools
 
 ### Quick Setup
-We provide a setup script that automatically installs all dependencies:
 
+We provide two setup scripts for different environments:
+
+#### For Regular Development (with internet):
 ```bash
 ./setup_dev_env.sh
 ```
@@ -303,7 +305,18 @@ This script will:
 - Set up development environment
 - Run initial builds and tests
 
-**Note:** The script handles offline environments and provides manual instructions when needed.
+**Note:** This script requires internet access to download dependencies.
+
+#### For Codex Offline Development:
+```bash
+./codex_offline_setup.sh
+```
+
+This script is specifically for Codex environments without internet access. It:
+- Extracts pre-cached dependencies from Git LFS
+- Configures offline Dart/Flutter environment
+- Sets up command wrappers for offline operation
+- Requires Git LFS files to be present (run `git lfs pull` first)
 
 ### Manual Environment Setup
 1. Copy the environment example file:
