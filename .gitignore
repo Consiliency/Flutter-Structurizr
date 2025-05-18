@@ -161,3 +161,17 @@ ehthumbs_vista.db
 Network Trash Folder
 Temporary Items
 .apdisk
+# Codex offline cache
+!.codex/
+!.codex/*.tar.gz
+!.codex/.*-packed
+
+# But ignore extracted directories
+.codex/flutter-sdk/
+.codex/pub-cache/
+
+# Temporary cache directory
+.temp-cache/
+
+# Setup markers
+.codex_setup_complete

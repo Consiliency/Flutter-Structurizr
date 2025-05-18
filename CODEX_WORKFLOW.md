@@ -4,15 +4,19 @@ This document explains the complete workflow for setting up and using this repos
 
 ## Overview
 
-We use Git LFS (Large File Storage) to manage cached dependencies, keeping the repository size manageable while providing everything needed for offline development.
+We provide a complete Flutter SDK and all dependencies in the repository for offline development in Codex. Due to GitHub's file size limitations, the archives are split into smaller chunks in the `.codex/` directory:
+- `flutter-sdk.tar.gz.part.*` - Complete Flutter SDK (704MB, split into 95MB chunks)
+- `pub-cache.tar.gz.part.*` - All Dart/Flutter packages (387MB, split into 95MB chunks)
+
+The setup script automatically reassembles these files before extraction.
 
 ## Initial Setup (One-time, by repository maintainer)
 
 1. **Prepare the offline cache:**
    ```bash
-   ./prepare_codex_cache.sh
+   ./prepare_codex_cache_full.sh
    ```
-   This creates compressed archives of all dependencies in `.codex/`
+   This creates compressed archives of the complete Flutter SDK and all dependencies in `.codex/`
 
 2. **Commit with Git LFS:**
    ```bash
@@ -24,38 +28,51 @@ We use Git LFS (Large File Storage) to manage cached dependencies, keeping the r
 
 ## Codex Environment Setup (For each Codex session)
 
-1. **Clone with LFS support:**
+1. **Clone with LFS support (if using Git LFS):**
    ```bash
    git lfs clone https://github.com/yourusername/dart-structurizr.git
+   cd dart-structurizr
+   ```
+   
+   Or regular clone if LFS not available:
+   ```bash
+   git clone https://github.com/yourusername/dart-structurizr.git
    cd dart-structurizr
    ```
 
 2. **Run the offline setup:**
    ```bash
-   ./codex_offline_setup.sh
+   ./codex_offline_setup_split.sh
    ```
+   
+   This script will:
+   - Reassemble the split archive files
+   - Extract the Flutter SDK and packages
+   - Configure the offline environment
 
 3. **Use offline commands:**
    ```bash
-   ./dart test      # Run tests
-   ./dart analyze   # Analyze code
-   ./dart run       # Run the application
-   ./pub get --offline  # Get packages offline
-   ./flutter test   # Limited Flutter support
+   ./flutter test      # Run tests (full Flutter SDK)
+   ./flutter analyze   # Analyze code
+   ./flutter run -d linux    # Run on Linux desktop
+   ./flutter build linux     # Build for Linux
+   ./dart analyze      # Dart-specific commands
    ```
 
 ## File Structure
 
 ```
 dart-structurizr/
-├── .codex/                  # Git LFS managed
-│   ├── dart-sdk.tar.gz     # Compressed Dart SDK
-│   ├── pub-cache.tar.gz    # Compressed packages
-│   ├── .dart-sdk-packed    # Extraction marker
-│   └── .pub-cache-packed   # Extraction marker
-├── codex_offline_setup.sh  # Codex setup script
-├── setup_dev_env.sh        # Regular dev setup (requires internet)
-└── prepare_codex_cache.sh  # Cache preparation script
+├── .codex/                          # Offline cache directory
+│   ├── flutter-sdk.tar.gz.part.*   # Flutter SDK split files (8 parts)
+│   ├── pub-cache.tar.gz.part.*     # Package cache split files (5 parts)
+│   ├── reassemble.sh               # Script to reassemble split files
+│   ├── .flutter-sdk-packed         # Extraction marker
+│   └── .pub-cache-packed           # Extraction marker
+├── codex_offline_setup_split.sh    # Codex setup script (handles split files)
+├── setup_dev_env.sh                # Regular dev setup (requires internet)
+├── prepare_codex_cache_full.sh     # Cache preparation script
+└── split_large_files.sh            # Script to split large archives
 ```
 
 ## How It Works

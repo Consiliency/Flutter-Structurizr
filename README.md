@@ -309,14 +309,16 @@ This script will:
 
 #### For Codex Offline Development:
 ```bash
-./codex_offline_setup.sh
+./codex_offline_setup_split.sh
 ```
 
 This script is specifically for Codex environments without internet access. It:
-- Extracts pre-cached dependencies from Git LFS
-- Configures offline Dart/Flutter environment
-- Sets up command wrappers for offline operation
-- Requires Git LFS files to be present (run `git lfs pull` first)
+- Reassembles split archive files (GitHub-friendly 95MB chunks)
+- Extracts the complete Flutter SDK (704MB total)
+- Extracts all pre-cached packages (387MB total)
+- Configures offline Flutter/Dart environment
+- Provides full Flutter capabilities for desktop development
+- All necessary files are included in the repository
 
 ### Manual Environment Setup
 1. Copy the environment example file:
