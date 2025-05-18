@@ -1,5 +1,16 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter_structurizr/domain/model/group.dart';
+import 'package:flutter_structurizr/domain/model/enterprise.dart';
+import 'package:flutter_structurizr/domain/model/deployment_environment.dart';
+import 'package:flutter_structurizr/domain/model/model.dart';
+import 'package:json_annotation/json_annotation.dart';
+import 'package:flutter_structurizr/domain/model/deployment_node.dart';
+import 'package:flutter_structurizr/domain/model/container.dart';
+import 'package:flutter_structurizr/domain/model/component.dart';
+import 'package:flutter_structurizr/domain/model/infrastructure_node.dart';
+import 'package:flutter_structurizr/domain/model/container_instance.dart';
+import 'package:flutter_structurizr/domain/model/software_system_instance.dart';
 
 /// Base abstract class for all architecture elements in the Structurizr model.
 abstract class Element {
@@ -58,7 +69,9 @@ abstract class Element {
 
   /// Gets all relationships to a specific destination element
   List<Relationship> getRelationshipsTo(String destinationId) {
-    return relationships.where((r) => r.destinationId == destinationId).toList();
+    return relationships
+        .where((r) => r.destinationId == destinationId)
+        .toList();
   }
 
   /// Adds a child element to this element
@@ -66,6 +79,39 @@ abstract class Element {
 
   /// Sets the identifier for this element
   Element setIdentifier(String identifier);
+
+  /// Polymorphic factory for deserialization
+  static Element fromJson(Map<String, dynamic> json) {
+    switch (json['type']) {
+      case 'Group':
+        return Group.fromJson(json);
+      case 'Enterprise':
+        return Enterprise.fromJson(json);
+      case 'DeploymentEnvironment':
+        return DeploymentEnvironment.fromJson(json);
+      case 'Person':
+        return Person.fromJson(json);
+      case 'SoftwareSystem':
+        return SoftwareSystem.fromJson(json);
+      case 'DeploymentNode':
+        return DeploymentNode.fromJson(json);
+      case 'Container':
+        return Container.fromJson(json);
+      case 'Component':
+        return Component.fromJson(json);
+      case 'InfrastructureNode':
+        return InfrastructureNode.fromJson(json);
+      case 'ContainerInstance':
+        return ContainerInstance.fromJson(json);
+      case 'SoftwareSystemInstance':
+        return SoftwareSystemInstance.fromJson(json);
+      default:
+        throw Exception('Unknown element type: \'${json['type']}\'');
+    }
+  }
+
+  /// Implementers must override toJson and include the 'type' field.
+  Map<String, dynamic> toJson();
 }
 
 /// A basic implementation of the Element interface for testing purposes.
@@ -92,7 +138,9 @@ class BasicElement implements Element {
 
   @override
   List<Relationship> getRelationshipsTo(String destinationId) {
-    return relationships.where((r) => r.destinationId == destinationId).toList();
+    return relationships
+        .where((r) => r.destinationId == destinationId)
+        .toList();
   }
 
   @override
@@ -259,6 +307,21 @@ class BasicElement implements Element {
       children: children,
     );
   }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'type': type,
+      'tags': tags,
+      'properties': properties,
+      'relationships': relationships.map((r) => r.toJson()).toList(),
+      'parentId': parentId,
+      'children': children.map((e) => e.toJson()).toList(),
+    };
+  }
 }
 
 /// Represents a relationship between two elements in the architecture model.
@@ -295,7 +358,7 @@ class Relationship {
     this.technology,
     this.tags = const [],
     this.properties = const {},
-    this.interactionStyle = "Synchronous",
+    this.interactionStyle = 'Synchronous',
     Element? sourceElement,
     Element? destinationElement,
   });
@@ -308,10 +371,13 @@ class Relationship {
       destinationId: json['destinationId'] as String,
       description: json['description'] as String,
       technology: json['technology'] as String?,
-      tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
+      tags:
+          (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+              [],
       properties: (json['properties'] as Map<String, dynamic>?)?.map(
-        (k, e) => MapEntry(k, e as String),
-      ) ?? {},
+            (k, e) => MapEntry(k, e as String),
+          ) ??
+          {},
       interactionStyle: json['interactionStyle'] as String? ?? 'Synchronous',
     );
   }
@@ -329,23 +395,47 @@ class Relationship {
       'interactionStyle': interactionStyle,
     };
   }
-  
+
   /// Gets the source element of this relationship.
   /// This is a shortcut property for compatibility with tests.
   Element? get source => null;
-  
+
   /// Gets the destination element of this relationship.
   /// This is a shortcut property for compatibility with tests.
   Element? get destination => null;
 }
 
-
 /// Exception thrown when a relationship is not found.
 class RelationshipNotFoundException implements Exception {
   final String message;
-  
+
   RelationshipNotFoundException(this.message);
-  
+
   @override
   String toString() => message;
+}
+
+/// Custom JsonConverter for polymorphic Element serialization/deserialization
+class ElementConverter implements JsonConverter<Element, Map<String, dynamic>> {
+  const ElementConverter();
+
+  @override
+  Element fromJson(Map<String, dynamic> json) => Element.fromJson(json);
+
+  @override
+  Map<String, dynamic> toJson(Element object) => object.toJson();
+}
+
+/// Custom JsonConverter for lists of Element
+class ElementListConverter
+    implements JsonConverter<List<Element>, List<dynamic>> {
+  const ElementListConverter();
+
+  @override
+  List<Element> fromJson(List<dynamic> json) =>
+      json.map((e) => Element.fromJson(e as Map<String, dynamic>)).toList();
+
+  @override
+  List<dynamic> toJson(List<Element> object) =>
+      object.map((e) => e.toJson()).toList();
 }

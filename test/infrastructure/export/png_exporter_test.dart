@@ -16,17 +16,17 @@ void main() {
       name: 'User',
       description: 'A user of the system',
     );
-    
+
     final system = SoftwareSystem.create(
       name: 'System',
       description: 'The software system',
     );
-    
+
     final model = Model(
       people: [person],
       softwareSystems: [system],
     );
-    
+
     // Create a System Context view
     final systemContextView = SystemContextView(
       key: 'SystemContext',
@@ -38,10 +38,10 @@ void main() {
         ElementView(id: system.id),
       ],
       relationships: [
-        RelationshipView(id: 'rel1'),
+        const RelationshipView(id: 'rel1'),
       ],
     );
-    
+
     // Create container view
     final containerView = ContainerView(
       key: 'Containers',
@@ -53,7 +53,7 @@ void main() {
         ElementView(id: system.id),
       ],
     );
-    
+
     // Create views collection
     final views = BaseView(
       key: 'views',
@@ -61,18 +61,18 @@ void main() {
       relationships: [...systemContextView.relationships],
       viewType: 'Views',
     );
-    
+
     // Add a relationship
     final updatedPerson = person.addRelationship(
       destinationId: system.id,
       description: 'Uses',
       technology: 'HTTPS',
     );
-    
+
     final updatedModel = model.copyWith(
       people: [updatedPerson],
     );
-    
+
     // Create and return the workspace
     return Workspace(
       id: 1,
@@ -89,12 +89,12 @@ void main() {
         workspace: workspace,
         viewKey: 'SystemContext',
       );
-      
+
       // Create the exporter
-      final exporter = PngExporter(
+      const exporter = PngExporter(
         scaleFactor: 1.0, // Use lower resolution for tests
       );
-      
+
       // Track progress
       double exportProgress = 0.0;
       final progressExporter = PngExporter(
@@ -103,23 +103,24 @@ void main() {
           exportProgress = progress;
         },
       );
-      
+
       // Export the diagram
       final bytes = await exporter.export(diagram);
-      
+
       // Basic verification
       expect(bytes, isA<Uint8List>());
       expect(bytes.isNotEmpty, true);
-      
+
       // Verify PNG signature at start of file
       expect(bytes.length, greaterThan(8));
-      expect(bytes.sublist(0, 8), equals([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]));
-      
+      expect(bytes.sublist(0, 8),
+          equals([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]));
+
       // Test with progress tracking
       await progressExporter.export(diagram);
       expect(exportProgress, equals(1.0)); // Should complete with 100% progress
     });
-    
+
     testWidgets('respects render parameters', (WidgetTester tester) async {
       // Create test workspace and diagram reference
       final workspace = createTestWorkspace();
@@ -127,10 +128,10 @@ void main() {
         workspace: workspace,
         viewKey: 'SystemContext',
       );
-      
+
       // Create exporters with different parameters
-      final defaultExporter = PngExporter();
-      
+      const defaultExporter = PngExporter();
+
       final customExporter = PngExporter(
         renderParameters: DiagramRenderParameters(
           width: 800,
@@ -139,19 +140,21 @@ void main() {
           includeTitle: false,
         ),
       );
-      
+
       // Export with both exporters
       final defaultBytes = await defaultExporter.export(diagram);
       final customBytes = await customExporter.export(diagram);
-      
+
       // Both should be valid PNGs
-      expect(defaultBytes.sublist(0, 8), equals([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]));
-      expect(customBytes.sublist(0, 8), equals([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]));
-      
+      expect(defaultBytes.sublist(0, 8),
+          equals([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]));
+      expect(customBytes.sublist(0, 8),
+          equals([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]));
+
       // Custom parameters should produce different output (usually smaller)
       expect(defaultBytes.length, isNot(equals(customBytes.length)));
     });
-    
+
     testWidgets('supports transparent background', (WidgetTester tester) async {
       // Create test workspace and diagram reference
       final workspace = createTestWorkspace();
@@ -159,28 +162,30 @@ void main() {
         workspace: workspace,
         viewKey: 'SystemContext',
       );
-      
+
       // Create exporters with different backgrounds
-      final opaqueExporter = PngExporter(
+      const opaqueExporter = PngExporter(
         transparentBackground: false,
       );
-      
-      final transparentExporter = PngExporter(
+
+      const transparentExporter = PngExporter(
         transparentBackground: true,
       );
-      
+
       // Export with both exporters
       final opaqueBytes = await opaqueExporter.export(diagram);
       final transparentBytes = await transparentExporter.export(diagram);
-      
+
       // Both should be valid PNGs
-      expect(opaqueBytes.sublist(0, 8), equals([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]));
-      expect(transparentBytes.sublist(0, 8), equals([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]));
-      
+      expect(opaqueBytes.sublist(0, 8),
+          equals([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]));
+      expect(transparentBytes.sublist(0, 8),
+          equals([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]));
+
       // The files should be different
       expect(opaqueBytes.length, isNot(equals(transparentBytes.length)));
     });
-    
+
     testWidgets('handles error cases gracefully', (WidgetTester tester) async {
       // Create test workspace with an invalid view key
       final workspace = createTestWorkspace();
@@ -188,14 +193,14 @@ void main() {
         workspace: workspace,
         viewKey: 'NonExistentView', // This view doesn't exist
       );
-      
+
       // Create the exporter
-      final exporter = PngExporter();
-      
+      const exporter = PngExporter();
+
       // Exporting should throw an exception
       expect(() => exporter.export(diagram), throwsException);
     });
-    
+
     testWidgets('exports batch of diagrams', (WidgetTester tester) async {
       // Create test workspace and multiple diagram references
       final workspace = createTestWorkspace();
@@ -210,13 +215,13 @@ void main() {
           viewKey: 'Containers',
         ),
       ];
-      
+
       // Create the exporter with progress tracking
       double batchProgress = 0.0;
-      final exporter = PngExporter(
+      const exporter = PngExporter(
         scaleFactor: 1.0, // Use lower resolution for tests
       );
-      
+
       // Export the diagrams in batch
       final results = await exporter.exportBatch(
         diagrams,
@@ -224,18 +229,19 @@ void main() {
           batchProgress = progress;
         },
       );
-      
+
       // Verify the results
       expect(results, isA<List<Uint8List>>());
       expect(results.length, equals(2));
-      
+
       // Check each result
       for (final bytes in results) {
         expect(bytes, isA<Uint8List>());
         expect(bytes.isNotEmpty, true);
-        expect(bytes.sublist(0, 8), equals([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]));
+        expect(bytes.sublist(0, 8),
+            equals([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]));
       }
-      
+
       // Progress should reach 100%
       expect(batchProgress, equals(1.0));
     });

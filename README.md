@@ -24,6 +24,12 @@ The application is fully usable and production-ready. Phase 9 (advanced features
 
 See the [Implementation Status](specs/implementation_status.md) for the detailed status of each phase and the [Implementation Specification](specs/flutter_structurizr_implementation_spec.md) for the complete project plan.
 
+> **Recent Update (2024-06):**
+> - Major batch fixes have stabilized the parser, model, and widget tests. Most ambiguous import/type errors and widget layout issues in tests are now resolved.
+> - The modular parser refactor is well underway. All parser/model/view files now use explicit imports and type aliases to avoid conflicts with Flutter built-ins. See the audit and handoff tables in `specs/` for details.
+> - Contributors: Always run tests with `flutter test` (not `dart test`) to ensure correct environment and widget support.
+> - For contributors: See the new troubleshooting section below for common issues and solutions.
+
 ## Features
 
 - Unified codebase for all platforms (web, desktop, mobile)
@@ -281,6 +287,19 @@ lib/
 ### Prerequisites
 - Flutter SDK 3.10.0 or higher
 
+### Environment Setup
+1. Copy the environment example file:
+   ```bash
+   cp .env.example .env
+   ```
+2. Edit `.env` and add your actual API keys (if using any AI services)
+
+3. For MCP (Model Context Protocol) configuration:
+   ```bash
+   cp .mcp.example.json .mcp.json
+   ```
+   Then update with your specific MCP settings.
+
 ### Building from Source
 1. Clone the repository:
    ```bash
@@ -340,6 +359,20 @@ flutter build ios
 - Manage ADRs with the Decision Graph, Timeline, and List views.
 - Undo/redo and advanced state management are available (Phase 9, in progress).
 
+## Troubleshooting (2024-06)
+
+### Common Test and Layout Issues
+
+- **RenderBox was not laid out**: This usually means a widget (often a Column or Row) contains an Expanded/Flexible child without bounded constraints. Solution: Remove the top-level Expanded/Flexible or wrap the widget in a SizedBox with explicit width/height in your test.
+- **Ambiguous import/type errors**: Use explicit import prefixes or `show`/`hide` directives for types like Element, Container, View, Border, etc. Always import from the canonical model file.
+- **Test mocks/type mismatches**: Ensure all test mocks match the interface exactly (e.g., Model addElement returns Model, not void). Update mocks after interface changes.
+- **Tests fail only with flutter test**: Always use `flutter test` for widget and integration tests. `dart test` does not provide the correct environment for Flutter widgets.
+
+### Modular Parser Refactor
+
+- The parser and model-building pipeline is being modularized for maintainability and Java parity. This is an internal refactor and does not affect end-user features, but contributors should follow the new interface-driven approach and consult the audit/handoff tables in `specs/`.
+- All new code should use explicit imports and type aliases to avoid conflicts with Flutter built-ins.
+
 ## Contributing
 
 Contributions are welcome! See the [Implementation Specification](specs/flutter_structurizr_implementation_spec.md) for architecture and design details. For the current state of the project, check the [Implementation Status](specs/implementation_status.md).
@@ -355,7 +388,10 @@ Contributions are welcome! See the [Implementation Specification](specs/flutter_
 - `/references/ui`: Original JavaScript UI implementation
 - `/references/lite`: Structurizr Lite Java implementation
 - `/references/json`: JSON schema definition
+- `/references/dsl`: DSL implementation reference
 - `/ai_docs`: Documentation about Structurizr formats and components
+
+See `/references/README.md` for strategies on managing these reference implementations.
 
 ## License
 

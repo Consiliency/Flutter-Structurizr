@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_structurizr/domain/documentation/documentation.dart';
-import 'package:flutter_structurizr/domain/model/workspace.dart';
 import 'package:flutter_structurizr/presentation/widgets/documentation/markdown_renderer.dart';
 
 void main() {
@@ -32,7 +30,8 @@ class EnhancedMarkdownExample extends StatefulWidget {
   const EnhancedMarkdownExample({Key? key}) : super(key: key);
 
   @override
-  State<EnhancedMarkdownExample> createState() => _EnhancedMarkdownExampleState();
+  State<EnhancedMarkdownExample> createState() =>
+      _EnhancedMarkdownExampleState();
 }
 
 class _EnhancedMarkdownExampleState extends State<EnhancedMarkdownExample> {
@@ -84,7 +83,7 @@ Navigation shortcuts:
 
 ## Advanced Tables
 
- < /dev/null |  Feature | Description | Status |
+| Feature | Description | Status |
 |---------|-------------|--------|
 | Task Lists | Create interactive checklists | ✅ |
 | Enhanced Images | Configure images with parameters | ✅ |
@@ -110,18 +109,18 @@ tags: markdown, documentation, extensions
 
 ```dart
 void main() {
-  print('Hello, enhanced markdown\!');
-  
-  // Class example
-  class MyWidget extends StatelessWidget {
-    final String title;
-    
-    const MyWidget({required this.title});
-    
-    @override
-    Widget build(BuildContext context) {
-      return Text(title);
-    }
+  // TODO('Replace with logging: Hello, enhanced markdown!');
+}
+
+// Class example
+class MyWidget extends StatelessWidget {
+  final String title;
+
+  const MyWidget({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(title);
   }
 }
 ```
@@ -146,7 +145,7 @@ Parameters:
             icon: Icon(_isDarkMode ? Icons.light_mode : Icons.dark_mode),
             onPressed: () {
               setState(() {
-                _isDarkMode = \!_isDarkMode;
+                _isDarkMode = !_isDarkMode;
               });
             },
             tooltip: 'Toggle Dark Mode',

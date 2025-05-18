@@ -8,28 +8,28 @@ import 'package:flutter_structurizr/presentation/widgets/property_panel.dart';
 class MockElement implements Element {
   @override
   final String id;
-  
+
   @override
   final String name;
-  
+
   @override
   final String? description;
-  
+
   @override
   final List<String> tags;
-  
+
   @override
   final Map<String, String> properties;
-  
+
   @override
   final List<Relationship> relationships;
-  
+
   @override
   final String? parentId;
-  
+
   @override
   final String type = 'MockElement';
-  
+
   MockElement({
     required this.id,
     required this.name,
@@ -39,13 +39,13 @@ class MockElement implements Element {
     this.relationships = const [],
     this.parentId,
   });
-  
+
   @override
   Element addProperty(String key, String value) {
     // Not implemented for test
     return this;
   }
-  
+
   @override
   Element addRelationship({
     required String destinationId,
@@ -57,19 +57,19 @@ class MockElement implements Element {
     // Not implemented for test
     return this;
   }
-  
+
   @override
   Element addTag(String tag) {
     // Not implemented for test
     return this;
   }
-  
+
   @override
   Element addTags(List<String> newTags) {
     // Not implemented for test
     return this;
   }
-  
+
   @override
   Relationship? getRelationshipById(String relationshipId) {
     // Not implemented for test
@@ -80,25 +80,25 @@ class MockElement implements Element {
 class MockRelationship implements Relationship {
   @override
   final String id;
-  
+
   @override
   final String sourceId;
-  
+
   @override
   final String destinationId;
-  
+
   @override
   final String? description;
-  
+
   @override
   final String? technology;
-  
+
   @override
   final List<String> tags;
-  
+
   @override
   final Map<String, String> properties;
-  
+
   MockRelationship({
     required this.id,
     required this.sourceId,
@@ -135,10 +135,11 @@ void main() {
     relationships: [],
   );
 
-  testWidgets('PropertyPanel displays element styles correctly', (WidgetTester tester) async {
+  testWidgets('PropertyPanel displays element styles correctly',
+      (WidgetTester tester) async {
     // Track style changes
     ElementStyle? updatedStyle;
-    
+
     // Build the PropertyPanel
     await tester.pumpWidget(
       MaterialApp(
@@ -158,16 +159,17 @@ void main() {
 
     // Verify initial styles tab exists
     expect(find.text('Styles'), findsOneWidget);
-    
+
     // Tap on Styles tab
     await tester.tap(find.text('Styles'));
     await tester.pumpAndSettle();
-    
+
     // Verify element style section is visible
     expect(find.text('Element Style'), findsOneWidget);
   });
 
-  testWidgets('PropertyPanel displays relationship styles correctly', (WidgetTester tester) async {
+  testWidgets('PropertyPanel displays relationship styles correctly',
+      (WidgetTester tester) async {
     // Create test relationship
     final testRelationship = MockRelationship(
       id: 'test-relationship',
@@ -178,7 +180,7 @@ void main() {
     );
 
     // Create test relationship style
-    final testRelationshipStyle = RelationshipStyle(
+    const testRelationshipStyle = RelationshipStyle(
       tag: 'TestRelTag',
       color: const Color(0xFF0000FF),
       thickness: 2,
@@ -188,14 +190,14 @@ void main() {
       opacity: 100,
     );
 
-    final testStyles = Styles(
+    const testStyles = Styles(
       elements: [],
       relationships: [testRelationshipStyle],
     );
 
     // Track style changes
     RelationshipStyle? updatedStyle;
-    
+
     // Build the PropertyPanel
     await tester.pumpWidget(
       MaterialApp(
@@ -215,16 +217,17 @@ void main() {
 
     // Verify initial styles tab exists
     expect(find.text('Styles'), findsOneWidget);
-    
+
     // Tap on Styles tab
     await tester.tap(find.text('Styles'));
     await tester.pumpAndSettle();
-    
+
     // Verify relationship style section is visible
     expect(find.text('Relationship Style'), findsOneWidget);
   });
 
-  testWidgets('PropertyPanel shows empty state when no styles available', (WidgetTester tester) async {
+  testWidgets('PropertyPanel shows empty state when no styles available',
+      (WidgetTester tester) async {
     // Build the PropertyPanel with no styles
     await tester.pumpWidget(
       MaterialApp(
@@ -240,21 +243,23 @@ void main() {
     // Tap on Styles tab
     await tester.tap(find.text('Styles'));
     await tester.pumpAndSettle();
-    
+
     // Verify empty state is shown
     expect(find.text('No styles available'), findsOneWidget);
   });
 
-  testWidgets('PropertyPanel allows creating new styles for elements without styles', (WidgetTester tester) async {
+  testWidgets(
+      'PropertyPanel allows creating new styles for elements without styles',
+      (WidgetTester tester) async {
     // Element without matching style
     final noStyleElement = MockElement(
       id: 'no-style',
       name: 'No Style Element',
       tags: const ['NoMatchingTag'],
     );
-    
+
     bool createStyleCalled = false;
-    
+
     // Build the PropertyPanel
     await tester.pumpWidget(
       MaterialApp(
@@ -275,17 +280,17 @@ void main() {
     // Tap on Styles tab
     await tester.tap(find.text('Styles'));
     await tester.pumpAndSettle();
-    
+
     // Verify "No styles defined" message is shown
     expect(find.text('No styles defined for this element'), findsOneWidget);
-    
+
     // Verify Create Style button is shown
     expect(find.text('Create Style'), findsOneWidget);
-    
+
     // Tap Create Style button
     await tester.tap(find.text('Create Style'));
     await tester.pumpAndSettle();
-    
+
     // Verify the callback was called
     expect(createStyleCalled, true);
   });

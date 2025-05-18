@@ -4,34 +4,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_structurizr/domain/model/workspace.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:logging/logging.dart';
+
+final logger = Logger('AsciidocRenderer');
 
 /// A widget for rendering AsciiDoc content.
 class AsciidocRenderer extends StatefulWidget {
   /// The AsciiDoc content to render.
   final String content;
-  
+
   /// Optional workspace for resolving diagram references.
   final Workspace? workspace;
-  
+
   /// Called when a diagram is selected.
   final Function(String)? onDiagramSelected;
-  
+
   /// Optional initial scroll position.
   final double initialScrollOffset;
-  
+
   /// Whether to use dark mode.
   final bool isDarkMode;
-  
+
   /// Whether to use offline mode (bundled asciidoctor.js).
   final bool useOfflineMode;
-  
+
   /// Chunk size for progressive rendering (in characters)
   /// Defaults to 100,000 characters. Set to 0 to disable chunking.
   final int chunkSize;
-  
+
   /// Whether to enable content caching
   final bool enableCaching;
-  
+
   /// Maximum memory allocated for caching (in KB)
   final int maxCacheSize;
 
@@ -64,15 +67,15 @@ class _AsciidocRendererState extends State<AsciidocRenderer> {
   String _errorMessage = '';
   String? _asciidoctorJs;
   String? _highlightJs;
-  
+
   // Content rendering state
   bool _isProcessingChunks = false;
   int _totalChunks = 1;
   int _processedChunks = 0;
-  
+
   // Performance tracking
   Stopwatch? _renderStopwatch;
-  
+
   // Caching
   static final Map<String, String> _contentCache = {};
   static int _currentCacheSize = 0;
@@ -86,33 +89,34 @@ class _AsciidocRendererState extends State<AsciidocRenderer> {
 
   /// Loads JavaScript resources needed for rendering.
   Future<void> _loadResources() async {
-    print('[AsciidocRenderer] _loadResources called, _isLoading=$_isLoading, _hasError=$_hasError');
+    logger.fine(
+        '[AsciidocRenderer] _loadResources called, _isLoading=$_isLoading, _hasError=$_hasError');
     if (!widget.useOfflineMode) {
       _initController();
       return;
     }
-    
+
     try {
       // Check if content is already in cache
       if (widget.enableCaching) {
         final contentHash = _computeHash(widget.content);
         if (_contentCache.containsKey(contentHash)) {
-          debugPrint('AsciidocRenderer: Content found in cache');
+          logger.info('AsciidocRenderer: Content found in cache');
           _initController(cachedContentHash: contentHash);
           return;
         }
       }
-      
+
       // Load JavaScript resources in parallel
       final futures = [
         rootBundle.loadString('assets/js/asciidoctor.min.js'),
         rootBundle.loadString('assets/js/highlight.min.js'),
       ];
-      
+
       final results = await Future.wait(futures);
       _asciidoctorJs = results[0];
       _highlightJs = results[1];
-      
+
       _initController();
     } catch (e) {
       setState(() {
@@ -122,7 +126,7 @@ class _AsciidocRendererState extends State<AsciidocRenderer> {
       });
     }
   }
-  
+
   /// Computes a simple hash of the content for caching.
   String _computeHash(String content) {
     int hash = 0;
@@ -131,45 +135,48 @@ class _AsciidocRendererState extends State<AsciidocRenderer> {
     }
     return hash.toString();
   }
-  
+
   /// Manages the content cache, removing old entries if needed.
   void _manageCache(String contentHash, String renderedHTML) {
     if (!widget.enableCaching) return;
-    
+
     // Calculate size of rendered HTML in KB
     final sizeInKB = renderedHTML.length ~/ 1024;
-    
+
     // If adding this would exceed cache size, remove oldest entries
     if (_currentCacheSize + sizeInKB > widget.maxCacheSize) {
       // Simple LRU-like eviction: remove first entries until we have enough space
-      while (_contentCache.isNotEmpty && 
-             _currentCacheSize + sizeInKB > widget.maxCacheSize) {
+      while (_contentCache.isNotEmpty &&
+          _currentCacheSize + sizeInKB > widget.maxCacheSize) {
         final firstKey = _contentCache.keys.first;
         final removedSize = _contentCache[firstKey]!.length ~/ 1024;
         _contentCache.remove(firstKey);
         _currentCacheSize -= removedSize;
       }
     }
-    
+
     // Add to cache
     _contentCache[contentHash] = renderedHTML;
     _currentCacheSize += sizeInKB;
-    
-    debugPrint('AsciidocRenderer: Cache size: $_currentCacheSize KB / ${widget.maxCacheSize} KB');
+
+    logger.info(
+        'AsciidocRenderer: Cache size: $_currentCacheSize KB / ${widget.maxCacheSize} KB');
   }
 
   void _initController({String? cachedContentHash}) {
     _controller = widget.controller ?? WebViewController();
     _controller
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(widget.isDarkMode ? Colors.grey.shade900 : Colors.white)
+      ..setBackgroundColor(
+          widget.isDarkMode ? Colors.grey.shade900 : Colors.white)
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageFinished: (_) {
-            print('[AsciidocRenderer] onPageFinished called');
+            logger.fine('[AsciidocRenderer] onPageFinished called');
             if (cachedContentHash != null) {
               _renderStopwatch?.stop();
-              debugPrint('AsciidocRenderer: Rendered from cache in ${_renderStopwatch?.elapsedMilliseconds}ms');
+              logger.info(
+                  'AsciidocRenderer: Rendered from cache in ${_renderStopwatch?.elapsedMilliseconds}ms');
               setState(() {
                 _isLoading = false;
               });
@@ -177,14 +184,14 @@ class _AsciidocRendererState extends State<AsciidocRenderer> {
             }
             if (_isProcessingChunks) return;
             _renderStopwatch?.stop();
-            debugPrint('AsciidocRenderer: Initial render complete in ${_renderStopwatch?.elapsedMilliseconds}ms');
+            logger.info(
+                'AsciidocRenderer: Initial render complete in ${_renderStopwatch?.elapsedMilliseconds}ms');
             setState(() {
               _isLoading = false;
             });
             if (widget.initialScrollOffset > 0) {
               _controller.runJavaScript(
-                'window.scrollTo(0, ${widget.initialScrollOffset});'
-              );
+                  'window.scrollTo(0, ${widget.initialScrollOffset});');
             }
           },
           onNavigationRequest: (request) {
@@ -198,7 +205,8 @@ class _AsciidocRendererState extends State<AsciidocRenderer> {
             return NavigationDecision.navigate;
           },
           onWebResourceError: (error) {
-            print('[AsciidocRenderer] onWebResourceError called: errorCode=${error.errorCode}, description=${error.description}');
+            logger.warning(
+                '[AsciidocRenderer] onWebResourceError called: errorCode=${error.errorCode}, description=${error.description}');
             setState(() {
               _hasError = true;
               _isLoading = false;
@@ -218,14 +226,15 @@ class _AsciidocRendererState extends State<AsciidocRenderer> {
       ..addJavaScriptChannel(
         'Console',
         onMessageReceived: (JavaScriptMessage message) {
-          debugPrint('AsciidocRenderer: ${message.message}');
+          logger.info('AsciidocRenderer: ${message.message}');
         },
       )
       ..addJavaScriptChannel(
         'RenderProgress',
         onMessageReceived: (JavaScriptMessage message) {
           try {
-            final Map<String, dynamic> progress = jsonDecode(message.message);
+            final Map<String, dynamic> progress =
+                (jsonDecode(message.message) as Map<String, dynamic>);
             final currentChunk = progress['currentChunk'] as int;
             final totalChunks = progress['totalChunks'] as int;
             setState(() {
@@ -237,7 +246,7 @@ class _AsciidocRendererState extends State<AsciidocRenderer> {
               _finalizeRendering();
             }
           } catch (e) {
-            debugPrint('AsciidocRenderer: Error parsing progress data: $e');
+            logger.info('AsciidocRenderer: Error parsing progress data: $e');
           }
         },
       )
@@ -250,7 +259,7 @@ class _AsciidocRendererState extends State<AsciidocRenderer> {
           }
         },
       );
-      
+
     // If we have cached content, use it
     if (cachedContentHash != null) {
       _controller.loadHtmlString(_buildHtmlPageWithCache(cachedContentHash));
@@ -258,41 +267,43 @@ class _AsciidocRendererState extends State<AsciidocRenderer> {
       // Otherwise build the page from scratch
       final htmlPage = _buildHtmlPage();
       _controller.loadHtmlString(htmlPage);
-      
+
       // If using chunking for large content, set up processing state
       if (widget.chunkSize > 0 && widget.content.length > widget.chunkSize) {
         _isProcessingChunks = true;
         _totalChunks = (widget.content.length / widget.chunkSize).ceil();
       }
     }
-    print('[AsciidocRenderer] _initController using controller hashCode=${_controller.hashCode}');
+    logger.info(
+        '[AsciidocRenderer] _initController using controller hashCode=${_controller.hashCode}');
   }
-  
+
   /// Finalizes rendering after all chunks are processed
   void _finalizeRendering() {
     _renderStopwatch?.stop();
-    debugPrint('AsciidocRenderer: Complete render finished in ${_renderStopwatch?.elapsedMilliseconds}ms');
+    logger.info(
+        'AsciidocRenderer: Complete render finished in ${_renderStopwatch?.elapsedMilliseconds}ms');
     setState(() {
       _isLoading = false;
     });
-    
+
     // Set initial scroll position if specified
     if (widget.initialScrollOffset > 0) {
-      _controller.runJavaScript(
-        'window.scrollTo(0, ${widget.initialScrollOffset});'
-      );
+      _controller
+          .runJavaScript('window.scrollTo(0, ${widget.initialScrollOffset});');
     }
-    
+
     // Save rendered content for caching
     if (widget.enableCaching) {
-      _controller.runJavaScript('RenderedContent.postMessage(document.documentElement.outerHTML);');
+      _controller.runJavaScript(
+          'RenderedContent.postMessage(document.documentElement.outerHTML);');
     }
   }
 
   /// Builds HTML page with cached content
   String _buildHtmlPageWithCache(String contentHash) {
     final String cachedHTML = _contentCache[contentHash] ?? '';
-    
+
     return '''
       <!DOCTYPE html>
       <html>
@@ -313,12 +324,12 @@ class _AsciidocRendererState extends State<AsciidocRenderer> {
       </html>
     ''';
   }
-  
+
   /// Builds complete HTML page for rendering AsciiDoc content
   String _buildHtmlPage() {
     // Process the AsciiDoc content to replace custom diagram syntax
     final String processedContent = _processContent(widget.content);
-    
+
     // Theme styles
     final String themeStyles = widget.isDarkMode
         ? '''
@@ -386,7 +397,7 @@ class _AsciidocRendererState extends State<AsciidocRenderer> {
     final String asciidoctorScript = widget.useOfflineMode
         ? '<script>${_asciidoctorJs ?? ''}</script>'
         : '<script src="https://cdn.jsdelivr.net/npm/asciidoctor@2.2.6/dist/browser/asciidoctor.min.js"></script>';
-        
+
     final String highlightScript = widget.useOfflineMode && _highlightJs != null
         ? '<script>${_highlightJs}</script>'
         : '<script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/lib/highlight.min.js"></script>';
@@ -825,11 +836,11 @@ class _AsciidocRendererState extends State<AsciidocRenderer> {
     // Find and replace diagram references using the custom syntax: embed:diagram-key[Title]
     // This is similar to the syntax used in the MarkdownRenderer but adapted for AsciiDoc
     final diagramPattern = RegExp(r'embed:([^\[\]]+)\[(.*?)\]');
-    
+
     return content.replaceAllMapped(diagramPattern, (match) {
       final diagramKey = match.group(1)!;
       final title = match.group(2)!;
-      
+
       // Create a diagram link that will be processed by JavaScript
       return '++++\n<div class="diagram-link" data-diagram-key="$diagramKey">$title</div>\n++++';
     });
@@ -847,10 +858,11 @@ class _AsciidocRendererState extends State<AsciidocRenderer> {
 
   @override
   Widget build(BuildContext context) {
-    print('[AsciidocRenderer] build: _isLoading=$_isLoading, _hasError=$_hasError');
+    logger.info(
+        '[AsciidocRenderer] build: _isLoading=$_isLoading, _hasError=$_hasError');
     if (_hasError) {
-      print('[AsciidocRenderer] Building error widget: \x1B[31m$_errorMessage\x1B[0m');
-      debugPrint('[AsciidocRenderer] Building error widget: $_errorMessage');
+      logger.info(
+          '[AsciidocRenderer] Building error widget: \x1B[31m$_errorMessage\x1B[0m');
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -885,7 +897,7 @@ class _AsciidocRendererState extends State<AsciidocRenderer> {
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
               onPressed: () {
-                print('[AsciidocRenderer] Retry button pressed');
+                logger.info('[AsciidocRenderer] Retry button pressed');
                 setState(() {
                   _isLoading = true;
                   _hasError = false;
@@ -914,12 +926,13 @@ class _AsciidocRendererState extends State<AsciidocRenderer> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const CircularProgressIndicator(),
-                  if (_isProcessingChunks && _totalChunks > 1) ...[  
+                  if (_isProcessingChunks && _totalChunks > 1) ...[
                     const SizedBox(height: 16),
                     Text(
                       'Rendering large document...',
                       style: TextStyle(
-                        color: widget.isDarkMode ? Colors.white70 : Colors.black54,
+                        color:
+                            widget.isDarkMode ? Colors.white70 : Colors.black54,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -928,9 +941,13 @@ class _AsciidocRendererState extends State<AsciidocRenderer> {
                       width: 200,
                       child: LinearProgressIndicator(
                         value: _processedChunks / _totalChunks,
-                        backgroundColor: widget.isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
+                        backgroundColor: widget.isDarkMode
+                            ? Colors.grey.shade800
+                            : Colors.grey.shade200,
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          widget.isDarkMode ? Colors.blue.shade300 : Colors.blue,
+                          widget.isDarkMode
+                              ? Colors.blue.shade300
+                              : Colors.blue,
                         ),
                       ),
                     ),
@@ -938,7 +955,8 @@ class _AsciidocRendererState extends State<AsciidocRenderer> {
                     Text(
                       'Processing chunk $_processedChunks of $_totalChunks',
                       style: TextStyle(
-                        color: widget.isDarkMode ? Colors.white70 : Colors.black54,
+                        color:
+                            widget.isDarkMode ? Colors.white70 : Colors.black54,
                         fontSize: 12,
                       ),
                     ),
@@ -950,7 +968,7 @@ class _AsciidocRendererState extends State<AsciidocRenderer> {
       ],
     );
   }
-  
+
   @override
   void dispose() {
     _renderStopwatch?.stop();

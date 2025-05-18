@@ -1,7 +1,5 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_structurizr/domain/model/workspace.dart';
-import 'package:flutter_structurizr/domain/model/model.dart';
 import 'package:flutter_structurizr/infrastructure/persistence/file_storage.dart';
 import 'package:flutter_structurizr/infrastructure/persistence/auto_save.dart';
 import 'package:path/path.dart' as path;
@@ -314,12 +312,12 @@ class _StorageExampleHomeState extends State<StorageExampleHome> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Error'),
+        title: const Text('Error'),
         content: Text('$message\n\n$error'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('OK'),
+            child: const Text('OK'),
           ),
         ],
       ),
@@ -330,7 +328,7 @@ class _StorageExampleHomeState extends State<StorageExampleHome> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Structurizr Storage Example'),
+        title: const Text('Structurizr Storage Example'),
         actions: [
           if (_currentWorkspace != null)
             IconButton(
@@ -340,7 +338,7 @@ class _StorageExampleHomeState extends State<StorageExampleHome> {
             ),
           if (_currentWorkspace != null)
             IconButton(
-              icon: Icon(Icons.save),
+              icon: const Icon(Icons.save),
               tooltip: 'Save Workspace',
               onPressed: _isSaving ? null : _saveWorkspace,
             ),
@@ -358,36 +356,36 @@ class _StorageExampleHomeState extends State<StorageExampleHome> {
                 SizedBox(
                   width: 300,
                   child: Card(
-                    margin: EdgeInsets.all(8),
+                    margin: const EdgeInsets.all(8),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Padding(
-                          padding: EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(8),
                           child: Row(
                             children: [
                               Text(
                                 'Workspaces',
-                                style: Theme.of(context).textTheme.headline6,
+                                style: Theme.of(context).textTheme.titleLarge,
                               ),
-                              Spacer(),
+                              const Spacer(),
                               IconButton(
-                                icon: Icon(Icons.refresh),
+                                icon: const Icon(Icons.refresh),
                                 tooltip: 'Refresh',
                                 onPressed: _loadWorkspaces,
                               ),
                               IconButton(
-                                icon: Icon(Icons.add),
+                                icon: const Icon(Icons.add),
                                 tooltip: 'New Workspace',
                                 onPressed: _createWorkspace,
                               ),
                             ],
                           ),
                         ),
-                        Divider(),
+                        const Divider(),
                         Expanded(
                           child: _workspaces.isEmpty
-                              ? Center(
+                              ? const Center(
                                   child: Text('No workspaces found'),
                                 )
                               : ListView.builder(
@@ -410,36 +408,36 @@ class _StorageExampleHomeState extends State<StorageExampleHome> {
                 // Workspace details
                 Expanded(
                   child: Card(
-                    margin: EdgeInsets.all(8),
+                    margin: const EdgeInsets.all(8),
                     child: _currentWorkspace == null
-                        ? Center(
+                        ? const Center(
                             child: Text('No workspace open'),
                           )
                         : Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Padding(
-                                padding: EdgeInsets.all(16),
+                                padding: const EdgeInsets.all(16),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       _currentWorkspace!.name,
-                                      style: Theme.of(context).textTheme.headline5,
+                                      style: Theme.of(context).textTheme.headlineSmall,
                                     ),
                                     if (_currentWorkspace!.description != null)
                                       Padding(
-                                        padding: EdgeInsets.only(top: 8),
+                                        padding: const EdgeInsets.only(top: 8),
                                         child: Text(_currentWorkspace!.description!),
                                       ),
-                                    SizedBox(height: 16),
+                                    const SizedBox(height: 16),
                                     Row(
                                       children: [
                                         ElevatedButton(
                                           onPressed: _updateCurrentWorkspace,
-                                          child: Text('Update Description'),
+                                          child: const Text('Update Description'),
                                         ),
-                                        SizedBox(width: 8),
+                                        const SizedBox(width: 8),
                                         Text(
                                           widget.autoSave.hasUnsavedChanges()
                                               ? 'Unsaved changes'
@@ -455,24 +453,24 @@ class _StorageExampleHomeState extends State<StorageExampleHome> {
                                   ],
                                 ),
                               ),
-                              Divider(),
+                              const Divider(),
                               Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                 child: Text(
                                   'Event Log',
-                                  style: Theme.of(context).textTheme.subtitle1,
+                                  style: Theme.of(context).textTheme.titleMedium,
                                 ),
                               ),
                               Expanded(
                                 child: ListView.builder(
-                                  padding: EdgeInsets.symmetric(horizontal: 16),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
                                   itemCount: _events.length,
                                   itemBuilder: (context, index) {
                                     return Padding(
-                                      padding: EdgeInsets.symmetric(vertical: 4),
+                                      padding: const EdgeInsets.symmetric(vertical: 4),
                                       child: Text(
                                         _events[index],
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontFamily: 'monospace',
                                           fontSize: 12,
                                         ),
@@ -513,7 +511,7 @@ class _NewWorkspaceDialogState extends State<_NewWorkspaceDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('New Workspace'),
+      title: const Text('New Workspace'),
       content: Form(
         key: _formKey,
         child: Column(
@@ -521,7 +519,7 @@ class _NewWorkspaceDialogState extends State<_NewWorkspaceDialog> {
           children: [
             TextFormField(
               controller: _nameController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Workspace Name',
                 hintText: 'Enter a name for the workspace',
               ),
@@ -539,7 +537,7 @@ class _NewWorkspaceDialogState extends State<_NewWorkspaceDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text('Cancel'),
+          child: const Text('Cancel'),
         ),
         ElevatedButton(
           onPressed: () {
@@ -547,7 +545,7 @@ class _NewWorkspaceDialogState extends State<_NewWorkspaceDialog> {
               Navigator.of(context).pop(_nameController.text);
             }
           },
-          child: Text('Create'),
+          child: const Text('Create'),
         ),
       ],
     );

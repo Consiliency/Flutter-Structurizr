@@ -783,3 +783,28 @@ The parsing and model-building pipeline is being refactored into modular, interf
 - Use interface-driven development: implement stubs and contracts first, then fill in logic.
 - Document any deviations from the Java reference and update the audit table.
 - This modular approach is critical for long-term maintainability and for keeping the Dart implementation in sync with Structurizr Java DSL.
+
+## Recent Batch Fixes, Lessons Learned, and Persistent Memory (2024-06)
+
+### Summary of Recent Progress
+- Major batch fixes applied to resolve ambiguous imports, type mismatches, and widget layout errors in tests.
+- Modular parser refactor is underway; all parser/model/view files now use explicit imports and type aliases to avoid conflicts with Flutter built-ins.
+- Widget layout errors in tests (e.g., "RenderBox was not laid out") are best solved by removing top-level Expanded/Flexible or wrapping in SizedBox with explicit constraints.
+- All specs, status, and plans are now strictly maintained in the specs/ directory. Do not duplicate in CLAUDE.md.
+
+### Best Practices (2024-06)
+- Always use explicit import prefixes or hide directives for Element, Container, View, Border, etc.
+- For widget tests, always provide bounded constraints (e.g., wrap in SizedBox) to avoid layout errors.
+- When fixing ambiguous imports, prefer importing from the canonical model file and using show/hide as needed.
+- For test mocks, ensure return types match the interface exactly (e.g., Model addElement returns Model, not void).
+- When updating specs or status, update only the files in specs/ and not in this file.
+
+### Troubleshooting Tips
+- If you see a RenderBox layout error in tests, check for unbounded Expanded/Flexible and wrap the widget in a SizedBox.
+- For ambiguous import errors, use explicit import prefixes or show/hide directives.
+- If a test fails due to missing methods or type mismatches, check for outdated mocks or missing imports.
+
+### Modular Parser Refactor
+- All parser, model, and view files should use interface-driven development and explicit imports.
+- Refer to specs/dart_structurizr_java_audit.md and specs/refactored_method_relationship.md for up-to-date interfaces and build order.
+- Each table in the handoff file can be assigned to a separate team for parallel implementation.

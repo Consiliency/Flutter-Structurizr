@@ -1,14 +1,11 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_structurizr/domain/parser/ast/ast_base.dart';
-import 'package:flutter_structurizr/domain/parser/ast/nodes/model_node.dart';
+import 'package:test/test.dart';
 import 'package:flutter_structurizr/domain/parser/ast/nodes/model_element_node.dart';
-import 'package:flutter_structurizr/domain/parser/ast/nodes/relationship_node.dart';
 import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 
 void main() {
   group('ModelNode comprehensive tests', () {
     late ModelNode modelNode;
-    
+
     setUp(() {
       modelNode = ModelNode(
         people: [],
@@ -17,7 +14,7 @@ void main() {
         relationships: [],
       );
     });
-    
+
     group('addGroup method', () {
       test('adds single group to empty model', () {
         final groupNode = GroupNode(
@@ -25,11 +22,11 @@ void main() {
           elements: [],
           children: [],
           relationships: [],
-          sourcePosition: SourcePosition(0, 0),
+          sourcePosition: const SourcePosition(line: 0, column: 0),
         );
-        
+
         final updatedModel = modelNode.addGroup(groupNode);
-        
+
         expect(updatedModel.groups, isNotNull);
         expect(updatedModel.groups!.length, equals(1));
         expect(updatedModel.groups!.first, equals(groupNode));
@@ -41,20 +38,20 @@ void main() {
           elements: [],
           children: [],
           relationships: [],
-          sourcePosition: SourcePosition(0, 0),
+          sourcePosition: const SourcePosition(line: 0, column: 0),
         );
-        
+
         final group2 = GroupNode(
           name: 'Group2',
           elements: [],
           children: [],
           relationships: [],
-          sourcePosition: SourcePosition(0, 0),
+          sourcePosition: const SourcePosition(line: 0, column: 0),
         );
-        
+
         final updatedModel1 = modelNode.addGroup(group1);
         final updatedModel2 = updatedModel1.addGroup(group2);
-        
+
         expect(updatedModel2.groups!.length, equals(2));
         expect(updatedModel2.groups![0], equals(group1));
         expect(updatedModel2.groups![1], equals(group2));
@@ -66,33 +63,33 @@ void main() {
           elements: [],
           children: [],
           relationships: [],
-          sourcePosition: SourcePosition(0, 0),
+          sourcePosition: const SourcePosition(line: 0, column: 0),
         );
-        
+
         final group2 = GroupNode(
           name: 'Group1', // Same name
           elements: [],
           children: [],
           relationships: [],
-          sourcePosition: SourcePosition(1, 0),
+          sourcePosition: const SourcePosition(line: 1, column: 0),
         );
-        
+
         final updatedModel1 = modelNode.addGroup(group1);
         final updatedModel2 = updatedModel1.addGroup(group2);
-        
+
         expect(updatedModel2.groups!.length, equals(2));
       });
     });
-    
+
     group('addEnterprise method', () {
       test('adds enterprise to model with no existing enterprise', () {
         final enterpriseNode = EnterpriseNode(
           name: 'Enterprise1',
-          sourcePosition: SourcePosition(0, 0),
+          sourcePosition: const SourcePosition(line: 0, column: 0),
         );
-        
+
         final updatedModel = modelNode.addEnterprise(enterpriseNode);
-        
+
         expect(updatedModel.enterpriseName, equals('Enterprise1'));
         expect(updatedModel.enterprise, equals(enterpriseNode));
       });
@@ -100,17 +97,17 @@ void main() {
       test('replaces enterprise when adding second enterprise', () {
         final enterprise1 = EnterpriseNode(
           name: 'Enterprise1',
-          sourcePosition: SourcePosition(0, 0),
+          sourcePosition: const SourcePosition(line: 0, column: 0),
         );
-        
+
         final enterprise2 = EnterpriseNode(
           name: 'Enterprise2',
-          sourcePosition: SourcePosition(1, 0),
+          sourcePosition: const SourcePosition(line: 1, column: 0),
         );
-        
+
         final updatedModel1 = modelNode.addEnterprise(enterprise1);
         final updatedModel2 = updatedModel1.addEnterprise(enterprise2);
-        
+
         expect(updatedModel2.enterpriseName, equals('Enterprise2'));
         expect(updatedModel2.enterprise, equals(enterprise2));
       });
@@ -120,35 +117,35 @@ void main() {
           id: 'person1',
           name: 'Person1',
           relationships: [],
-          sourcePosition: SourcePosition(0, 0),
+          sourcePosition: const SourcePosition(line: 0, column: 0),
         );
-        
+
         final enterpriseNode = EnterpriseNode(
           name: 'Enterprise1',
-          sourcePosition: SourcePosition(1, 0),
+          sourcePosition: const SourcePosition(line: 1, column: 0),
         );
-        
+
         final updatedModel1 = modelNode.addElement(personNode);
         final updatedModel2 = updatedModel1.addEnterprise(enterpriseNode);
-        
+
         expect(updatedModel2.enterpriseName, equals('Enterprise1'));
         expect(updatedModel2.enterprise, equals(enterpriseNode));
         expect(updatedModel2.people.length, equals(1));
         expect(updatedModel2.people.first, equals(personNode));
       });
     });
-    
+
     group('addElement method', () {
       test('adds person element to model', () {
         final personNode = PersonNode(
           id: 'person1',
           name: 'Person1',
           relationships: [],
-          sourcePosition: SourcePosition(0, 0),
+          sourcePosition: const SourcePosition(line: 0, column: 0),
         );
-        
+
         final updatedModel = modelNode.addElement(personNode);
-        
+
         expect(updatedModel.people.length, equals(1));
         expect(updatedModel.people.first, equals(personNode));
       });
@@ -159,11 +156,11 @@ void main() {
           name: 'System1',
           containers: [],
           relationships: [],
-          sourcePosition: SourcePosition(0, 0),
+          sourcePosition: const SourcePosition(line: 0, column: 0),
         );
-        
+
         final updatedModel = modelNode.addElement(systemNode);
-        
+
         expect(updatedModel.softwareSystems.length, equals(1));
         expect(updatedModel.softwareSystems.first, equals(systemNode));
       });
@@ -171,9 +168,9 @@ void main() {
       test('ignores unsupported element types', () {
         // Mock unsupported element type
         final unknownNode = UnsupportedElementNode();
-        
+
         final updatedModel = modelNode.addElement(unknownNode);
-        
+
         // Should return model unchanged
         expect(updatedModel, equals(modelNode));
       });
@@ -183,35 +180,35 @@ void main() {
           id: 'duplicate',
           name: 'Person1',
           relationships: [],
-          sourcePosition: SourcePosition(0, 0),
+          sourcePosition: const SourcePosition(line: 0, column: 0),
         );
-        
+
         final person2 = PersonNode(
           id: 'duplicate',
           name: 'Person2',
           relationships: [],
-          sourcePosition: SourcePosition(1, 0),
+          sourcePosition: const SourcePosition(line: 1, column: 0),
         );
-        
+
         final updatedModel1 = modelNode.addElement(person1);
         final updatedModel2 = updatedModel1.addElement(person2);
-        
+
         expect(updatedModel2.people.length, equals(1));
         expect(updatedModel2.people.first, equals(person2));
       });
     });
-    
+
     group('addRelationship method', () {
       test('adds relationship to empty model', () {
         final relationshipNode = RelationshipNode(
           sourceId: 'source',
           destinationId: 'destination',
           description: 'relates to',
-          sourcePosition: SourcePosition(0, 0),
+          sourcePosition: const SourcePosition(line: 0, column: 0),
         );
-        
+
         final updatedModel = modelNode.addRelationship(relationshipNode);
-        
+
         expect(updatedModel.relationships.length, equals(1));
         expect(updatedModel.relationships.first, equals(relationshipNode));
       });
@@ -221,19 +218,19 @@ void main() {
           sourceId: 'source1',
           destinationId: 'destination1',
           description: 'relates to',
-          sourcePosition: SourcePosition(0, 0),
+          sourcePosition: const SourcePosition(line: 0, column: 0),
         );
-        
+
         final relationship2 = RelationshipNode(
           sourceId: 'source2',
           destinationId: 'destination2',
           description: 'depends on',
-          sourcePosition: SourcePosition(1, 0),
+          sourcePosition: const SourcePosition(line: 1, column: 0),
         );
-        
+
         final updatedModel1 = modelNode.addRelationship(relationship1);
         final updatedModel2 = updatedModel1.addRelationship(relationship2);
-        
+
         expect(updatedModel2.relationships.length, equals(2));
         expect(updatedModel2.relationships, contains(relationship1));
         expect(updatedModel2.relationships, contains(relationship2));
@@ -244,26 +241,26 @@ void main() {
           id: 'person1',
           name: 'Person1',
           relationships: [],
-          sourcePosition: SourcePosition(0, 0),
+          sourcePosition: const SourcePosition(line: 0, column: 0),
         );
-        
+
         final relationshipNode = RelationshipNode(
           sourceId: 'source',
           destinationId: 'destination',
           description: 'relates to',
-          sourcePosition: SourcePosition(1, 0),
+          sourcePosition: const SourcePosition(line: 1, column: 0),
         );
-        
+
         final updatedModel1 = modelNode.addElement(personNode);
         final updatedModel2 = updatedModel1.addRelationship(relationshipNode);
-        
+
         expect(updatedModel2.relationships.length, equals(1));
         expect(updatedModel2.relationships.first, equals(relationshipNode));
         expect(updatedModel2.people.length, equals(1));
         expect(updatedModel2.people.first, equals(personNode));
       });
     });
-    
+
     group('addImpliedRelationship method', () {
       test('adds implied relationship to model', () {
         final relationshipNode = RelationshipNode(
@@ -271,18 +268,19 @@ void main() {
           destinationId: 'destination',
           description: 'implied relation',
           isImplied: true,
-          sourcePosition: SourcePosition(0, 0),
+          sourcePosition: const SourcePosition(line: 0, column: 0),
         );
-        
+
         final updatedModel = modelNode.addImpliedRelationship(relationshipNode);
-        
+
         // Implementation depends on how implied relationships are stored
         expect(updatedModel, isA<ModelNode>());
-        
+
         // If implemented with separate collection:
         if (updatedModel.impliedRelationships != null) {
           expect(updatedModel.impliedRelationships!.length, equals(1));
-          expect(updatedModel.impliedRelationships!.first, equals(relationshipNode));
+          expect(updatedModel.impliedRelationships!.first,
+              equals(relationshipNode));
         }
         // Otherwise might be added to regular relationships with a flag
         else if (updatedModel.relationships.isNotEmpty) {
@@ -290,42 +288,43 @@ void main() {
         }
       });
 
-      test('implied relationships should not affect explicit relationships', () {
+      test('implied relationships should not affect explicit relationships',
+          () {
         final explicitRel = RelationshipNode(
           sourceId: 'source1',
           destinationId: 'dest1',
           description: 'explicit',
-          sourcePosition: SourcePosition(0, 0),
+          sourcePosition: const SourcePosition(line: 0, column: 0),
         );
-        
+
         final impliedRel = RelationshipNode(
           sourceId: 'source2',
           destinationId: 'dest2',
           description: 'implied',
           isImplied: true,
-          sourcePosition: SourcePosition(1, 0),
+          sourcePosition: const SourcePosition(line: 1, column: 0),
         );
-        
+
         final updatedModel1 = modelNode.addRelationship(explicitRel);
         final updatedModel2 = updatedModel1.addImpliedRelationship(impliedRel);
-        
-        expect(updatedModel2.relationships.length, equals(1)); 
+
+        expect(updatedModel2.relationships.length, equals(1));
         expect(updatedModel2.relationships.first, equals(explicitRel));
-        
+
         // If implemented with separate collection:
         if (updatedModel2.impliedRelationships != null) {
           expect(updatedModel2.impliedRelationships!.length, equals(1));
         }
       });
     });
-    
+
     group('setAdvancedProperty method', () {
       test('sets a string property on the model', () {
         final updatedModel = modelNode.setAdvancedProperty('key1', 'value1');
-        
+
         // Implementation depends on how properties are stored
         expect(updatedModel, isA<ModelNode>());
-        
+
         // If implemented with properties map:
         if (updatedModel.properties != null) {
           expect(updatedModel.properties!['key1'], equals('value1'));
@@ -334,9 +333,9 @@ void main() {
 
       test('sets a numeric property on the model', () {
         final updatedModel = modelNode.setAdvancedProperty('count', 42);
-        
+
         expect(updatedModel, isA<ModelNode>());
-        
+
         // If implemented with properties map:
         if (updatedModel.properties != null) {
           expect(updatedModel.properties!['count'], equals(42));
@@ -345,9 +344,9 @@ void main() {
 
       test('sets a boolean property on the model', () {
         final updatedModel = modelNode.setAdvancedProperty('enabled', true);
-        
+
         expect(updatedModel, isA<ModelNode>());
-        
+
         // If implemented with properties map:
         if (updatedModel.properties != null) {
           expect(updatedModel.properties!['enabled'], equals(true));
@@ -356,10 +355,11 @@ void main() {
 
       test('updates existing property value', () {
         final updatedModel1 = modelNode.setAdvancedProperty('key', 'value1');
-        final updatedModel2 = updatedModel1.setAdvancedProperty('key', 'value2');
-        
+        final updatedModel2 =
+            updatedModel1.setAdvancedProperty('key', 'value2');
+
         expect(updatedModel2, isA<ModelNode>());
-        
+
         // If implemented with properties map:
         if (updatedModel2.properties != null) {
           expect(updatedModel2.properties!['key'], equals('value2'));
@@ -376,6 +376,6 @@ class UnsupportedElementNode extends ElementNode {
           id: 'unknown',
           name: 'Unknown',
           relationships: [],
-          sourcePosition: SourcePosition(0, 0),
+          sourcePosition: const SourcePosition(line: 0, column: 0),
         );
 }

@@ -8,10 +8,10 @@ import 'package:flutter_structurizr/domain/model/model.dart';
 class MockDocumentation implements Documentation {
   @override
   final List<DocumentationSection> sections;
-  
+
   @override
   final List<Decision> decisions;
-  
+
   @override
   final List<Image> images;
 
@@ -48,11 +48,13 @@ class MockDocumentationConverter implements DocumentationConverter {
   @override
   MockDocumentation fromJson(Map<String, dynamic> json) {
     return MockDocumentation(
-      sections: json['sections'] != null 
-          ? List<DocumentationSection>.from(json['sections'].map((x) => DocumentationSection.fromJson(x)))
+      sections: json['sections'] != null
+          ? List<DocumentationSection>.from(
+              json['sections'].map((x) => DocumentationSection.fromJson(x)))
           : [],
       decisions: json['decisions'] != null
-          ? List<Decision>.from(json['decisions'].map((x) => Decision.fromJson(x)))
+          ? List<Decision>.from(
+              json['decisions'].map((x) => Decision.fromJson(x)))
           : [],
       images: json['images'] != null
           ? List<Image>.from(json['images'].map((x) => Image.fromJson(x)))
@@ -61,16 +63,17 @@ class MockDocumentationConverter implements DocumentationConverter {
   }
 
   @override
-  Map<String, dynamic> toJson(Documentation documentation) => documentation.toJson();
+  Map<String, dynamic> toJson(Documentation documentation) =>
+      documentation.toJson();
 }
 
 /// A copy-with interface that mirrors the expected Freezed interface for testing
 class MockDocumentationCopyWith<$Res> {
   final MockDocumentation value;
   final $Res Function(MockDocumentation) then;
-  
+
   MockDocumentationCopyWith(this.value, this.then);
-  
+
   $Res call({
     List<DocumentationSection>? sections,
     List<Decision>? decisions,
@@ -78,7 +81,7 @@ class MockDocumentationCopyWith<$Res> {
   }) {
     return then(MockDocumentation(
       sections: sections ?? value.sections,
-      decisions: decisions ?? value.decisions, 
+      decisions: decisions ?? value.decisions,
       images: images ?? value.images,
     ));
   }
@@ -109,12 +112,12 @@ class TestDocumentationFactory {
       decisions: decisions,
       images: images,
     );
-    
+
     // Create the workspace for testing
     return Workspace(
       id: 1,
       name: 'Test Workspace',
-      model: Model(),
+      model: const Model(),
       documentation: docMock,
     );
   }

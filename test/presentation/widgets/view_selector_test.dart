@@ -11,7 +11,7 @@ void main() {
     final workspace = Workspace(
       name: 'Test Workspace',
       description: 'Workspace for testing',
-      model: Model(
+      model: const Model(
         people: [],
         softwareSystems: [],
       ),
@@ -175,7 +175,7 @@ void main() {
     
     testWidgets('ViewSelector shows empty state when no views available', (WidgetTester tester) async {
       // Create an empty workspace
-      final emptyWorkspace = Workspace(
+      const emptyWorkspace = Workspace(
         name: 'Empty Workspace',
         description: 'Empty workspace for testing',
         model: Model(
@@ -187,7 +187,7 @@ void main() {
       
       // Build the widget with empty workspace
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: SizedBox(
               width: 400,

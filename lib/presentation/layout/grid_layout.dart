@@ -178,7 +178,7 @@ class GridLayout implements LayoutStrategy {
       final y = effectiveArea.top + row * (cellHeight + verticalSpacing);
 
       // Center the element in its cell
-      final size = elementSizes[element.id] ?? Size(100, 100);
+      final size = elementSizes[element.id] ?? const Size(100, 100);
       final centeredX = x + (cellWidth - size.width) / 2;
       final centeredY = y + (cellHeight - size.height) / 2;
 
@@ -231,7 +231,7 @@ class GridLayout implements LayoutStrategy {
       if (!positions.containsKey(parentId)) continue;
 
       final parentPos = positions[parentId]!;
-      final parentSize = elementSizes[parentId] ?? Size(300, 200);
+      final parentSize = elementSizes[parentId] ?? const Size(300, 200);
 
       // Calculate available area within parent (with internal padding)
       const innerPadding = 20.0;
@@ -276,7 +276,7 @@ class GridLayout implements LayoutStrategy {
         final y = availableArea.top + row * (cellHeight + verticalSpacing / 2);
 
         // Center the child in its cell
-        final size = elementSizes[child.id] ?? Size(80, 50);
+        final size = elementSizes[child.id] ?? const Size(80, 50);
         final centeredX = x + (cellWidth - size.width) / 2;
         final centeredY = y + (cellHeight - size.height) / 2;
 
@@ -306,7 +306,7 @@ class GridLayout implements LayoutStrategy {
     for (final entry in existingPositions.entries) {
       final id = entry.key;
       final position = entry.value;
-      final size = elementSizes[id] ?? Size(100, 100);
+      final size = elementSizes[id] ?? const Size(100, 100);
 
       minX = min(minX, position.dx);
       minY = min(minY, position.dy);
@@ -341,7 +341,7 @@ class GridLayout implements LayoutStrategy {
     Map<String, Size> elementSizes,
   ) {
     if (elements.isEmpty) {
-      return Size(100, 100);
+      return const Size(100, 100);
     }
 
     double totalWidth = 0;
@@ -358,7 +358,7 @@ class GridLayout implements LayoutStrategy {
     }
 
     if (count == 0) {
-      return Size(100, 100);
+      return const Size(100, 100);
     }
 
     return Size(totalWidth / count, totalHeight / count);
@@ -382,7 +382,7 @@ class GridLayout implements LayoutStrategy {
     for (final entry in positions.entries) {
       final id = entry.key;
       final position = entry.value;
-      final size = sizes[id] ?? Size(100, 100);
+      final size = sizes[id] ?? const Size(100, 100);
 
       minX = min(minX, position.dx);
       minY = min(minY, position.dy);

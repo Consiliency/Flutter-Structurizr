@@ -1,0 +1,11 @@
+{
+  "projectSettings": {
+    "name": "dart-structurizr",
+    "language": "dart",
+    "framework": "flutter"
+  },
+  "preferences": {
+    "theme": "dark",
+    "autoSave": true
+  }
+}

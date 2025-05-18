@@ -1,37 +1,37 @@
-import '../error_reporter.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/source_position.dart';
 
 /// Enumeration of all possible token types in the Structurizr DSL.
 enum TokenType {
   // Basic tokens
-  eof,         // End of file
-  error,       // Error token
+  eof, // End of file
+  error, // Error token
 
   // Literals
-  identifier,  // Identifiers (e.g., variable names)
-  string,      // String literals
-  integer,     // Integer literals
-  double,      // Floating point literals
-  boolean,     // Boolean literals (true/false)
+  identifier, // Identifiers (e.g., variable names)
+  string, // String literals
+  integer, // Integer literals
+  double, // Floating point literals
+  boolean, // Boolean literals (true/false)
 
   // Punctuation
-  leftBrace,   // {
-  rightBrace,  // }
-  leftParen,   // (
-  rightParen,  // )
-  arrow,       // ->
-  equals,      // =
-  comma,       // ,
-  colon,       // :
-  dot,         // .
-  semicolon,   // ;
-  plus,        // +
-  minus,       // -
-  star,        // *
-  slash,       // /
-  hash,        // #
-  at,          // @
-  bang,        // !
-  pipe,        // |
+  leftBrace, // {
+  rightBrace, // }
+  leftParen, // (
+  rightParen, // )
+  arrow, // ->
+  equals, // =
+  comma, // ,
+  colon, // :
+  dot, // .
+  semicolon, // ;
+  plus, // +
+  minus, // -
+  star, // *
+  slash, // /
+  hash, // #
+  at, // @
+  bang, // !
+  pipe, // |
 
   // Keywords - Workspace level
   workspace,
@@ -61,7 +61,7 @@ enum TokenType {
   // Keywords - Relationships
   relationship,
   ref,
-  this_,       // 'this' keyword for self-reference
+  this_, // 'this' keyword for self-reference
 
   // Keywords - Properties
   tags,
@@ -247,7 +247,7 @@ final Map<String, TokenType> keywords = {
   'Robot': TokenType.robotShape,
   'RoundedBox': TokenType.roundedboxShape,
   'WebBrowser': TokenType.webBrowserShape,
-  
+
   // Documentation
   'documentation': TokenType.documentation,
   'section': TokenType.section,

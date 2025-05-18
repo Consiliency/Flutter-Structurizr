@@ -2,6 +2,10 @@ import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 import 'package:flutter_structurizr/domain/parser/lexer/lexer.dart';
 import 'package:flutter_structurizr/domain/parser/lexer/token.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:logging/logging.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/source_position.dart';
+
+final _logger = Logger('LexerTest');
 
 void main() {
   group('Lexer', () {
@@ -32,17 +36,18 @@ void main() {
     }) {
       expect(token.type, equals(type), reason: 'Token type should match');
       expect(token.lexeme, equals(lexeme), reason: 'Token lexeme should match');
-      
+
       if (value != null) {
         expect(token.value, equals(value), reason: 'Token value should match');
       }
-      
+
       if (line != null) {
         expect(token.line, equals(line), reason: 'Token line should match');
       }
-      
+
       if (column != null) {
-        expect(token.column, equals(column), reason: 'Token column should match');
+        expect(token.column, equals(column),
+            reason: 'Token column should match');
       }
     }
 
@@ -53,9 +58,9 @@ void main() {
       });
 
       test('should scan basic single-character tokens', () {
-        final source = '{}(),.:;+-*/#{@';
+        const source = '{}(),.:;+-*/#{@';
         final tokens = scanTokens(source);
-        
+
         expectTokenTypes(tokens, [
           TokenType.leftBrace,
           TokenType.rightBrace,
@@ -89,9 +94,9 @@ void main() {
 
     group('Whitespace handling', () {
       test('should ignore whitespace', () {
-        final source = ' \t\r\n{ }';
+        const source = ' \t\r\n{ }';
         final tokens = scanTokens(source);
-        
+
         expectTokenTypes(tokens, [
           TokenType.leftBrace,
           TokenType.rightBrace,
@@ -100,18 +105,18 @@ void main() {
       });
 
       test('should track line numbers correctly', () {
-        final source = '{\n}\n->';
+        const source = '{\n}\n->';
         final tokens = scanTokens(source);
-        
+
         expect(tokens[0].line, equals(1)); // {
         expect(tokens[1].line, equals(2)); // }
         expect(tokens[2].line, equals(3)); // ->
       });
 
       test('should track column numbers correctly', () {
-        final source = 'abc = 123';
+        const source = 'abc = 123';
         final tokens = scanTokens(source);
-        
+
         expect(tokens[0].column, equals(1)); // abc
         expect(tokens[1].column, equals(5)); // =
         expect(tokens[2].column, equals(7)); // 123
@@ -120,9 +125,9 @@ void main() {
 
     group('Comments', () {
       test('should ignore line comments', () {
-        final source = '{ // This is a line comment\n}';
+        const source = '{ // This is a line comment\n}';
         final tokens = scanTokens(source);
-        
+
         expectTokenTypes(tokens, [
           TokenType.leftBrace,
           TokenType.rightBrace,
@@ -131,9 +136,9 @@ void main() {
       });
 
       test('should ignore block comments', () {
-        final source = '{ /* This is a block comment */ }';
+        const source = '{ /* This is a block comment */ }';
         final tokens = scanTokens(source);
-        
+
         expectTokenTypes(tokens, [
           TokenType.leftBrace,
           TokenType.rightBrace,
@@ -142,9 +147,9 @@ void main() {
       });
 
       test('should handle nested block comments', () {
-        final source = '{ /* outer /* nested */ comment */ }';
+        const source = '{ /* outer /* nested */ comment */ }';
         final tokens = scanTokens(source);
-        
+
         expectTokenTypes(tokens, [
           TokenType.leftBrace,
           TokenType.rightBrace,
@@ -153,10 +158,10 @@ void main() {
       });
 
       test('should report error for unterminated block comment', () {
-        final source = '{ /* Unterminated comment';
+        const source = '{ /* Unterminated comment';
         final lexer = Lexer(source);
         final tokens = lexer.scanTokens();
-        
+
         expect(lexer.errorReporter.hasErrors, isTrue);
         expect(
           lexer.errorReporter.errors.first.message,
@@ -167,16 +172,16 @@ void main() {
 
     group('Literals', () {
       test('should scan integer literals', () {
-        final source = '123 456 789';
+        const source = '123 456 789';
         final tokens = scanTokens(source);
-        
+
         expectTokenTypes(tokens, [
           TokenType.integer,
           TokenType.integer,
           TokenType.integer,
           TokenType.eof,
         ]);
-        
+
         expectToken(
           tokens[0],
           type: TokenType.integer,
@@ -186,15 +191,15 @@ void main() {
       });
 
       test('should scan double literals', () {
-        final source = '123.456 7.89';
+        const source = '123.456 7.89';
         final tokens = scanTokens(source);
-        
+
         expectTokenTypes(tokens, [
           TokenType.double,
           TokenType.double,
           TokenType.eof,
         ]);
-        
+
         expectToken(
           tokens[0],
           type: TokenType.double,
@@ -204,15 +209,15 @@ void main() {
       });
 
       test('should scan string literals with double quotes', () {
-        final source = '"Hello, world!" "Another string"';
+        const source = '"Hello, world!" "Another string"';
         final tokens = scanTokens(source);
-        
+
         expectTokenTypes(tokens, [
           TokenType.string,
           TokenType.string,
           TokenType.eof,
         ]);
-        
+
         expectToken(
           tokens[0],
           type: TokenType.string,
@@ -222,15 +227,15 @@ void main() {
       });
 
       test('should scan string literals with single quotes', () {
-        final source = "'Hello, world!' 'Another string'";
+        const source = "'Hello, world!' 'Another string'";
         final tokens = scanTokens(source);
-        
+
         expectTokenTypes(tokens, [
           TokenType.string,
           TokenType.string,
           TokenType.eof,
         ]);
-        
+
         expectToken(
           tokens[0],
           type: TokenType.string,
@@ -240,22 +245,22 @@ void main() {
       });
 
       test('should scan boolean literals', () {
-        final source = 'true false';
+        const source = 'true false';
         final tokens = scanTokens(source);
-        
+
         expectTokenTypes(tokens, [
           TokenType.boolean,
           TokenType.boolean,
           TokenType.eof,
         ]);
-        
+
         expectToken(
           tokens[0],
           type: TokenType.boolean,
           lexeme: 'true',
           value: true,
         );
-        
+
         expectToken(
           tokens[1],
           type: TokenType.boolean,
@@ -267,9 +272,9 @@ void main() {
 
     group('String literal features', () {
       test('should process escape sequences in string literals', () {
-        final source = '"Line1\\nLine2\\t\\r\\b\\f\\\'\\\"\\\\Test"';
+        const source = '"Line1\\nLine2\\t\\r\\b\\f\\\'\\\"\\\\Test"';
         final tokens = scanTokens(source);
-        
+
         expectToken(
           tokens[0],
           type: TokenType.string,
@@ -279,9 +284,9 @@ void main() {
       });
 
       test('should process Unicode escape sequences', () {
-        final source = '"\\u0041\\u0042\\u0043"'; // ABC in Unicode
+        const source = '"\\u0041\\u0042\\u0043"'; // ABC in Unicode
         final tokens = scanTokens(source);
-        
+
         expectToken(
           tokens[0],
           type: TokenType.string,
@@ -291,10 +296,10 @@ void main() {
       });
 
       test('should report error for invalid escape sequences', () {
-        final source = '"Test\\z"';
+        const source = '"Test\\z"';
         final lexer = Lexer(source);
         final tokens = lexer.scanTokens();
-        
+
         expect(lexer.errorReporter.hasErrors, isTrue);
         expect(
           lexer.errorReporter.errors.first.message,
@@ -303,10 +308,10 @@ void main() {
       });
 
       test('should report error for incomplete Unicode escape sequence', () {
-        final source = '"\\u004"'; // Incomplete Unicode sequence
+        const source = '"\\u004"'; // Incomplete Unicode sequence
         final lexer = Lexer(source);
         final tokens = lexer.scanTokens();
-        
+
         expect(lexer.errorReporter.hasErrors, isTrue);
         expect(
           lexer.errorReporter.errors.first.message,
@@ -315,10 +320,10 @@ void main() {
       });
 
       test('should report error for invalid Unicode escape sequence', () {
-        final source = '"\\u004Z"'; // Invalid Unicode sequence
+        const source = '"\\u004Z"'; // Invalid Unicode sequence
         final lexer = Lexer(source);
         final tokens = lexer.scanTokens();
-        
+
         expect(lexer.errorReporter.hasErrors, isTrue);
         expect(
           lexer.errorReporter.errors.first.message,
@@ -327,10 +332,10 @@ void main() {
       });
 
       test('should report error for unterminated string', () {
-        final source = '"Unterminated string';
+        const source = '"Unterminated string';
         final lexer = Lexer(source);
         final tokens = lexer.scanTokens();
-        
+
         expect(lexer.errorReporter.hasErrors, isTrue);
         expect(
           lexer.errorReporter.errors.first.message,
@@ -339,9 +344,9 @@ void main() {
       });
 
       test('should handle multi-line strings', () {
-        final source = '"Line 1\nLine 2\nLine 3"';
+        const source = '"Line 1\nLine 2\nLine 3"';
         final tokens = scanTokens(source);
-        
+
         expectToken(
           tokens[0],
           type: TokenType.string,
@@ -353,9 +358,9 @@ void main() {
 
     group('Identifiers and keywords', () {
       test('should scan identifiers', () {
-        final source = 'identifier _identifier identifier123';
+        const source = 'identifier _identifier identifier123';
         final tokens = scanTokens(source);
-        
+
         expectTokenTypes(tokens, [
           TokenType.identifier,
           TokenType.identifier,
@@ -366,9 +371,10 @@ void main() {
 
       test('should recognize all keywords', () {
         // Test a subset of keywords from different categories
-        final source = 'workspace model views styles person softwareSystem container relationship tags';
+        const source =
+            'workspace model views styles person softwareSystem container relationship tags';
         final tokens = scanTokens(source);
-        
+
         expectTokenTypes(tokens, [
           TokenType.workspace,
           TokenType.model,
@@ -384,9 +390,10 @@ void main() {
       });
 
       test('should scan view-related keywords', () {
-        final source = 'systemLandscape systemContext container component dynamic deployment filtered custom image';
+        const source =
+            'systemLandscape systemContext container component dynamic deployment filtered custom image';
         final tokens = scanTokens(source);
-        
+
         expectTokenTypes(tokens, [
           TokenType.systemLandscape,
           TokenType.systemContext,
@@ -402,9 +409,10 @@ void main() {
       });
 
       test('should scan styling keywords', () {
-        final source = 'shape icon color background stroke fontSize border opacity width height thickness routing position';
+        const source =
+            'shape icon color background stroke fontSize border opacity width height thickness routing position';
         final tokens = scanTokens(source);
-        
+
         expectTokenTypes(tokens, [
           TokenType.shape,
           TokenType.icon,
@@ -426,10 +434,10 @@ void main() {
 
     group('Error handling', () {
       test('should report error for unexpected characters', () {
-        final source = '~';  // ~ is not a valid token
+        const source = '~'; // ~ is not a valid token
         final lexer = Lexer(source);
         final tokens = lexer.scanTokens();
-        
+
         expect(lexer.errorReporter.hasErrors, isTrue);
         expect(
           lexer.errorReporter.errors.first.message,
@@ -438,10 +446,10 @@ void main() {
       });
 
       test('should continue lexing after errors', () {
-        final source = '~ { } ~';  // Contains two invalid characters
+        const source = '~ { } ~'; // Contains two invalid characters
         final lexer = Lexer(source);
         final tokens = lexer.scanTokens();
-        
+
         expect(lexer.errorReporter.errors.length, equals(2));
         expectTokenTypes(tokens, [
           TokenType.leftBrace,
@@ -453,7 +461,7 @@ void main() {
 
     group('Real-world examples', () {
       test('should lex a simple workspace definition', () {
-        final source = '''
+        const source = '''
 workspace {
   model {
     user = person "User"
@@ -469,7 +477,7 @@ workspace {
 }
 ''';
         final tokens = scanTokens(source);
-        
+
         // Test just the beginning to keep it manageable
         expectTokenTypes(tokens.sublist(0, 5), [
           TokenType.workspace,
@@ -478,13 +486,13 @@ workspace {
           TokenType.leftBrace,
           TokenType.identifier, // user
         ]);
-        
+
         // Ensure we got a complete token stream by checking EOF
         expect(tokens.last.type, equals(TokenType.eof));
       });
 
       test('should lex a component definition with properties', () {
-        final source = '''
+        const source = '''
 component "Name" {
   description "Description"
   technology "Technology"
@@ -497,7 +505,7 @@ component "Name" {
 }
 ''';
         final tokens = scanTokens(source);
-        
+
         // Verify we have the right keywords
         expect(tokens.any((t) => t.type == TokenType.component), isTrue);
         expect(tokens.any((t) => t.type == TokenType.description), isTrue);
@@ -505,15 +513,16 @@ component "Name" {
         expect(tokens.any((t) => t.type == TokenType.tags), isTrue);
         expect(tokens.any((t) => t.type == TokenType.url), isTrue);
         expect(tokens.any((t) => t.type == TokenType.properties), isTrue);
-        
+
         // Ensure we got a complete token stream by checking EOF
         expect(tokens.last.type, equals(TokenType.eof));
       });
     });
-    
+
     group('Documentation and decisions keywords', () {
-      test('should correctly identify documentation and decisions as keywords', () {
-        final source = '''
+      test('should correctly identify documentation and decisions as keywords',
+          () {
+        const source = '''
 workspace {
   documentation {
     content = "This is documentation"
@@ -531,69 +540,88 @@ workspace {
 }
 ''';
         final tokens = scanTokens(source);
-        
+
+        // TODO: Replace with proper logging or remove for production
         // Print all tokens for debugging
-        print('\n--- DEBUG: TOKENS FOR DOCUMENTATION/DECISIONS TEST ---');
-        tokens.forEach((token) {
-          print('Token: ${token.type} | Lexeme: "${token.lexeme}" | Line: ${token.line} | Column: ${token.column}');
-        });
-        print('--- END DEBUG ---\n');
-        
+        // tokens.forEach((token) {
+        //   print(
+        //       'Token: ${token.type} | Lexeme: "${token.lexeme}" | Line: ${token.line} | Column: ${token.column}');
+        // });
+        // print('--- END DEBUG ---\n');
+
         // Find documentation and decisions tokens
-        final docToken = tokens.firstWhere(
-          (t) => t.lexeme == 'documentation', 
-          orElse: () => Token(type: TokenType.error, lexeme: 'not found', position: SourcePosition(line: 0, column: 0, offset: 0))
-        );
-        
-        final decisionsToken = tokens.firstWhere(
-          (t) => t.lexeme == 'decisions', 
-          orElse: () => Token(type: TokenType.error, lexeme: 'not found', position: SourcePosition(line: 0, column: 0, offset: 0))
-        );
-        
+        final docToken = tokens.firstWhere((t) => t.lexeme == 'documentation',
+            orElse: () => Token(
+                type: TokenType.error,
+                lexeme: 'not found',
+                value: null,
+                position: const SourcePosition(0, 0, 0)));
+
+        final decisionsToken = tokens.firstWhere((t) => t.lexeme == 'decisions',
+            orElse: () => Token(
+                type: TokenType.error,
+                lexeme: 'not found',
+                value: null,
+                position: const SourcePosition(0, 0, 0)));
+
         // Find the identifier tokens for myDocumentation and myDecisions
         final myDocumentationToken = tokens.firstWhere(
-          (t) => t.lexeme == 'myDocumentation', 
-          orElse: () => Token(type: TokenType.error, lexeme: 'not found', position: SourcePosition(line: 0, column: 0, offset: 0))
-        );
-        
+            (t) => t.lexeme == 'myDocumentation',
+            orElse: () => Token(
+                type: TokenType.error,
+                lexeme: 'not found',
+                value: null,
+                position: const SourcePosition(0, 0, 0)));
+
         final myDecisionsToken = tokens.firstWhere(
-          (t) => t.lexeme == 'myDecisions', 
-          orElse: () => Token(type: TokenType.error, lexeme: 'not found', position: SourcePosition(line: 0, column: 0, offset: 0))
-        );
-        
+            (t) => t.lexeme == 'myDecisions',
+            orElse: () => Token(
+                type: TokenType.error,
+                lexeme: 'not found',
+                value: null,
+                position: const SourcePosition(0, 0, 0)));
+
         // Check that the tokens are of the correct type
-        expect(docToken.type, equals(TokenType.documentation), 
-               reason: "'documentation' should be recognized as a keyword, not an identifier");
-               
-        expect(decisionsToken.type, equals(TokenType.decisions), 
-               reason: "'decisions' should be recognized as a keyword, not an identifier");
-               
-        expect(myDocumentationToken.type, equals(TokenType.identifier), 
-               reason: "'myDocumentation' should be an identifier, not a keyword");
-               
-        expect(myDecisionsToken.type, equals(TokenType.identifier), 
-               reason: "'myDecisions' should be an identifier, not a keyword");
+        expect(docToken.type, equals(TokenType.documentation),
+            reason:
+                "'documentation' should be recognized as a keyword, not an identifier");
+
+        expect(decisionsToken.type, equals(TokenType.decisions),
+            reason:
+                "'decisions' should be recognized as a keyword, not an identifier");
+
+        expect(myDocumentationToken.type, equals(TokenType.identifier),
+            reason: "'myDocumentation' should be an identifier, not a keyword");
+
+        expect(myDecisionsToken.type, equals(TokenType.identifier),
+            reason: "'myDecisions' should be an identifier, not a keyword");
       });
-      
-      test('should correctly identify isolated documentation and decisions tokens', () {
+
+      test(
+          'should correctly identify isolated documentation and decisions tokens',
+          () {
         // This test tries to isolate the tokens on their own lines to clearly see the lexer's behavior
-        final source = '''
+        const source = '''
 documentation
 decisions
 ''';
         final tokens = scanTokens(source);
-        
+
+        // TODO: Replace with proper logging or remove for production
         // Print all tokens for debugging
-        print('\n--- DEBUG: TOKENS FOR ISOLATED DOCUMENTATION/DECISIONS TEST ---');
-        tokens.forEach((token) {
-          print('Token: ${token.type} | Lexeme: "${token.lexeme}" | Line: ${token.line} | Column: ${token.column}');
-        });
-        print('--- END DEBUG ---\n');
-        
+        // tokens.forEach((token) {
+        //   print(
+        //       'Token: ${token.type} | Lexeme: "${token.lexeme}" | Line: ${token.line} | Column: ${token.column}');
+        // });
+        // print('--- END DEBUG ---\n');
+
         // Check the types
-        expect(tokens.length, equals(3), reason: "Should have 2 tokens plus EOF");
-        expect(tokens[0].type, equals(TokenType.documentation), reason: "First token should be documentation keyword");
-        expect(tokens[1].type, equals(TokenType.decisions), reason: "Second token should be decisions keyword");
+        expect(tokens.length, equals(3),
+            reason: 'Should have 2 tokens plus EOF');
+        expect(tokens[0].type, equals(TokenType.documentation),
+            reason: 'First token should be documentation keyword');
+        expect(tokens[1].type, equals(TokenType.decisions),
+            reason: 'Second token should be decisions keyword');
       });
     });
   });

@@ -1,4 +1,3 @@
-import 'dart:ui';
 
 import 'package:flutter/material.dart' hide Element;
 import 'package:flutter_structurizr/domain/model/element.dart';

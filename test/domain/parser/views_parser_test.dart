@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 import 'package:flutter_structurizr/domain/parser/lexer/token.dart';
 import 'package:flutter_structurizr/domain/parser/views_parser.dart';
-import 'package:flutter_structurizr/domain/parser/ast/ast_nodes.dart';
 
 void main() {
   late ViewsParser viewsParser;

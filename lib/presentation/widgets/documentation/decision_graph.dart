@@ -6,10 +6,10 @@ import 'package:flutter_structurizr/domain/documentation/documentation.dart';
 class DecisionGraph extends StatefulWidget {
   /// The list of decisions.
   final List<Decision> decisions;
-  
+
   /// Called when a decision is selected.
   final Function(int) onDecisionSelected;
-  
+
   /// Whether to use dark mode.
   final bool isDarkMode;
 
@@ -25,10 +25,11 @@ class DecisionGraph extends StatefulWidget {
   State<DecisionGraph> createState() => _DecisionGraphState();
 }
 
-class _DecisionGraphState extends State<DecisionGraph> with SingleTickerProviderStateMixin {
+class _DecisionGraphState extends State<DecisionGraph>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
-  
+
   // Force simulation parameters
   final Map<String, Offset> _positions = {};
   final Map<String, Offset> _velocities = {};
@@ -36,11 +37,11 @@ class _DecisionGraphState extends State<DecisionGraph> with SingleTickerProvider
   final double _springStrength = 0.5;
   final double _repulsionStrength = 1000.0;
   final double _damping = 0.8;
-  
+
   bool _isSimulating = true;
   double _scale = 1.0;
   Offset _offset = Offset.zero;
-  
+
   @override
   void initState() {
     super.initState();
@@ -48,7 +49,7 @@ class _DecisionGraphState extends State<DecisionGraph> with SingleTickerProvider
       vsync: this,
       duration: const Duration(milliseconds: 10000),
     );
-    
+
     _animation = Tween<double>(begin: 0, end: 1).animate(_controller)
       ..addListener(() {
         if (_isSimulating) {
@@ -56,138 +57,146 @@ class _DecisionGraphState extends State<DecisionGraph> with SingleTickerProvider
           setState(() {});
         }
       });
-    
+
     _controller.repeat();
     _initializePositions();
   }
-  
+
   @override
   void didUpdateWidget(DecisionGraph oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
+
     if (oldWidget.decisions != widget.decisions) {
       _initializePositions();
     }
   }
-  
+
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
-  
+
   void _initializePositions() {
     // Clear existing positions
     _positions.clear();
     _velocities.clear();
-    
+
     // Initialize positions in a circle
-    final centerX = 0.0;
-    final centerY = 0.0;
-    final radius = 200.0;
-    
+    const centerX = 0.0;
+    const centerY = 0.0;
+    const radius = 200.0;
+
     for (var i = 0; i < widget.decisions.length; i++) {
       final decision = widget.decisions[i];
       final angle = 2 * 3.14159 * i / widget.decisions.length;
-      
+
       _positions[decision.id] = Offset(
         centerX + radius * Math.cos(angle),
         centerY + radius * Math.sin(angle),
       );
-      
+
       _velocities[decision.id] = Offset.zero;
     }
   }
-  
+
   void _simulateStep() {
     // Calculate forces
     final forces = <String, Offset>{};
     for (final decision in widget.decisions) {
       forces[decision.id] = Offset.zero;
     }
-    
+
     // Calculate spring forces (attraction between linked decisions)
     for (final decision in widget.decisions) {
       for (final linkedId in decision.links) {
         // Skip if the linked decision doesn't exist
-        if (!_positions.containsKey(linkedId) || !_positions.containsKey(decision.id)) continue;
-        
+        if (!_positions.containsKey(linkedId) ||
+            !_positions.containsKey(decision.id)) {
+          continue;
+        }
+
         final pos1 = _positions[decision.id]!;
         final pos2 = _positions[linkedId]!;
-        
+
         final delta = pos2 - pos1;
         final distance = delta.distance;
-        
+
         // Avoid division by zero
         if (distance < 0.1) continue;
-        
+
         final direction = delta / distance;
-        
+
         // Calculate spring force (F = k * (x - rest_length))
-        final springForce = direction * (distance - _springLength) * _springStrength;
-        
+        final springForce =
+            direction * (distance - _springLength) * _springStrength;
+
         forces[decision.id] = forces[decision.id]! + springForce;
         forces[linkedId] = forces[linkedId]! - springForce;
       }
     }
-    
+
     // Calculate repulsion forces (repulsion between all decisions)
     for (var i = 0; i < widget.decisions.length; i++) {
       final decision1 = widget.decisions[i];
-      
+
       if (!_positions.containsKey(decision1.id)) continue;
-      
+
       for (var j = i + 1; j < widget.decisions.length; j++) {
         final decision2 = widget.decisions[j];
-        
+
         if (!_positions.containsKey(decision2.id)) continue;
-        
+
         final pos1 = _positions[decision1.id]!;
         final pos2 = _positions[decision2.id]!;
-        
+
         final delta = pos2 - pos1;
         final distance = delta.distance;
-        
+
         // Avoid division by zero
         if (distance < 1.0) continue;
-        
+
         final direction = delta / distance;
-        
+
         // Calculate repulsion force (F = k / r^2)
-        final repulsionForce = direction * (-_repulsionStrength / (distance * distance));
-        
+        final repulsionForce =
+            direction * (-_repulsionStrength / (distance * distance));
+
         forces[decision1.id] = forces[decision1.id]! + repulsionForce;
         forces[decision2.id] = forces[decision2.id]! - repulsionForce;
       }
     }
-    
+
     // Update velocities and positions
     var stable = true;
     for (final decision in widget.decisions) {
       // Skip if the decision doesn't have a position or velocity yet
-      if (!_positions.containsKey(decision.id) || !_velocities.containsKey(decision.id)) continue;
-      
+      if (!_positions.containsKey(decision.id) ||
+          !_velocities.containsKey(decision.id)) {
+        continue;
+      }
+
       // Apply damping to velocity
       var velocity = _velocities[decision.id]! * _damping;
-      
+
       // Apply force to velocity (F = ma, a = F/m, v = v + a)
       if (forces.containsKey(decision.id)) {
         velocity += forces[decision.id]! / 5.0; // Mass = 5.0
       }
-      
+
       // Update velocity
       _velocities[decision.id] = velocity;
-      
+
       // Update position
       final pos = _positions[decision.id]!;
       _positions[decision.id] = pos + velocity;
-      
+
       // Check if simulation is stable
       if (velocity.distance > 0.1) {
         stable = false;
       }
     }
-    
+
     // Stop simulation if stable
     if (stable && _isSimulating) {
       setState(() {
@@ -224,10 +233,10 @@ class _DecisionGraphState extends State<DecisionGraph> with SingleTickerProvider
                   if (!_positions.containsKey(decision.id)) {
                     return const SizedBox();
                   }
-                  
+
                   // Calculate position
                   final pos = _positions[decision.id]!;
-                  
+
                   // Map status to color
                   Color statusColor;
                   switch (decision.status.toLowerCase()) {
@@ -249,7 +258,7 @@ class _DecisionGraphState extends State<DecisionGraph> with SingleTickerProvider
                     default:
                       statusColor = Colors.blue;
                   }
-                  
+
                   return Positioned(
                     left: pos.dx,
                     top: pos.dy,
@@ -262,12 +271,12 @@ class _DecisionGraphState extends State<DecisionGraph> with SingleTickerProvider
                         width: 150,
                         padding: const EdgeInsets.all(8.0),
                         decoration: BoxDecoration(
-                          color: widget.isDarkMode 
-                              ? Colors.grey.shade800 
+                          color: widget.isDarkMode
+                              ? Colors.grey.shade800
                               : Colors.white,
                           borderRadius: BorderRadius.circular(8.0),
                           border: Border.all(
-                            color: statusColor.withOpacity(0.7),
+                            color: statusColor.withValues(alpha: 0.7),
                             width: 2.0,
                           ),
                           boxShadow: [
@@ -355,7 +364,8 @@ class _DecisionGraphState extends State<DecisionGraph> with SingleTickerProvider
                       _scale = _scale * 1.2;
                     });
                   },
-                  backgroundColor: widget.isDarkMode ? Colors.grey.shade800 : Colors.white,
+                  backgroundColor:
+                      widget.isDarkMode ? Colors.grey.shade800 : Colors.white,
                   child: Icon(
                     Icons.add,
                     color: widget.isDarkMode ? Colors.white : Colors.black87,
@@ -369,7 +379,8 @@ class _DecisionGraphState extends State<DecisionGraph> with SingleTickerProvider
                       _scale = _scale / 1.2;
                     });
                   },
-                  backgroundColor: widget.isDarkMode ? Colors.grey.shade800 : Colors.white,
+                  backgroundColor:
+                      widget.isDarkMode ? Colors.grey.shade800 : Colors.white,
                   child: Icon(
                     Icons.remove,
                     color: widget.isDarkMode ? Colors.white : Colors.black87,
@@ -384,7 +395,8 @@ class _DecisionGraphState extends State<DecisionGraph> with SingleTickerProvider
                       _offset = Offset.zero;
                     });
                   },
-                  backgroundColor: widget.isDarkMode ? Colors.grey.shade800 : Colors.white,
+                  backgroundColor:
+                      widget.isDarkMode ? Colors.grey.shade800 : Colors.white,
                   child: Icon(
                     Icons.refresh,
                     color: widget.isDarkMode ? Colors.white : Colors.black87,
@@ -402,7 +414,8 @@ class _DecisionGraphState extends State<DecisionGraph> with SingleTickerProvider
                       }
                     });
                   },
-                  backgroundColor: widget.isDarkMode ? Colors.grey.shade800 : Colors.white,
+                  backgroundColor:
+                      widget.isDarkMode ? Colors.grey.shade800 : Colors.white,
                   child: Icon(
                     _isSimulating ? Icons.pause : Icons.play_arrow,
                     color: widget.isDarkMode ? Colors.white : Colors.black87,
@@ -415,7 +428,7 @@ class _DecisionGraphState extends State<DecisionGraph> with SingleTickerProvider
       ),
     );
   }
-  
+
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
@@ -425,84 +438,84 @@ class DecisionGraphPainter extends CustomPainter {
   final List<Decision> decisions;
   final Map<String, Offset> positions;
   final bool isDarkMode;
-  
+
   DecisionGraphPainter({
     required this.decisions,
     required this.positions,
     this.isDarkMode = false,
   });
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300
       ..strokeWidth = 1.0
       ..style = PaintingStyle.stroke;
-    
+
     // Calculate the center of the canvas
     final center = Offset(size.width / 2, size.height / 2);
-    
+
     // Draw edges
     for (final decision in decisions) {
       // Skip if position isn't calculated yet
       if (!positions.containsKey(decision.id)) continue;
-      
+
       // Calculate start position
       final startPos = positions[decision.id]!;
-      
+
       // Draw connections to linked decisions
       for (final linkedId in decision.links) {
         // Skip if the linked decision doesn't exist
         if (!positions.containsKey(linkedId)) continue;
-        
+
         // Calculate end position
         final endPos = positions[linkedId]!;
-        
+
         // Draw the line
         canvas.drawLine(startPos, endPos, paint);
-        
+
         // Draw arrow
         _drawArrow(canvas, startPos, endPos, isDarkMode);
       }
     }
   }
-  
+
   void _drawArrow(Canvas canvas, Offset start, Offset end, bool isDarkMode) {
     final paint = Paint()
       ..color = isDarkMode ? Colors.grey.shade500 : Colors.grey.shade600
       ..strokeWidth = 1.0
       ..style = PaintingStyle.fill;
-    
+
     // Calculate arrow direction
     final delta = end - start;
     final direction = delta / delta.distance;
-    
+
     // Calculate arrow position (80% along the line)
     final arrowPos = start + direction * (delta.distance * 0.8);
-    
+
     // Calculate perpendicular direction
     final perpendicular = Offset(-direction.dy, direction.dx);
-    
+
     // Calculate arrow points
     final point1 = arrowPos;
     final point2 = arrowPos - direction * 10.0 + perpendicular * 5.0;
     final point3 = arrowPos - direction * 10.0 - perpendicular * 5.0;
-    
+
     // Draw arrow
     final path = Path()
       ..moveTo(point1.dx, point1.dy)
       ..lineTo(point2.dx, point2.dy)
       ..lineTo(point3.dx, point3.dy)
       ..close();
-    
+
     canvas.drawPath(path, paint);
   }
-  
+
   @override
   bool shouldRepaint(DecisionGraphPainter oldDelegate) {
-    return oldDelegate.positions != positions || 
-           oldDelegate.decisions != decisions ||
-           oldDelegate.isDarkMode != isDarkMode;
+    return oldDelegate.positions != positions ||
+        oldDelegate.decisions != decisions ||
+        oldDelegate.isDarkMode != isDarkMode;
   }
 }
 
@@ -511,9 +524,8 @@ class Math {
   static double sin(double x) {
     return math.sin(x);
   }
-  
+
   static double cos(double x) {
     return math.cos(x);
   }
 }
-

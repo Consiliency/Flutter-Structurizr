@@ -143,7 +143,7 @@ void main() {
     
     // Build the widget
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: Scaffold(
           body: Center(
             child: SizedBox(

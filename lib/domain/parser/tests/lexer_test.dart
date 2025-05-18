@@ -1,5 +1,4 @@
 import 'package:test/test.dart';
-import '../error_reporter.dart';
 import '../lexer/lexer.dart';
 import '../lexer/token.dart';
 
@@ -85,7 +84,7 @@ void main() {
       final tokens = lexer.scanTokens();
 
       expect(tokens[0].type, equals(TokenType.string));
-      expect(tokens[0].value, equals("Line1\nLine2\tTabbed\r\nCRLF"));
+      expect(tokens[0].value, equals('Line1\nLine2\tTabbed\r\nCRLF'));
     });
 
     test('Number literals are tokenized correctly', () {
@@ -202,7 +201,7 @@ void main() {
     });
 
     test('Complex DSL example', () {
-      final source = '''
+      const source = '''
         workspace "Banking System" "This is a banking system" {
           model {
             !identifiers hierarchical

@@ -14,8 +14,10 @@ class KeyboardShortcutsHelp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color textColor = isDarkMode ? Colors.white : Colors.black87;
-    final Color backgroundColor = isDarkMode ? Colors.grey.shade900 : Colors.white;
-    final Color dividerColor = isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300;
+    final Color backgroundColor =
+        isDarkMode ? Colors.grey.shade900 : Colors.white;
+    final Color dividerColor =
+        isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300;
 
     return Dialog(
       backgroundColor: backgroundColor,
@@ -50,7 +52,8 @@ class KeyboardShortcutsHelp extends StatelessWidget {
                         _ShortcutItem('Alt + →', 'Forward in history'),
                         _ShortcutItem('Home', 'Go to first section/decision'),
                         _ShortcutItem('End', 'Go to last section/decision'),
-                        _ShortcutItem('Alt + 1-9', 'Go to specific section/decision by index'),
+                        _ShortcutItem('Alt + 1-9',
+                            'Go to specific section/decision by index'),
                       ],
                       textColor: textColor,
                       dividerColor: dividerColor,
@@ -58,11 +61,13 @@ class KeyboardShortcutsHelp extends StatelessWidget {
                     _buildShortcutSection(
                       'View Controls',
                       [
-                        _ShortcutItem('Ctrl + D', 'Toggle between documentation and decisions'),
+                        _ShortcutItem('Ctrl + D',
+                            'Toggle between documentation and decisions'),
                         _ShortcutItem('Ctrl + G', 'Show decision graph'),
                         _ShortcutItem('Ctrl + T', 'Show decision timeline'),
                         _ShortcutItem('Ctrl + S', 'Show search'),
-                        _ShortcutItem('Ctrl + F', 'Toggle fullscreen content view'),
+                        _ShortcutItem(
+                            'Ctrl + F', 'Toggle fullscreen content view'),
                         _ShortcutItem('Ctrl + ?', 'Show this help dialog'),
                       ],
                       textColor: textColor,
@@ -93,11 +98,8 @@ class KeyboardShortcutsHelp extends StatelessWidget {
     );
   }
 
-  Widget _buildShortcutSection(
-    String title,
-    List<_ShortcutItem> shortcuts,
-    {required Color textColor, required Color dividerColor}
-  ) {
+  Widget _buildShortcutSection(String title, List<_ShortcutItem> shortcuts,
+      {required Color textColor, required Color dividerColor}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -129,7 +131,7 @@ class KeyboardShortcutsHelp extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(4.0),
               border: Border.all(
-                color: textColor.withOpacity(0.3),
+                color: textColor.withValues(alpha: 0.3),
               ),
             ),
             child: Text(

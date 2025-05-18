@@ -357,3 +357,7 @@ Phase 8 has been successfully completed with all the key features implemented:
 - Original Structurizr exports:
   - `/ui/src/js/structurizr-diagram.js` (export section)
   - `/lite/src/main/java/com/structurizr/lite/web/ExportController.java`
+
+## Method Relationship Table Reference
+
+See the main implementation spec for the method relationship tables and build order. Export and serialization methods are implemented in accordance with the modular parser/model structure.

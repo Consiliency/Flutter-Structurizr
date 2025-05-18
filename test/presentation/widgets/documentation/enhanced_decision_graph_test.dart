@@ -33,12 +33,12 @@ void main() {
     ];
 
     final testRelationships = [
-      DecisionRelationship(
+      const DecisionRelationship(
         sourceId: 'ADR-001',
         targetId: 'ADR-002',
         type: DecisionRelationshipType.enables,
       ),
-      DecisionRelationship(
+      const DecisionRelationship(
         sourceId: 'ADR-002',
         targetId: 'ADR-003',
         type: DecisionRelationshipType.depends,
@@ -46,19 +46,20 @@ void main() {
     ];
 
     final testClusters = [
-      DecisionCluster(
+      const DecisionCluster(
         decisionIds: ['ADR-001', 'ADR-002'],
         label: 'Infrastructure',
         color: Colors.blue,
       ),
-      DecisionCluster(
+      const DecisionCluster(
         decisionIds: ['ADR-003'],
         label: 'Security',
         color: Colors.red,
       ),
     ];
 
-    testWidgets('renders decision nodes and edges', (WidgetTester tester) async {
+    testWidgets('renders decision nodes and edges',
+        (WidgetTester tester) async {
       // Arrange
       int selectedIndex = -1;
 
@@ -83,7 +84,7 @@ void main() {
       // We can verify the widget structure but not the CustomPaint rendering
       expect(find.byType(EnhancedDecisionGraph), findsOneWidget);
       expect(find.byType(CustomPaint), findsWidgets);
-      
+
       // Should find text for all decision IDs and titles
       for (final decision in testDecisions) {
         expect(find.text(decision.id), findsOneWidget);
@@ -146,7 +147,8 @@ void main() {
       expect(find.byType(EnhancedDecisionGraph), findsOneWidget);
     });
 
-    testWidgets('renders with explicit relationships', (WidgetTester tester) async {
+    testWidgets('renders with explicit relationships',
+        (WidgetTester tester) async {
       // Act
       await tester.pumpWidget(
         MaterialApp(
@@ -166,7 +168,7 @@ void main() {
       // Assert
       expect(find.byType(EnhancedDecisionGraph), findsOneWidget);
       expect(find.byType(CustomPaint), findsWidgets);
-      
+
       // Should find text for all decision IDs and titles
       for (final decision in testDecisions) {
         expect(find.text(decision.id), findsOneWidget);
@@ -193,7 +195,7 @@ void main() {
 
       // Assert
       expect(find.byType(EnhancedDecisionGraph), findsOneWidget);
-      
+
       // Should find cluster labels in the legend
       for (final cluster in testClusters) {
         expect(find.text(cluster.label), findsWidgets);
@@ -221,12 +223,12 @@ void main() {
 
       // Assert
       expect(find.byType(EnhancedDecisionGraph), findsOneWidget);
-      
+
       // Should find relationship type legend title
       expect(find.text('Relationship Types'), findsOneWidget);
-      
+
       // Should find at least one relationship type description
-      final firstRelationship = DecisionRelationship(
+      const firstRelationship = DecisionRelationship(
         sourceId: '',
         targetId: '',
         type: DecisionRelationshipType.related,
@@ -253,11 +255,11 @@ void main() {
       // Find the simulation toggle button (it has a pause icon initially)
       final pauseButton = find.byIcon(Icons.pause);
       expect(pauseButton, findsOneWidget);
-      
+
       // Tap the button to pause the simulation
       await tester.tap(pauseButton);
       await tester.pump();
-      
+
       // Now it should show a play icon
       expect(find.byIcon(Icons.play_arrow), findsOneWidget);
       expect(find.byIcon(Icons.pause), findsNothing);
@@ -283,21 +285,21 @@ void main() {
       final zoomInButton = find.byIcon(Icons.add);
       final zoomOutButton = find.byIcon(Icons.remove);
       final resetButton = find.byIcon(Icons.refresh);
-      
+
       expect(zoomInButton, findsOneWidget);
       expect(zoomOutButton, findsOneWidget);
       expect(resetButton, findsOneWidget);
-      
+
       // Test tapping the buttons (can't test actual zoom effect in widget test)
       await tester.tap(zoomInButton);
       await tester.pump();
-      
+
       await tester.tap(zoomOutButton);
       await tester.pump();
-      
+
       await tester.tap(resetButton);
       await tester.pump();
-      
+
       // Buttons should still be there
       expect(zoomInButton, findsOneWidget);
       expect(zoomOutButton, findsOneWidget);

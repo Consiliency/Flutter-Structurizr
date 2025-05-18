@@ -50,11 +50,11 @@ class MockPlatformWebViewController extends PlatformWebViewController {
   
   @override
   dynamic noSuchMethod(Invocation invocation) {
-    if (invocation.memberName == Symbol('runJavaScript') ||
-        invocation.memberName == Symbol('runJavaScriptReturningResult') ||
-        invocation.memberName == Symbol('setNavigationDelegate') ||
-        invocation.memberName == Symbol('addJavaScriptChannel') ||
-        invocation.memberName == Symbol('loadHtmlString')) {
+    if (invocation.memberName == const Symbol('runJavaScript') ||
+        invocation.memberName == const Symbol('runJavaScriptReturningResult') ||
+        invocation.memberName == const Symbol('setNavigationDelegate') ||
+        invocation.memberName == const Symbol('addJavaScriptChannel') ||
+        invocation.memberName == const Symbol('loadHtmlString')) {
       // Methods we've implemented
       return null;
     }
@@ -71,7 +71,7 @@ class MockPlatformWebViewController extends PlatformWebViewController {
   final Map<String, JavaScriptChannelParams> _channels = {};
   NavigationDelegate? _navigationDelegate;
   String? _lastLoadedHtml;
-  String _cachedContent = '';
+  final String _cachedContent = '';
   bool _isLoading = true;
   bool _hasError = false;
   bool _isDarkMode = false;
@@ -152,13 +152,13 @@ class MockPlatformWebViewController extends PlatformWebViewController {
       // Simulate diagram click from JS
       if (_channels.containsKey('AsciidocDiagram')) {
         final channel = _channels['AsciidocDiagram']!;
-        channel.onMessageReceived?.call(JavaScriptMessage(message: '{"diagramKey": "SystemContext"}'));
+        channel.onMessageReceived.call(const JavaScriptMessage(message: '{"diagramKey": "SystemContext"}'));
       }
     } else if (javaScript.contains('simulateLinkClick')) {
       // Simulate link click from JS
       if (_channels.containsKey('AsciidocLink')) {
         final channel = _channels['AsciidocLink']!;
-        channel.onMessageReceived?.call(JavaScriptMessage(message: 'https://www.google.com'));
+        channel.onMessageReceived.call(const JavaScriptMessage(message: 'https://www.google.com'));
       }
     }
   }
@@ -170,7 +170,7 @@ class MockPlatformWebViewController extends PlatformWebViewController {
       if (_channels.containsKey('AsciidocProgress')) {
         final progressChannel = _channels['AsciidocProgress']!;
         // Simulate progress message from JavaScript
-        progressChannel.onMessageReceived?.call(
+        progressChannel.onMessageReceived.call(
           JavaScriptMessage(message: '{"progress": ${(i + 1) * 33}, "currentChunk": $i, "totalChunks": 3}')
         );
       }
@@ -179,8 +179,8 @@ class MockPlatformWebViewController extends PlatformWebViewController {
     // Simulate completion
     if (_channels.containsKey('AsciidocRenderer')) {
       final rendererChannel = _channels['AsciidocRenderer']!;
-      rendererChannel.onMessageReceived?.call(
-        JavaScriptMessage(message: '{"status": "complete", "renderTime": 120}')
+      rendererChannel.onMessageReceived.call(
+        const JavaScriptMessage(message: '{"status": "complete", "renderTime": 120}')
       );
     }
   }
@@ -189,8 +189,8 @@ class MockPlatformWebViewController extends PlatformWebViewController {
     await Future.delayed(const Duration(milliseconds: 20));
     if (_channels.containsKey('AsciidocRenderer')) {
       final rendererChannel = _channels['AsciidocRenderer']!;
-      rendererChannel.onMessageReceived?.call(
-        JavaScriptMessage(message: '{"status": "initialized"}')
+      rendererChannel.onMessageReceived.call(
+        const JavaScriptMessage(message: '{"status": "initialized"}')
       );
     }
   }
@@ -266,7 +266,7 @@ class MockPlatformWebViewController extends PlatformWebViewController {
     }
     _timers.clear();
     _navigationDelegate?.onWebResourceError?.call(
-      WebResourceError(
+      const WebResourceError(
         errorCode: -1,
         description: 'Simulated error',
         errorType: WebResourceErrorType.connect,
@@ -303,7 +303,7 @@ class MockPlatformWebViewController extends PlatformWebViewController {
   void triggerDiagramClick(String key) {
     if (_channels.containsKey('AsciidocDiagram')) {
       final channel = _channels['AsciidocDiagram']!;
-      channel.onMessageReceived?.call(JavaScriptMessage(message: '{"diagramKey": "$key"}'));
+      channel.onMessageReceived.call(JavaScriptMessage(message: '{"diagramKey": "$key"}'));
     }
   }
 
@@ -311,7 +311,7 @@ class MockPlatformWebViewController extends PlatformWebViewController {
   void triggerLinkClick(String url) {
     if (_channels.containsKey('AsciidocLink')) {
       final channel = _channels['AsciidocLink']!;
-      channel.onMessageReceived?.call(JavaScriptMessage(message: '{"url": "$url"}'));
+      channel.onMessageReceived.call(JavaScriptMessage(message: '{"url": "$url"}'));
     }
   }
 

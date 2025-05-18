@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart' hide Container, Border, Element, View;
 import 'package:flutter_structurizr/domain/style/styles.dart' hide Border;
-import 'package:flutter/material.dart' as flutter;
-import 'package:flutter_structurizr/domain/model/model.dart' as structurizr_model;
 
 /// Utilities for line style rendering
 class DashedLinePainter extends CustomPainter {
@@ -131,8 +129,8 @@ class LineStylePreviewPainter extends CustomPainter {
         break;
       case LineStyle.dashed:
         double startX = 0;
-        final double dashWidth = 5;
-        final double dashSpace = 3;
+        const double dashWidth = 5;
+        const double dashSpace = 3;
         
         while (startX < size.width) {
           canvas.drawLine(

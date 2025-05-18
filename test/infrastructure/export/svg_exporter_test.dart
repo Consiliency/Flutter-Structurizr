@@ -37,7 +37,7 @@ void main() {
         ElementView(id: system.id),
       ],
       relationships: [
-        RelationshipView(id: 'rel1'),
+        const RelationshipView(id: 'rel1'),
       ],
     );
     
@@ -57,7 +57,7 @@ void main() {
       id: 1,
       name: 'Test Workspace',
       model: updatedModel,
-      configuration: WorkspaceConfiguration(
+      configuration: const WorkspaceConfiguration(
         properties: {
           'key': 'value',
         },
@@ -75,7 +75,7 @@ void main() {
       );
       
       // Create the exporter
-      final exporter = SvgExporter();
+      const exporter = SvgExporter();
       
       // Export the diagram
       // Note: Since the implementation is incomplete, we're testing the interface behavior
@@ -107,7 +107,7 @@ void main() {
       );
       
       // Create exporters with different parameters
-      final defaultExporter = SvgExporter();
+      const defaultExporter = SvgExporter();
       
       final customExporter = SvgExporter(
         renderParameters: DiagramRenderParameters(
@@ -135,11 +135,11 @@ void main() {
       );
       
       // Create exporters with different CSS options
-      final withCssExporter = SvgExporter(
+      const withCssExporter = SvgExporter(
         includeCss: true,
       );
       
-      final noCssExporter = SvgExporter(
+      const noCssExporter = SvgExporter(
         includeCss: false,
       );
       
@@ -158,11 +158,11 @@ void main() {
       );
       
       // Create exporters with different interactivity options
-      final interactiveExporter = SvgExporter(
+      const interactiveExporter = SvgExporter(
         interactive: true,
       );
       
-      final staticExporter = SvgExporter(
+      const staticExporter = SvgExporter(
         interactive: false,
       );
       

@@ -5,10 +5,10 @@ import 'package:flutter_structurizr/domain/documentation/documentation.dart';
 class DecisionTimeline extends StatefulWidget {
   /// The list of architecture decisions.
   final List<Decision> decisions;
-  
+
   /// Called when a decision is selected.
   final Function(int) onDecisionSelected;
-  
+
   /// Whether to use dark mode.
   final bool isDarkMode;
 
@@ -27,7 +27,7 @@ class DecisionTimeline extends StatefulWidget {
 class _DecisionTimelineState extends State<DecisionTimeline> {
   late ScrollController _scrollController;
   late List<Decision> _sortedDecisions;
-  
+
   // Filtering
   DateTime? _startDate;
   DateTime? _endDate;
@@ -40,67 +40,66 @@ class _DecisionTimelineState extends State<DecisionTimeline> {
     _sortedDecisions = List.from(widget.decisions);
     _sortDecisions();
   }
-  
+
   @override
   void didUpdateWidget(DecisionTimeline oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
+
     if (oldWidget.decisions != widget.decisions) {
       _sortedDecisions = List.from(widget.decisions);
       _sortDecisions();
     }
   }
-  
+
   @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
   }
-  
+
   /// Sorts decisions by date (newest first).
   void _sortDecisions() {
     _sortedDecisions.sort((a, b) => b.date.compareTo(a.date));
   }
-  
+
   /// Gets the filtered list of decisions.
   List<Decision> _getFilteredDecisions() {
     // Start with sorted decisions
     var filtered = List<Decision>.from(_sortedDecisions);
-    
+
     // Apply date range filter
     if (_startDate != null) {
-      filtered = filtered.where((decision) => 
-        decision.date.isAtSameMomentAs(_startDate!) || 
-        decision.date.isAfter(_startDate!)
-      ).toList();
+      filtered = filtered
+          .where((decision) =>
+              decision.date.isAtSameMomentAs(_startDate!) ||
+              decision.date.isAfter(_startDate!))
+          .toList();
     }
-    
+
     if (_endDate != null) {
       // Add one day to include decisions on the end date
-      final adjustedEndDate = DateTime(_endDate!.year, _endDate!.month, _endDate!.day + 1);
-      filtered = filtered.where((decision) => 
-        decision.date.isBefore(adjustedEndDate)
-      ).toList();
+      final adjustedEndDate =
+          DateTime(_endDate!.year, _endDate!.month, _endDate!.day + 1);
+      filtered = filtered
+          .where((decision) => decision.date.isBefore(adjustedEndDate))
+          .toList();
     }
-    
+
     // Apply status filter
     if (_selectedStatuses.isNotEmpty) {
-      filtered = filtered.where((decision) => 
-        _selectedStatuses.contains(decision.status)
-      ).toList();
+      filtered = filtered
+          .where((decision) => _selectedStatuses.contains(decision.status))
+          .toList();
     }
-    
+
     return filtered;
   }
-  
+
   /// Gets all unique statuses from the decisions.
   List<String> _getUniqueStatuses() {
-    return widget.decisions
-        .map((d) => d.status)
-        .toSet()
-        .toList();
+    return widget.decisions.map((d) => d.status).toSet().toList();
   }
-  
+
   /// Gets the status color for a decision.
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
@@ -118,7 +117,7 @@ class _DecisionTimelineState extends State<DecisionTimeline> {
         return Colors.blue;
     }
   }
-  
+
   /// Shows the filter dialog.
   Future<void> _showFilterDialog() async {
     final result = await showDialog<Map<String, dynamic>>(
@@ -131,7 +130,7 @@ class _DecisionTimelineState extends State<DecisionTimeline> {
         isDarkMode: widget.isDarkMode,
       ),
     );
-    
+
     if (result != null) {
       setState(() {
         _startDate = result['startDate'];
@@ -144,7 +143,7 @@ class _DecisionTimelineState extends State<DecisionTimeline> {
   @override
   Widget build(BuildContext context) {
     final filteredDecisions = _getFilteredDecisions();
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -152,10 +151,13 @@ class _DecisionTimelineState extends State<DecisionTimeline> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           decoration: BoxDecoration(
-            color: widget.isDarkMode ? Colors.grey.shade800 : Colors.grey.shade100,
+            color:
+                widget.isDarkMode ? Colors.grey.shade800 : Colors.grey.shade100,
             border: Border(
               bottom: BorderSide(
-                color: widget.isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300,
+                color: widget.isDarkMode
+                    ? Colors.grey.shade700
+                    : Colors.grey.shade300,
               ),
             ),
           ),
@@ -177,7 +179,9 @@ class _DecisionTimelineState extends State<DecisionTimeline> {
                 onPressed: _showFilterDialog,
               ),
               // Reset filter button
-              if (_startDate != null || _endDate != null || _selectedStatuses.isNotEmpty)
+              if (_startDate != null ||
+                  _endDate != null ||
+                  _selectedStatuses.isNotEmpty)
                 IconButton(
                   icon: const Icon(Icons.clear),
                   tooltip: 'Clear filters',
@@ -193,12 +197,17 @@ class _DecisionTimelineState extends State<DecisionTimeline> {
             ],
           ),
         ),
-        
+
         // Filter summary
-        if (_startDate != null || _endDate != null || _selectedStatuses.isNotEmpty)
+        if (_startDate != null ||
+            _endDate != null ||
+            _selectedStatuses.isNotEmpty)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            color: widget.isDarkMode ? Colors.blue.shade900.withOpacity(0.3) : Colors.blue.shade50,
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            color: widget.isDarkMode
+                ? Colors.blue.shade900.withValues(alpha: 0.3)
+                : Colors.blue.shade50,
             child: Row(
               children: [
                 const Icon(Icons.filter_list, size: 16),
@@ -208,14 +217,15 @@ class _DecisionTimelineState extends State<DecisionTimeline> {
                     _buildFilterSummary(),
                     style: TextStyle(
                       fontSize: 12,
-                      color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                      color:
+                          widget.isDarkMode ? Colors.white70 : Colors.black87,
                     ),
                   ),
                 ),
               ],
             ),
           ),
-        
+
         // Timeline content
         Expanded(
           child: filteredDecisions.isEmpty
@@ -223,7 +233,8 @@ class _DecisionTimelineState extends State<DecisionTimeline> {
                   child: Text(
                     'No decisions match the current filters',
                     style: TextStyle(
-                      color: widget.isDarkMode ? Colors.white70 : Colors.black54,
+                      color:
+                          widget.isDarkMode ? Colors.white70 : Colors.black54,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -234,53 +245,63 @@ class _DecisionTimelineState extends State<DecisionTimeline> {
                   itemBuilder: (context, index) {
                     final decision = filteredDecisions[index];
                     final statusColor = _getStatusColor(decision.status);
-                    
+
                     // Check if this is the first decision of a year/month
-                    final bool isFirstOfYear = index == 0 || 
-                        decision.date.year != filteredDecisions[index - 1].date.year;
-                    
-                    final bool isFirstOfMonth = isFirstOfYear || 
-                        (decision.date.month != filteredDecisions[index - 1].date.month);
-                    
+                    final bool isFirstOfYear = index == 0 ||
+                        decision.date.year !=
+                            filteredDecisions[index - 1].date.year;
+
+                    final bool isFirstOfMonth = isFirstOfYear ||
+                        (decision.date.month !=
+                            filteredDecisions[index - 1].date.month);
+
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Year header
                         if (isFirstOfYear)
                           Padding(
-                            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
+                            padding: const EdgeInsets.fromLTRB(
+                                16.0, 16.0, 16.0, 8.0),
                             child: Text(
                               decision.date.year.toString(),
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
-                                color: widget.isDarkMode ? Colors.white : Colors.black87,
+                                color: widget.isDarkMode
+                                    ? Colors.white
+                                    : Colors.black87,
                               ),
                             ),
                           ),
-                        
+
                         // Month header
                         if (isFirstOfMonth)
                           Padding(
-                            padding: const EdgeInsets.fromLTRB(32.0, 8.0, 16.0, 8.0),
+                            padding:
+                                const EdgeInsets.fromLTRB(32.0, 8.0, 16.0, 8.0),
                             child: Text(
                               _getMonthName(decision.date.month),
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w500,
-                                color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                                color: widget.isDarkMode
+                                    ? Colors.white70
+                                    : Colors.black87,
                               ),
                             ),
                           ),
-                        
+
                         // Decision item
                         InkWell(
                           onTap: () {
-                            final originalIndex = widget.decisions.indexOf(decision);
+                            final originalIndex =
+                                widget.decisions.indexOf(decision);
                             widget.onDecisionSelected(originalIndex);
                           },
                           child: Padding(
-                            padding: const EdgeInsets.fromLTRB(48.0, 0.0, 16.0, 0.0),
+                            padding:
+                                const EdgeInsets.fromLTRB(48.0, 0.0, 16.0, 0.0),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -291,13 +312,14 @@ class _DecisionTimelineState extends State<DecisionTimeline> {
                                   child: CustomPaint(
                                     painter: TimelinePainter(
                                       isFirst: index == 0,
-                                      isLast: index == filteredDecisions.length - 1,
+                                      isLast:
+                                          index == filteredDecisions.length - 1,
                                       color: statusColor,
                                       isDarkMode: widget.isDarkMode,
                                     ),
                                   ),
                                 ),
-                                
+
                                 // Decision content
                                 Expanded(
                                   child: Card(
@@ -308,20 +330,22 @@ class _DecisionTimelineState extends State<DecisionTimeline> {
                                       top: 4.0,
                                       bottom: 12.0,
                                     ),
-                                    color: widget.isDarkMode 
-                                        ? Colors.grey.shade800 
+                                    color: widget.isDarkMode
+                                        ? Colors.grey.shade800
                                         : Colors.white,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8.0),
                                       side: BorderSide(
-                                        color: statusColor.withOpacity(0.5),
+                                        color:
+                                            statusColor.withValues(alpha: 0.5),
                                         width: 1.0,
                                       ),
                                     ),
                                     child: Padding(
                                       padding: const EdgeInsets.all(12.0),
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           // Header with ID and status
                                           Row(
@@ -330,20 +354,24 @@ class _DecisionTimelineState extends State<DecisionTimeline> {
                                                 decision.id,
                                                 style: TextStyle(
                                                   fontWeight: FontWeight.bold,
-                                                  color: widget.isDarkMode 
-                                                      ? Colors.white70 
+                                                  color: widget.isDarkMode
+                                                      ? Colors.white70
                                                       : Colors.black87,
                                                 ),
                                               ),
                                               const Spacer(),
                                               Container(
-                                                padding: const EdgeInsets.symmetric(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
                                                   horizontal: 8.0,
                                                   vertical: 4.0,
                                                 ),
                                                 decoration: BoxDecoration(
-                                                  color: statusColor.withOpacity(0.2),
-                                                  borderRadius: BorderRadius.circular(12.0),
+                                                  color: statusColor.withValues(
+                                                      alpha: 0.2),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          12.0),
                                                 ),
                                                 child: Text(
                                                   decision.status,
@@ -356,51 +384,57 @@ class _DecisionTimelineState extends State<DecisionTimeline> {
                                               ),
                                             ],
                                           ),
-                                          
+
                                           const SizedBox(height: 8),
-                                          
+
                                           // Title
                                           Text(
                                             decision.title,
                                             style: TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.bold,
-                                              color: widget.isDarkMode 
-                                                  ? Colors.white 
+                                              color: widget.isDarkMode
+                                                  ? Colors.white
                                                   : Colors.black87,
                                             ),
                                           ),
-                                          
+
                                           const SizedBox(height: 4),
-                                          
+
                                           // Date
                                           Text(
                                             _formatDate(decision.date),
                                             style: TextStyle(
                                               fontSize: 12,
-                                              color: widget.isDarkMode 
-                                                  ? Colors.grey.shade400 
+                                              color: widget.isDarkMode
+                                                  ? Colors.grey.shade400
                                                   : Colors.grey.shade700,
                                             ),
                                           ),
-                                          
+
                                           // Links
                                           if (decision.links.isNotEmpty) ...[
                                             const SizedBox(height: 8),
                                             Wrap(
                                               spacing: 4.0,
                                               runSpacing: 4.0,
-                                              children: decision.links.map((linkId) {
+                                              children:
+                                                  decision.links.map((linkId) {
                                                 return Container(
-                                                  padding: const EdgeInsets.symmetric(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
                                                     horizontal: 6.0,
                                                     vertical: 2.0,
                                                   ),
                                                   decoration: BoxDecoration(
                                                     color: widget.isDarkMode
-                                                        ? Colors.blue.shade900.withOpacity(0.3)
+                                                        ? Colors.blue.shade900
+                                                            .withValues(
+                                                                alpha: 0.3)
                                                         : Colors.blue.shade50,
-                                                    borderRadius: BorderRadius.circular(4.0),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            4.0),
                                                   ),
                                                   child: Text(
                                                     linkId,
@@ -408,7 +442,8 @@ class _DecisionTimelineState extends State<DecisionTimeline> {
                                                       fontSize: 10,
                                                       color: widget.isDarkMode
                                                           ? Colors.blue.shade300
-                                                          : Colors.blue.shade700,
+                                                          : Colors
+                                                              .blue.shade700,
                                                     ),
                                                   ),
                                                 );
@@ -432,38 +467,48 @@ class _DecisionTimelineState extends State<DecisionTimeline> {
       ],
     );
   }
-  
+
   /// Formats a date for display.
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
-  
+
   /// Gets the month name from a month number.
   String _getMonthName(int month) {
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
-    
+
     return months[month - 1];
   }
-  
+
   /// Builds a summary of the current filters.
   String _buildFilterSummary() {
     final List<String> parts = [];
-    
+
     if (_startDate != null) {
       parts.add('From: ${_formatDate(_startDate!)}');
     }
-    
+
     if (_endDate != null) {
       parts.add('To: ${_formatDate(_endDate!)}');
     }
-    
+
     if (_selectedStatuses.isNotEmpty) {
       parts.add('Status: ${_selectedStatuses.join(', ')}');
     }
-    
+
     return parts.join(' • ');
   }
 }
@@ -474,33 +519,33 @@ class TimelinePainter extends CustomPainter {
   final bool isLast;
   final Color color;
   final bool isDarkMode;
-  
+
   TimelinePainter({
     required this.isFirst,
     required this.isLast,
     required this.color,
     this.isDarkMode = false,
   });
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final linePaint = Paint()
       ..color = isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300
       ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke;
-    
+
     final dotPaint = Paint()
       ..color = color
       ..style = PaintingStyle.fill;
-    
+
     final dotStrokePaint = Paint()
       ..color = isDarkMode ? Colors.grey.shade900 : Colors.white
       ..strokeWidth = 2.0
       ..style = PaintingStyle.stroke;
-    
+
     // Center x position
     final centerX = size.width / 2;
-    
+
     // Draw timeline line
     if (!isFirst) {
       canvas.drawLine(
@@ -509,7 +554,7 @@ class TimelinePainter extends CustomPainter {
         linePaint,
       );
     }
-    
+
     if (!isLast) {
       canvas.drawLine(
         Offset(centerX, size.height / 2 + 6),
@@ -517,28 +562,28 @@ class TimelinePainter extends CustomPainter {
         linePaint,
       );
     }
-    
+
     // Draw dot
-    final dotRadius = 6.0;
+    const dotRadius = 6.0;
     canvas.drawCircle(
       Offset(centerX, size.height / 2),
       dotRadius,
       dotStrokePaint,
     );
-    
+
     canvas.drawCircle(
       Offset(centerX, size.height / 2),
       dotRadius - 2,
       dotPaint,
     );
   }
-  
+
   @override
   bool shouldRepaint(TimelinePainter oldDelegate) {
     return oldDelegate.isFirst != isFirst ||
-           oldDelegate.isLast != isLast ||
-           oldDelegate.color != color ||
-           oldDelegate.isDarkMode != isDarkMode;
+        oldDelegate.isLast != isLast ||
+        oldDelegate.color != color ||
+        oldDelegate.isDarkMode != isDarkMode;
   }
 }
 
@@ -549,7 +594,7 @@ class FilterDialog extends StatefulWidget {
   final List<String> statuses;
   final List<String> selectedStatuses;
   final bool isDarkMode;
-  
+
   const FilterDialog({
     Key? key,
     this.initialStartDate,
@@ -567,7 +612,7 @@ class _FilterDialogState extends State<FilterDialog> {
   late DateTime? _startDate;
   late DateTime? _endDate;
   late List<String> _selectedStatuses;
-  
+
   @override
   void initState() {
     super.initState();
@@ -575,7 +620,7 @@ class _FilterDialogState extends State<FilterDialog> {
     _endDate = widget.initialEndDate;
     _selectedStatuses = List.from(widget.selectedStatuses);
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -602,7 +647,7 @@ class _FilterDialogState extends State<FilterDialog> {
                 ),
               ),
               const SizedBox(height: 8),
-              
+
               // Start date
               Row(
                 children: [
@@ -610,7 +655,8 @@ class _FilterDialogState extends State<FilterDialog> {
                     child: Text(
                       'From:',
                       style: TextStyle(
-                        color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                        color:
+                            widget.isDarkMode ? Colors.white70 : Colors.black87,
                       ),
                     ),
                   ),
@@ -622,7 +668,7 @@ class _FilterDialogState extends State<FilterDialog> {
                         firstDate: DateTime(2000),
                         lastDate: DateTime(2100),
                       );
-                      
+
                       if (date != null) {
                         setState(() {
                           _startDate = date;
@@ -634,7 +680,9 @@ class _FilterDialogState extends State<FilterDialog> {
                           ? _formatDate(_startDate!)
                           : 'Select date',
                       style: TextStyle(
-                        color: widget.isDarkMode ? Colors.blue.shade300 : Colors.blue,
+                        color: widget.isDarkMode
+                            ? Colors.blue.shade300
+                            : Colors.blue,
                       ),
                     ),
                   ),
@@ -646,11 +694,12 @@ class _FilterDialogState extends State<FilterDialog> {
                           _startDate = null;
                         });
                       },
-                      color: widget.isDarkMode ? Colors.white70 : Colors.black54,
+                      color:
+                          widget.isDarkMode ? Colors.white70 : Colors.black54,
                     ),
                 ],
               ),
-              
+
               // End date
               Row(
                 children: [
@@ -658,7 +707,8 @@ class _FilterDialogState extends State<FilterDialog> {
                     child: Text(
                       'To:',
                       style: TextStyle(
-                        color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                        color:
+                            widget.isDarkMode ? Colors.white70 : Colors.black87,
                       ),
                     ),
                   ),
@@ -670,7 +720,7 @@ class _FilterDialogState extends State<FilterDialog> {
                         firstDate: DateTime(2000),
                         lastDate: DateTime(2100),
                       );
-                      
+
                       if (date != null) {
                         setState(() {
                           _endDate = date;
@@ -678,11 +728,11 @@ class _FilterDialogState extends State<FilterDialog> {
                       }
                     },
                     child: Text(
-                      _endDate != null
-                          ? _formatDate(_endDate!)
-                          : 'Select date',
+                      _endDate != null ? _formatDate(_endDate!) : 'Select date',
                       style: TextStyle(
-                        color: widget.isDarkMode ? Colors.blue.shade300 : Colors.blue,
+                        color: widget.isDarkMode
+                            ? Colors.blue.shade300
+                            : Colors.blue,
                       ),
                     ),
                   ),
@@ -694,13 +744,14 @@ class _FilterDialogState extends State<FilterDialog> {
                           _endDate = null;
                         });
                       },
-                      color: widget.isDarkMode ? Colors.white70 : Colors.black54,
+                      color:
+                          widget.isDarkMode ? Colors.white70 : Colors.black54,
                     ),
                 ],
               ),
-              
+
               const Divider(),
-              
+
               // Status filter
               Text(
                 'Status',
@@ -710,14 +761,15 @@ class _FilterDialogState extends State<FilterDialog> {
                 ),
               ),
               const SizedBox(height: 8),
-              
+
               // Status checkboxes
               ...widget.statuses.map((status) {
                 return CheckboxListTile(
                   title: Text(
                     status,
                     style: TextStyle(
-                      color: widget.isDarkMode ? Colors.white70 : Colors.black87,
+                      color:
+                          widget.isDarkMode ? Colors.white70 : Colors.black87,
                     ),
                   ),
                   value: _selectedStatuses.contains(status),
@@ -731,7 +783,8 @@ class _FilterDialogState extends State<FilterDialog> {
                     });
                   },
                   dense: true,
-                  activeColor: widget.isDarkMode ? Colors.blue.shade300 : Colors.blue,
+                  activeColor:
+                      widget.isDarkMode ? Colors.blue.shade300 : Colors.blue,
                   checkColor: widget.isDarkMode ? Colors.black : Colors.white,
                 );
               }),
@@ -769,7 +822,7 @@ class _FilterDialogState extends State<FilterDialog> {
       ],
     );
   }
-  
+
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }

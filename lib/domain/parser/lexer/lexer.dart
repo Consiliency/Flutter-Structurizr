@@ -1,5 +1,9 @@
 import '../error_reporter.dart';
 import 'token.dart';
+import 'package:logging/logging.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/source_position.dart';
+
+final _logger = Logger('Lexer');
 
 /// A lexer for Structurizr DSL that converts source text into tokens.
 class Lexer {
@@ -38,11 +42,7 @@ class Lexer {
     _tokens.add(Token(
       type: TokenType.eof,
       lexeme: '',
-      position: SourcePosition(
-        line: _line,
-        column: _column,
-        offset: _current,
-      ),
+      position: SourcePosition(_line, _column, _current),
     ));
 
     return _tokens;
@@ -54,17 +54,39 @@ class Lexer {
 
     switch (c) {
       // Single-character tokens
-      case '{': _addToken(TokenType.leftBrace); break;
-      case '}': _addToken(TokenType.rightBrace); break;
-      case '(': _addToken(TokenType.leftParen); break;
-      case ')': _addToken(TokenType.rightParen); break;
-      case ',': _addToken(TokenType.comma); break;
-      case '.': _addToken(TokenType.dot); break;
-      case ';': _addToken(TokenType.semicolon); break;
-      case ':': _addToken(TokenType.colon); break;
-      case '+': _addToken(TokenType.plus); break;
-      case '*': _addToken(TokenType.star); break;
-      case '|': _addToken(TokenType.pipe); break;
+      case '{':
+        _addToken(TokenType.leftBrace);
+        break;
+      case '}':
+        _addToken(TokenType.rightBrace);
+        break;
+      case '(':
+        _addToken(TokenType.leftParen);
+        break;
+      case ')':
+        _addToken(TokenType.rightParen);
+        break;
+      case ',':
+        _addToken(TokenType.comma);
+        break;
+      case '.':
+        _addToken(TokenType.dot);
+        break;
+      case ';':
+        _addToken(TokenType.semicolon);
+        break;
+      case ':':
+        _addToken(TokenType.colon);
+        break;
+      case '+':
+        _addToken(TokenType.plus);
+        break;
+      case '*':
+        _addToken(TokenType.star);
+        break;
+      case '|':
+        _addToken(TokenType.pipe);
+        break;
       case '!':
         // Check for directives like !identifiers
         if (_isAlpha(_peek())) {
@@ -86,9 +108,13 @@ class Lexer {
           _addToken(TokenType.slash);
         }
         break;
-      case '#': _addToken(TokenType.hash); break;
-      case '@': _addToken(TokenType.at); break;
-      case '\$': 
+      case '#':
+        _addToken(TokenType.hash);
+        break;
+      case '@':
+        _addToken(TokenType.at);
+        break;
+      case '\$':
         // Handle $ as a valid character in identifiers, which is commonly used in various DSLs
         if (_isAlphaNumeric(_peek())) {
           // Treat $ followed by alphanumeric chars as part of an identifier
@@ -97,7 +123,7 @@ class Lexer {
           _identifier();
         } else {
           // Otherwise, treat as a regular character (which might be an error later)
-          _addToken(TokenType.identifier, "\$");
+          _addToken(TokenType.identifier, '\$');
         }
         break;
 
@@ -111,7 +137,9 @@ class Lexer {
         break;
 
       // Equals token
-      case '=': _addToken(TokenType.equals); break;
+      case '=':
+        _addToken(TokenType.equals);
+        break;
 
       // Whitespace - ignore
       case ' ':
@@ -127,8 +155,12 @@ class Lexer {
         break;
 
       // String literals
-      case '"': _string(); break;
-      case "'": _string("'"); break;
+      case '"':
+        _string();
+        break;
+      case "'":
+        _string("'");
+        break;
 
       // Numbers, identifiers, and keywords
       default:
@@ -203,23 +235,28 @@ class Lexer {
   void _string([String delimiter = '"']) {
     final startLine = _line;
     final startColumn = _column - 1; // Account for the quote character
-    final startOffset = _current - 1; // The actual position of the opening quote
+    final startOffset =
+        _current - 1; // The actual position of the opening quote
 
     // Check for triple-quoted multiline strings ("""...""" or '''...''')
     final isMultiLine = _checkMultilineString(delimiter);
-    
+
     // Start with empty string
     final sb = StringBuffer();
 
-    bool isEscaping = false; // Track whether we're currently processing an escape sequence
-    bool isEscapingUnicode = false; // Track whether we're processing a Unicode escape
+    bool isEscaping =
+        false; // Track whether we're currently processing an escape sequence
+    bool isEscapingUnicode =
+        false; // Track whether we're processing a Unicode escape
     String unicodeSequence = ''; // Collect Unicode escape sequence
 
     while (!_isAtEnd()) {
       // Check for ending delimiter
       if (isMultiLine) {
         // For multiline strings, check for triple delimiter
-        if (_peek() == delimiter && _peekNext() == delimiter && _peekNext(2) == delimiter) {
+        if (_peek() == delimiter &&
+            _peekNext() == delimiter &&
+            _peekNext(2) == delimiter) {
           _advance(); // Consume first delimiter
           _advance(); // Consume second delimiter
           _advance(); // Consume third delimiter
@@ -246,15 +283,11 @@ class Lexer {
           _addToken(
             TokenType.string,
             sb.toString(),
-            SourcePosition(
-              line: startLine,
-              column: startColumn,
-              offset: startOffset,
-            ),
+            SourcePosition(_line, _column, _current),
           );
           return;
         }
-        
+
         // Update line tracking and add the newline to the string
         _line++;
         _column = 1;
@@ -266,11 +299,11 @@ class Lexer {
       // Handle escape sequences
       if (isEscaping) {
         isEscaping = false; // Reset escaping flag
-        
+
         if (isEscapingUnicode) {
           // Collecting Unicode escape sequence characters
           unicodeSequence += char;
-          
+
           if (unicodeSequence.length < 4) {
             // Still need more hex digits
             _advance();
@@ -278,7 +311,7 @@ class Lexer {
           } else {
             // Process the complete unicode sequence
             isEscapingUnicode = false;
-            
+
             if (_isHex(unicodeSequence)) {
               try {
                 final codePoint = int.parse(unicodeSequence, radix: 16);
@@ -299,7 +332,7 @@ class Lexer {
               // Add the literal sequence as fallback
               sb.write('u$unicodeSequence');
             }
-            
+
             unicodeSequence = '';
             _advance();
             continue;
@@ -308,15 +341,33 @@ class Lexer {
 
         // Process standard escape sequences
         switch (char) {
-          case 'n': sb.write('\n'); break;
-          case 'r': sb.write('\r'); break;
-          case 't': sb.write('\t'); break;
-          case 'b': sb.write('\b'); break;
-          case 'f': sb.write('\f'); break;
-          case '\'': sb.write('\''); break;
-          case '"': sb.write('"'); break;
-          case '\\': sb.write('\\'); break;
-          case '\$': sb.write('\$'); break; // Handle $ in string (common issue with Dart string interpolation)
+          case 'n':
+            sb.write('\n');
+            break;
+          case 'r':
+            sb.write('\r');
+            break;
+          case 't':
+            sb.write('\t');
+            break;
+          case 'b':
+            sb.write('\b');
+            break;
+          case 'f':
+            sb.write('\f');
+            break;
+          case '\'':
+            sb.write('\'');
+            break;
+          case '"':
+            sb.write('"');
+            break;
+          case '\\':
+            sb.write('\\');
+            break;
+          case '\$':
+            sb.write('\$');
+            break; // Handle $ in string (common issue with Dart string interpolation)
           case 'u':
             // Start of Unicode escape sequence (e.g., \u0061 for 'a')
             isEscapingUnicode = true;
@@ -324,9 +375,13 @@ class Lexer {
             _advance();
             continue;
           // Additional escape sequences
-          case '0': sb.write('\0'); break; // Null character
-          case 'v': sb.write('\v'); break; // Vertical tab
-          case 'x': 
+          case '0':
+            sb.write('\0');
+            break; // Null character
+          case 'v':
+            sb.write('\v');
+            break; // Vertical tab
+          case 'x':
             // Hexadecimal escape sequence \xHH (2 digits)
             if (_isAtEnd() || _isAtEnd(1)) {
               errorReporter.reportStandardError(
@@ -377,18 +432,16 @@ class Lexer {
 
     if (_isAtEnd()) {
       errorReporter.reportStandardError(
-        isMultiLine ? 'Unterminated multi-line string literal' : 'Unterminated string literal',
-        startOffset,
+        isMultiLine
+            ? 'Unterminated multi-line string literal'
+            : 'Unterminated string literal',
+        _current,
       );
       // Add partial string as a recovery measure
       _addToken(
         TokenType.string,
         sb.toString(),
-        SourcePosition(
-          line: startLine,
-          column: startColumn,
-          offset: startOffset,
-        ),
+        SourcePosition(_line, _column, _current),
       );
       return;
     }
@@ -398,14 +451,10 @@ class Lexer {
     _addToken(
       TokenType.string,
       value,
-      SourcePosition(
-        line: startLine,
-        column: startColumn,
-        offset: startOffset,
-      ),
+      SourcePosition(_line, _column, _current),
     );
   }
-  
+
   /// Checks if the current string is a multiline string (triple-quoted)
   /// Returns true if this is a multiline string, false otherwise
   bool _checkMultilineString(String delimiter) {
@@ -457,21 +506,24 @@ class Lexer {
     // Special handling for documentation and decision keywords
     // Force these to be the correct token types
     if (text == 'documentation') {
-      print('LEXER DEBUG: Found documentation keyword, forcing TokenType.documentation');
+      _logger.fine(
+          'LEXER DEBUG: Found documentation keyword, forcing TokenType.documentation');
       _addToken(TokenType.documentation);
       return;
     } else if (text == 'decisions') {
-      print('LEXER DEBUG: Found decisions keyword, forcing TokenType.decisions');
+      _logger.fine(
+          'LEXER DEBUG: Found decisions keyword, forcing TokenType.decisions');
       _addToken(TokenType.decisions);
       return;
     }
 
     // Check if it's a keyword
     final type = keywords[text] ?? TokenType.identifier;
-    
+
     // Debug for documentation and decisions keywords
     if (text == 'documentation' || text == 'decisions') {
-      print('LEXER DEBUG: Found identifier: $text, recognized as token type: $type');
+      _logger.fine(
+          'LEXER DEBUG: Found identifier: $text, recognized as token type: $type');
     }
 
     // Special handling for 'this' keyword to avoid Dart reserved word conflict
@@ -489,11 +541,8 @@ class Lexer {
   /// Adds a token of the given type to the token list.
   void _addToken(TokenType type, [Object? value, SourcePosition? position]) {
     final lexeme = source.substring(_start, _current);
-    final pos = position ?? SourcePosition(
-      line: _line,
-      column: _column - (lexeme.length),
-      offset: _start,
-    );
+    final pos =
+        position ?? SourcePosition(_line, _column - (lexeme.length), _start);
 
     _tokens.add(Token(
       type: type,
@@ -527,16 +576,16 @@ class Lexer {
   /// Checks if the given character is a digit.
   bool _isDigit(String c) {
     return c.codeUnitAt(0) >= '0'.codeUnitAt(0) &&
-           c.codeUnitAt(0) <= '9'.codeUnitAt(0);
+        c.codeUnitAt(0) <= '9'.codeUnitAt(0);
   }
 
   /// Checks if the given character is an alphabetic character, underscore, or dollar sign.
   bool _isAlpha(String c) {
     final code = c.codeUnitAt(0);
     return (code >= 'a'.codeUnitAt(0) && code <= 'z'.codeUnitAt(0)) ||
-           (code >= 'A'.codeUnitAt(0) && code <= 'Z'.codeUnitAt(0)) ||
-           c == '_' || 
-           c == '\$'; // Add $ as valid for identifiers
+        (code >= 'A'.codeUnitAt(0) && code <= 'Z'.codeUnitAt(0)) ||
+        c == '_' ||
+        c == '\$'; // Add $ as valid for identifiers
   }
 
   /// Checks if the given character is alphanumeric, underscore, or dollar sign.
@@ -550,7 +599,7 @@ class Lexer {
       final c = s[i].toLowerCase();
       if (!_isDigit(c) &&
           !(c.codeUnitAt(0) >= 'a'.codeUnitAt(0) &&
-            c.codeUnitAt(0) <= 'f'.codeUnitAt(0))) {
+              c.codeUnitAt(0) <= 'f'.codeUnitAt(0))) {
         return false;
       }
     }

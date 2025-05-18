@@ -5,7 +5,7 @@ import 'test_helpers.dart';
 
 void main() {
   // Create documentation
-  final documentation = Documentation(
+  const documentation = Documentation(
     sections: [
       DocumentationSection(
         title: 'Introduction',
@@ -39,7 +39,7 @@ void main() {
       const content = '# Heading 1\n\nThis is a paragraph.';
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: TestMarkdownRenderer(
               content: content,
@@ -57,7 +57,7 @@ void main() {
       const content = '# Heading 1\n\n## Heading 2\n\n### Heading 3';
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: TestMarkdownRenderer(
               content: content,
@@ -101,7 +101,7 @@ Content in a new chapter
 ''';
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: TestMarkdownRenderer(
               content: content,
@@ -137,7 +137,7 @@ Here's some code:
 ''';
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: TestMarkdownRenderer(
               content: content,
@@ -162,7 +162,7 @@ Here's some code:
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
-          home: Scaffold(
+          home: const Scaffold(
             body: TestMarkdownRenderer(
               content: content,
               isDarkMode: true,
@@ -193,7 +193,7 @@ void main() {
 ''';
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: TestMarkdownRenderer(
               content: content,
@@ -203,9 +203,9 @@ void main() {
       );
 
       // Verify code block is rendered
-      expect(find.text("void main() {"), findsOneWidget);
+      expect(find.text('void main() {'), findsOneWidget);
       expect(find.text("  print('Hello, world!');"), findsOneWidget);
-      expect(find.text("}"), findsOneWidget);
+      expect(find.text('}'), findsOneWidget);
     });
 
     testWidgets('renders embedded diagrams', (WidgetTester tester) async {
@@ -307,7 +307,7 @@ void main() {
 ''';
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: TestMarkdownRenderer(
               content: content,

@@ -1,4 +1,3 @@
-import 'package:flutter_structurizr/domain/parser/ast/ast.dart';
 import 'package:flutter_structurizr/domain/parser/ast/nodes/relationship_node.dart';
 import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 import 'package:flutter_structurizr/domain/parser/lexer/lexer.dart';

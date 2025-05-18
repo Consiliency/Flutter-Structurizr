@@ -1,7 +1,7 @@
-import 'package:flutter_structurizr/domain/parser/ast/ast_nodes.dart';
-import 'package:flutter_structurizr/domain/parser/ast/nodes/documentation/documentation_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/model_element_node.dart';
 import 'package:flutter_structurizr/domain/parser/parser.dart';
 import 'package:test/test.dart';
+import 'package:logging/logging.dart';
 
 /// Custom test-only extension to expose parser's private methods for testing
 extension DocParserTest on Parser {
@@ -9,12 +9,12 @@ extension DocParserTest on Parser {
   WorkspaceNode parseWithDocumentationPatch() {
     // First parse normally
     final workspaceNode = parse();
-    
+
     // If it already has documentation, just return it
     if (workspaceNode.documentation != null) {
       return workspaceNode;
     }
-    
+
     // Extract properties from the original workspace
     final name = workspaceNode.name;
     final description = workspaceNode.description;
@@ -29,15 +29,15 @@ extension DocParserTest on Parser {
     final decisions = workspaceNode.decisions;
     final directives = workspaceNode.directives;
     final sourcePosition = workspaceNode.sourcePosition;
-    
+
     // Create a simple documentation node
     final documentation = DocumentationNode(
-      content: "Patched documentation content",
+      content: 'Patched documentation content',
       format: DocumentationFormat.markdown,
       sections: [],
       sourcePosition: null,
     );
-    
+
     // Create a new workspace node with the documentation
     return WorkspaceNode(
       name: name,
@@ -60,26 +60,30 @@ extension DocParserTest on Parser {
 
 void main() {
   test('Parse with documentation patch test', () {
-    final source = '''
+    const source = '''
     workspace "Test" {
       documentation {
         content = "Test documentation"
       }
     }
     ''';
-    
+
     final parser = Parser(source);
-    
+
     // Use our extension method to ensure documentation is included
     final workspaceNode = parser.parseWithDocumentationPatch();
-    
+
     print('Patched WorkspaceNode name: ${workspaceNode.name}');
-    print('Patched WorkspaceNode has documentation: ${workspaceNode.documentation != null}');
+    print(
+        'Patched WorkspaceNode has documentation: ${workspaceNode.documentation != null}');
     if (workspaceNode.documentation != null) {
       print('Documentation content: "${workspaceNode.documentation!.content}"');
     }
-    
+
     expect(workspaceNode.documentation, isNotNull);
-    expect(workspaceNode.documentation?.content, equals("Patched documentation content"));
+    expect(workspaceNode.documentation?.content,
+        equals('Patched documentation content'));
   });
 }
+
+final _logger = Logger('PatchedParserTest');

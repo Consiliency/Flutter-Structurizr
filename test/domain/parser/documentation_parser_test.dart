@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_structurizr/domain/parser/parser.dart';
 import 'package:flutter_structurizr/domain/parser/parser_fixed.dart';
-import 'package:flutter_structurizr/domain/parser/ast/ast.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/model_element_node.dart';
 import 'package:flutter_structurizr/domain/parser/lexer/lexer.dart';
 import 'package:flutter_structurizr/domain/parser/lexer/token.dart';
 
@@ -17,21 +17,22 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = FixedParser(source);
       final workspace = parser.parse();
-      
-      expect(workspace.documentation, isNotNull, reason: "Documentation node should not be null");
-      
+
+      expect(workspace.documentation, isNotNull,
+          reason: 'Documentation node should not be null');
+
       // The parser removes quotes, so our expectation should match that
-      expect(workspace.documentation!.content, "This is a test documentation", 
-          reason: "Content should match");
-      expect(workspace.documentation!.format, DocumentationFormat.markdown, 
-          reason: "Format should be markdown");
-      expect(workspace.documentation!.sections, isEmpty, 
-          reason: "Sections should be empty");
+      expect(workspace.documentation!.content, 'This is a test documentation',
+          reason: 'Content should match');
+      expect(workspace.documentation!.format, DocumentationFormat.markdown,
+          reason: 'Format should be markdown');
+      expect(workspace.documentation!.sections, isEmpty,
+          reason: 'Sections should be empty');
     });
-    
+
     // TEST 2: Documentation with format
     test('Documentation with format', () {
       const source = '''
@@ -41,17 +42,19 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = FixedParser(source);
       final workspace = parser.parse();
-      
-      expect(workspace.documentation, isNotNull, reason: "Documentation node should not be null");
-      expect(workspace.documentation!.format, DocumentationFormat.asciidoc, 
-          reason: "Format should be asciidoc");
-      expect(workspace.documentation!.content, "= Test Document\\n\\nThis is an AsciiDoc document.", 
-          reason: "Content should match");
+
+      expect(workspace.documentation, isNotNull,
+          reason: 'Documentation node should not be null');
+      expect(workspace.documentation!.format, DocumentationFormat.asciidoc,
+          reason: 'Format should be asciidoc');
+      expect(workspace.documentation!.content,
+          '= Test Document\\n\\nThis is an AsciiDoc document.',
+          reason: 'Content should match');
     });
-    
+
     // TEST 3: Decisions
     test('Decisions', () {
       const source = '''
@@ -66,12 +69,13 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = FixedParser(source);
       final workspace = parser.parse();
-      
-      expect(workspace.decisions, isNotNull, reason: "Decisions should not be null");
-      expect(workspace.decisions!.length, 1, reason: "Should have 1 decision");
+
+      expect(workspace.decisions, isNotNull,
+          reason: 'Decisions should not be null');
+      expect(workspace.decisions!.length, 1, reason: 'Should have 1 decision');
     });
   });
 }

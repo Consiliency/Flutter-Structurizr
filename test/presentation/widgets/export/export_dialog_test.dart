@@ -239,7 +239,7 @@ void main() {
     final checkboxListTile = tester.widget<CheckboxListTile>(
       find.byType(CheckboxListTile).where(
         (widget) => (widget as CheckboxListTile).title is Text && 
-                   ((widget as CheckboxListTile).title as Text).data == 'Memory-Efficient Rendering'
+                   ((widget).title as Text).data == 'Memory-Efficient Rendering'
       )
     );
     expect(checkboxListTile.value, isTrue);
@@ -252,7 +252,7 @@ void main() {
     final updatedCheckboxListTile = tester.widget<CheckboxListTile>(
       find.byType(CheckboxListTile).where(
         (widget) => (widget as CheckboxListTile).title is Text && 
-                   ((widget as CheckboxListTile).title as Text).data == 'Memory-Efficient Rendering'
+                   ((widget).title as Text).data == 'Memory-Efficient Rendering'
       )
     );
     expect(updatedCheckboxListTile.value, isFalse);

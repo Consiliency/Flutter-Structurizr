@@ -8,12 +8,14 @@
    - Review `specs/flutter_structurizr_implementation_spec.md` and `specs/flutter_structurizr_implementation_spec_updated.md`
    - Review `specs/testing_plan.md` to ensure it is current given recent test passes, failures, and changes
    - Examine `CLAUDE.md` and `README.md` for project-wide documentation
+   - Check for and document any new lessons learned or best practices in CLAUDE.md
 
 2. Analyze implementation and testing results:
    - Review what was implemented in the last phase
    - Review testing results and coverage
    - Identify new best practices discovered during implementation
    - Note any implementation challenges and solutions
+   - Cross-reference updated documentation with recent implementation and test results to ensure accuracy
 
 ## Documentation Updates
 
@@ -24,6 +26,7 @@
    - Document any deviations from original plan with justification
    - Add new sections if needed (lessons learned, best practices)
    - Document specific implementation details for complex components
+   - Include a summary of any new troubleshooting tips or workflow improvements discovered during the phase
 
 2. Update implementation status document:
    - Update phase completion percentages

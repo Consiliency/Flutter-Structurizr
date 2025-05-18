@@ -148,3 +148,7 @@ The testing strategy for Phase 7 includes:
 - Flutter File I/O documentation
 - Original Structurizr workspace API: `/lite/src/main/java/com/structurizr/lite/web/workspace/`
 - Test files in `/test/infrastructure/persistence/`
+
+## Method Relationship Table Reference
+
+See the main implementation spec for the method relationship tables and build order. Workspace management methods are implemented in accordance with the modular parser/model structure.

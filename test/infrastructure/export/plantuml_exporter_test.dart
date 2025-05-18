@@ -63,7 +63,7 @@ void main() {
         ElementView(id: system.id),
       ],
       relationships: [
-        RelationshipView(id: 'rel1'),
+        const RelationshipView(id: 'rel1'),
       ],
     );
     
@@ -133,7 +133,7 @@ void main() {
       );
       
       // Create the exporter
-      final exporter = PlantUmlExporter();
+      const exporter = PlantUmlExporter();
       
       // Export the diagram
       // Note: Since the implementation is incomplete, we're testing the interface behavior
@@ -167,7 +167,7 @@ void main() {
       );
       
       // Create the exporter
-      final exporter = PlantUmlExporter();
+      const exporter = PlantUmlExporter();
       
       // Export the diagram
       try {
@@ -198,7 +198,7 @@ void main() {
       );
       
       // Create the exporter
-      final exporter = PlantUmlExporter();
+      const exporter = PlantUmlExporter();
       
       // Export the diagram
       try {
@@ -229,7 +229,7 @@ void main() {
       );
       
       // Create the exporter
-      final exporter = PlantUmlExporter();
+      const exporter = PlantUmlExporter();
       
       // Export the diagram
       try {
@@ -261,15 +261,15 @@ void main() {
       );
       
       // Create exporters with different styles
-      final standardExporter = PlantUmlExporter(
+      const standardExporter = PlantUmlExporter(
         style: PlantUmlStyle.standard,
       );
       
-      final c4Exporter = PlantUmlExporter(
+      const c4Exporter = PlantUmlExporter(
         style: PlantUmlStyle.c4,
       );
       
-      final c4pumlExporter = PlantUmlExporter(
+      const c4pumlExporter = PlantUmlExporter(
         style: PlantUmlStyle.c4puml,
       );
       
@@ -319,11 +319,11 @@ void main() {
       );
       
       // Create exporters with different legend settings
-      final withLegendExporter = PlantUmlExporter(
+      const withLegendExporter = PlantUmlExporter(
         includeLegend: true,
       );
       
-      final noLegendExporter = PlantUmlExporter(
+      const noLegendExporter = PlantUmlExporter(
         includeLegend: false,
       );
       

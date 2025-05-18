@@ -4,7 +4,7 @@ import 'package:flutter_structurizr/domain/model/model.dart';
 
 /// A mixin that provides extensions to create workspaces with mock documentation
 /// without triggering the issues with the workspace.freezed.dart code.
-/// 
+///
 /// This is a workaround to allow tests to run correctly while the Documentation
 /// class transition from freezed to regular Dart classes is in progress.
 mixin WorkspaceDocumentationMixin {
@@ -15,18 +15,18 @@ mixin WorkspaceDocumentationMixin {
     Documentation? documentation,
   }) {
     // Use empty documentation if not provided
-    final doc = documentation ?? Documentation();
-    
+    final doc = documentation ?? const Documentation();
+
     // Directly construct a Workspace with the documentation
     // This works in tests without going through copyWith functions
     // that would trigger issues with the workspace.freezed.dart code
     final workspace = Workspace(
       id: id,
-      name: name, 
-      model: Model(),
+      name: name,
+      model: const Model(),
       documentation: doc,
     );
-    
+
     return workspace;
   }
 }
@@ -49,7 +49,7 @@ extension WorkspaceExtension on Workspace {
       configuration: this.configuration,
     );
   }
-  
+
   /// Returns a new workspace with the given model
   Workspace withModel(Model model) {
     // Create a new workspace with the given model

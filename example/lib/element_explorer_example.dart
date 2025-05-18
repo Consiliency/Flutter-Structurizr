@@ -1,71 +1,73 @@
-import 'package:flutter/material.dart' hide Element, Container, View;
+import 'package:flutter/material.dart' as flutter hide Element, View;
 import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/model.dart';
-import 'package:flutter_structurizr/domain/model/person.dart';
-import 'package:flutter_structurizr/domain/model/software_system.dart';
-import 'package:flutter_structurizr/domain/model/container.dart';
-import 'package:flutter_structurizr/domain/model/component.dart';
+import 'package:flutter_structurizr/domain/model/component.dart'
+    as model_component;
+import 'package:flutter_structurizr/domain/model/container.dart'
+    as model_container;
 import 'package:flutter_structurizr/domain/model/workspace.dart';
 import 'package:flutter_structurizr/presentation/widgets/element_explorer.dart';
 
 /// Example demonstrating the ElementExplorer widget with context menu functionality
 void main() {
-  runApp(const ElementExplorerExampleApp());
+  flutter.runApp(const ElementExplorerExampleApp());
 }
 
 /// Main application widget
-class ElementExplorerExampleApp extends StatelessWidget {
+class ElementExplorerExampleApp extends flutter.StatelessWidget {
   /// Creates a new example app
-  const ElementExplorerExampleApp({Key? key}) : super(key: key);
+  const ElementExplorerExampleApp({flutter.Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  flutter.Widget build(flutter.BuildContext context) {
+    return flutter.MaterialApp(
       title: 'ElementExplorer Example',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        brightness: Brightness.light,
+      theme: flutter.ThemeData(
+        primarySwatch: flutter.Colors.blue,
+        brightness: flutter.Brightness.light,
         useMaterial3: true,
       ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
+      darkTheme: flutter.ThemeData(
+        brightness: flutter.Brightness.dark,
         useMaterial3: true,
       ),
-      themeMode: ThemeMode.system,
+      themeMode: flutter.ThemeMode.system,
       home: const ElementExplorerExamplePage(),
     );
   }
 }
 
 /// Main page for the example
-class ElementExplorerExamplePage extends StatefulWidget {
+class ElementExplorerExamplePage extends flutter.StatefulWidget {
   /// Creates a new example page
-  const ElementExplorerExamplePage({Key? key}) : super(key: key);
+  const ElementExplorerExamplePage({flutter.Key? key}) : super(key: key);
 
   @override
-  State<ElementExplorerExamplePage> createState() => _ElementExplorerExamplePageState();
+  flutter.State<ElementExplorerExamplePage> createState() =>
+      _ElementExplorerExamplePageState();
 }
 
-class _ElementExplorerExamplePageState extends State<ElementExplorerExamplePage> {
+class _ElementExplorerExamplePageState
+    extends flutter.State<ElementExplorerExamplePage> {
   /// The currently selected element ID
   String? _selectedElementId;
-  
+
   /// The most recent action performed
   String? _lastAction;
-  
+
   /// Sample workspace for the example
   late final Workspace _workspace;
-  
+
   /// Context menu items for the explorer
   late final List<ElementContextMenuItem> _contextMenuItems;
-  
+
   @override
   void initState() {
     super.initState();
     _workspace = _createSampleWorkspace();
     _contextMenuItems = _createContextMenuItems();
   }
-  
+
   /// Create a sample workspace with elements for the example
   Workspace _createSampleWorkspace() {
     // Create users
@@ -74,161 +76,169 @@ class _ElementExplorerExamplePageState extends State<ElementExplorerExamplePage>
       description: 'A user of the system',
       tags: ['Person', 'External'],
     );
-    
+
     final admin = Person.create(
       name: 'Administrator',
       description: 'System administrator',
       tags: ['Person', 'Internal'],
     );
-    
+
     // Create the main software system
     final ecommerceSystem = SoftwareSystem.create(
       name: 'E-Commerce System',
       description: 'Handles online shopping and order management',
       tags: ['SoftwareSystem', 'Internal'],
     );
-    
+
     // Create containers for the e-commerce system
-    final webApp = Container.create(
+    final webApp = model_container.Container(
+      id: 'webApp',
       parentId: ecommerceSystem.id,
       name: 'Web Application',
       description: 'Provides the main web interface',
       technology: 'Flutter Web, Dart',
       tags: ['Container', 'WebApp'],
     );
-    
-    final mobileApp = Container.create(
+
+    final mobileApp = model_container.Container(
+      id: 'mobileApp',
       parentId: ecommerceSystem.id,
       name: 'Mobile Application',
       description: 'Native mobile application for iOS and Android',
       technology: 'Flutter, Dart',
       tags: ['Container', 'MobileApp'],
     );
-    
-    final apiGateway = Container.create(
+
+    final apiGateway = model_container.Container(
+      id: 'apiGateway',
       parentId: ecommerceSystem.id,
       name: 'API Gateway',
       description: 'Handles authentication and API routing',
       technology: 'Node.js, Express',
       tags: ['Container', 'Gateway'],
     );
-    
-    final database = Container.create(
+
+    final database = model_container.Container(
+      id: 'database',
       parentId: ecommerceSystem.id,
       name: 'Database',
       description: 'Stores product and order information',
       technology: 'PostgreSQL',
       tags: ['Container', 'Database'],
     );
-    
+
     // Create components for the API Gateway
-    final authComponent = Component.create(
+    final authComponent = model_component.Component(
+      id: 'authComponent',
       parentId: apiGateway.id,
       name: 'Authentication Component',
       description: 'Handles user authentication and authorization',
       technology: 'JWT, OAuth2',
       tags: ['Component', 'Security'],
     );
-    
-    final routingComponent = Component.create(
+
+    final routingComponent = model_component.Component(
+      id: 'routingComponent',
       parentId: apiGateway.id,
       name: 'Routing Component',
       description: 'Routes API requests to appropriate services',
       technology: 'Express Router',
       tags: ['Component'],
     );
-    
+
     // Create a supporting system
     final paymentSystem = SoftwareSystem.create(
       name: 'Payment Processing System',
       description: 'Processes credit card and other payment methods',
       tags: ['SoftwareSystem', 'External'],
     );
-    
+
     // Update containers to include components
     final apiGatewayWithComponents = apiGateway.copyWith(
       components: [authComponent, routingComponent],
     );
-    
+
     // Create the complete software system with containers
     final ecommerceSystemComplete = ecommerceSystem.copyWith(
       containers: [webApp, mobileApp, apiGatewayWithComponents, database],
     );
-    
+
     // Create model with all elements
     final model = Model(
       people: [user, admin],
       softwareSystems: [ecommerceSystemComplete, paymentSystem],
     );
-    
+
     // Create workspace
     return Workspace(
       id: 1,
       name: 'ElementExplorer Example',
-      description: 'Example workspace for demonstrating ElementExplorer with context menus',
+      description:
+          'Example workspace for demonstrating ElementExplorer with context menus',
       model: model,
     );
   }
-  
+
   /// Create context menu items for the ElementExplorer
   List<ElementContextMenuItem> _createContextMenuItems() {
     return [
       const ElementContextMenuItem(
         id: 'view',
         label: 'View Details',
-        icon: Icons.info_outline,
+        icon: flutter.Icons.info_outline,
       ),
       const ElementContextMenuItem(
         id: 'edit',
         label: 'Edit Element',
-        icon: Icons.edit,
+        icon: flutter.Icons.edit,
       ),
       const ElementContextMenuItem(
         id: 'add_relationship',
         label: 'Add Relationship',
-        icon: Icons.add_link,
+        icon: flutter.Icons.add_link,
       ),
-      const ElementContextMenuItem(
+      ElementContextMenuItem(
         id: 'delete',
         label: 'Delete Element',
-        icon: Icons.delete,
+        icon: flutter.Icons.delete,
         // Only enabled for components and containers
-        filter: (element) => element.type == 'Component' || element.type == 'Container',
+        filter: (element) =>
+            element.type == 'Component' || element.type == 'Container',
       ),
-      const ElementContextMenuItem(
+      ElementContextMenuItem(
         id: 'add_container',
         label: 'Add Container',
-        icon: Icons.add_box,
+        icon: flutter.Icons.add_box,
         // Only for software systems
         filter: (element) => element.type == 'SoftwareSystem',
       ),
-      const ElementContextMenuItem(
+      ElementContextMenuItem(
         id: 'add_component',
         label: 'Add Component',
-        icon: Icons.add_circle,
+        icon: flutter.Icons.add_circle,
         // Only for containers
         filter: (element) => element.type == 'Container',
       ),
     ];
   }
-  
+
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+  flutter.Widget build(flutter.BuildContext context) {
+    final theme = flutter.Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('ElementExplorer Example'),
+
+    return flutter.Scaffold(
+      appBar: flutter.AppBar(
+        title: const flutter.Text('ElementExplorer Example'),
       ),
-      body: Row(
+      body: flutter.Row(
         children: [
           // Left panel with ElementExplorer
-          Container(
+          flutter.Container(
             width: 300,
-            decoration: BoxDecoration(
-              border: Border(
-                right: BorderSide(
+            decoration: flutter.BoxDecoration(
+              border: flutter.Border(
+                right: flutter.BorderSide(
                   color: theme.dividerColor,
                   width: 1,
                 ),
@@ -242,8 +252,8 @@ class _ElementExplorerExamplePageState extends State<ElementExplorerExamplePage>
                 enableContextMenu: true,
                 contextMenuItems: _contextMenuItems,
                 backgroundColor: colorScheme.surface,
-                selectedColor: colorScheme.primary.withOpacity(0.2),
-                hoverColor: colorScheme.primary.withOpacity(0.1),
+                selectedColor: colorScheme.primary.withValues(alpha: 0.2),
+                hoverColor: colorScheme.primary.withValues(alpha: 0.1),
                 textColor: colorScheme.onSurface,
                 badgeColor: colorScheme.primary,
                 showTypeBadges: true,
@@ -253,79 +263,79 @@ class _ElementExplorerExamplePageState extends State<ElementExplorerExamplePage>
               onElementSelected: (id, element) {
                 setState(() {
                   _selectedElementId = id;
-                  _lastAction = 'Selected: ${element.name}';
+                  _lastAction = 'Selected: \\${element.name}';
                 });
               },
               onContextMenuItemSelected: (itemId, elementId, element) {
                 setState(() {
                   _selectedElementId = elementId;
-                  _lastAction = 'Menu action: $itemId on ${element.name}';
+                  _lastAction = 'Menu action: \\${itemId} on \\${element.name}';
                 });
               },
             ),
           ),
-          
+
           // Right panel with details
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          flutter.Expanded(
+            child: flutter.Padding(
+              padding: const flutter.EdgeInsets.all(16.0),
+              child: flutter.Column(
+                crossAxisAlignment: flutter.CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  flutter.Text(
                     'ElementExplorer with Context Menu',
                     style: theme.textTheme.titleLarge,
                   ),
-                  const SizedBox(height: 16),
-                  Text(
+                  const flutter.SizedBox(height: 16),
+                  flutter.Text(
                     'Instructions:',
                     style: theme.textTheme.titleMedium,
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
+                  const flutter.SizedBox(height: 8),
+                  const flutter.Text(
                     '• Click on elements to select them\n'
                     '• Right-click (or long-press on mobile) to show the context menu\n'
                     '• Different elements have different menu options\n'
                     '• Menu items can be filtered based on element type',
                   ),
-                  const SizedBox(height: 24),
-                  Text(
+                  const flutter.SizedBox(height: 24),
+                  flutter.Text(
                     'Selected Element:',
                     style: theme.textTheme.titleMedium,
                   ),
-                  const SizedBox(height: 8),
+                  const flutter.SizedBox(height: 8),
                   if (_selectedElementId != null)
-                    Card(
+                    flutter.Card(
                       elevation: 2,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
+                      child: flutter.Padding(
+                        padding: const flutter.EdgeInsets.all(16.0),
                         child: _buildSelectedElementDetails(),
                       ),
                     )
                   else
-                    const Text('No element selected'),
-                  const SizedBox(height: 24),
-                  Text(
+                    const flutter.Text('No element selected'),
+                  const flutter.SizedBox(height: 24),
+                  flutter.Text(
                     'Last Action:',
                     style: theme.textTheme.titleMedium,
                   ),
-                  const SizedBox(height: 8),
+                  const flutter.SizedBox(height: 8),
                   if (_lastAction != null)
-                    Card(
+                    flutter.Card(
                       elevation: 2,
                       color: colorScheme.primaryContainer,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Text(
+                      child: flutter.Padding(
+                        padding: const flutter.EdgeInsets.all(16.0),
+                        child: flutter.Text(
                           _lastAction!,
-                          style: TextStyle(
+                          style: flutter.TextStyle(
                             color: colorScheme.onPrimaryContainer,
                           ),
                         ),
                       ),
                     )
                   else
-                    const Text('No action performed yet'),
+                    const flutter.Text('No action performed yet'),
                 ],
               ),
             ),
@@ -334,60 +344,62 @@ class _ElementExplorerExamplePageState extends State<ElementExplorerExamplePage>
       ),
     );
   }
-  
+
   /// Build the details view for the selected element
-  Widget _buildSelectedElementDetails() {
+  flutter.Widget _buildSelectedElementDetails() {
     if (_selectedElementId == null) {
-      return const Text('No element selected');
+      return const flutter.Text('No element selected');
     }
-    
+
     // Find the selected element
     final element = _findElementById(_selectedElementId!);
     if (element == null) {
-      return Text('Element not found: $_selectedElementId');
+      return flutter.Text('Element not found: $_selectedElementId');
     }
-    
+
     // Display element details
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return flutter.Column(
+      crossAxisAlignment: flutter.CrossAxisAlignment.start,
       children: [
-        Text(
+        flutter.Text(
           element.name,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
+          style: const flutter.TextStyle(
+            fontWeight: flutter.FontWeight.bold,
             fontSize: 18,
           ),
         ),
-        const SizedBox(height: 8),
-        Row(
+        const flutter.SizedBox(height: 8),
+        flutter.Row(
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(4),
+            flutter.Container(
+              padding: const flutter.EdgeInsets.symmetric(
+                  horizontal: 8, vertical: 2),
+              decoration: flutter.BoxDecoration(
+                color: flutter.Colors.blue.withValues(alpha: 0.2),
+                borderRadius: flutter.BorderRadius.circular(4),
               ),
-              child: Text(
+              child: flutter.Text(
                 element.type,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
+                style: const flutter.TextStyle(
+                  fontWeight: flutter.FontWeight.bold,
                   fontSize: 12,
                 ),
               ),
             ),
-            const SizedBox(width: 8),
-            ...element.tags.map((tag) => 
-              Padding(
-                padding: const EdgeInsets.only(right: 4),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(4),
+            const flutter.SizedBox(width: 8),
+            ...element.tags.map(
+              (tag) => flutter.Padding(
+                padding: const flutter.EdgeInsets.only(right: 4),
+                child: flutter.Container(
+                  padding: const flutter.EdgeInsets.symmetric(
+                      horizontal: 6, vertical: 2),
+                  decoration: flutter.BoxDecoration(
+                    color: flutter.Colors.grey.withValues(alpha: 0.2),
+                    borderRadius: flutter.BorderRadius.circular(4),
                   ),
-                  child: Text(
+                  child: flutter.Text(
                     tag,
-                    style: const TextStyle(
+                    style: const flutter.TextStyle(
                       fontSize: 10,
                     ),
                   ),
@@ -396,36 +408,36 @@ class _ElementExplorerExamplePageState extends State<ElementExplorerExamplePage>
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const flutter.SizedBox(height: 8),
         if (element.description != null)
-          Text(
+          flutter.Text(
             element.description!,
-            style: const TextStyle(
-              fontStyle: FontStyle.italic,
+            style: const flutter.TextStyle(
+              fontStyle: flutter.FontStyle.italic,
             ),
           ),
-        const SizedBox(height: 16),
-        Text('ID: ${element.id}'),
+        const flutter.SizedBox(height: 16),
+        flutter.Text('ID: \\${element.id}'),
         if (element.parentId != null)
-          Text('Parent ID: ${element.parentId}'),
-        const SizedBox(height: 8),
-        const Text(
+          flutter.Text('Parent ID: \\${element.parentId}'),
+        const flutter.SizedBox(height: 8),
+        const flutter.Text(
           'Available Context Menu Actions:',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: flutter.TextStyle(fontWeight: flutter.FontWeight.bold),
         ),
-        const SizedBox(height: 4),
+        const flutter.SizedBox(height: 4),
         ..._contextMenuItems
             .where((item) => item.filter == null || item.filter!(element))
-            .map((item) => 
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Row(
+            .map(
+              (item) => flutter.Padding(
+                padding: const flutter.EdgeInsets.symmetric(vertical: 2),
+                child: flutter.Row(
                   children: [
                     if (item.icon != null) ...[
-                      Icon(item.icon, size: 16),
-                      const SizedBox(width: 4),
+                      flutter.Icon(item.icon, size: 16),
+                      const flutter.SizedBox(width: 4),
                     ],
-                    Text(item.label),
+                    flutter.Text(item.label),
                   ],
                 ),
               ),
@@ -433,12 +445,12 @@ class _ElementExplorerExamplePageState extends State<ElementExplorerExamplePage>
       ],
     );
   }
-  
+
   /// Find an element by ID in the workspace
   Element? _findElementById(String id) {
     return _workspace.model.getAllElements().firstWhere(
-      (element) => element.id == id,
-      orElse: () => throw Exception('Element not found: $id'),
-    );
+          (element) => element.id == id,
+          orElse: () => throw Exception('Element not found: $id'),
+        );
   }
 }

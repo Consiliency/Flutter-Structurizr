@@ -27,31 +27,33 @@ void main() {
           ),
         ],
       );
-      
+
       final workspace = Workspace(
         id: 1,
         name: 'Test Workspace',
         description: 'A test workspace',
         model: model,
       );
-      
+
       // Convert to JSON string
       final jsonString = JsonSerialization.workspaceToJson(workspace);
-      
+
       // Verify it's valid JSON
       expect(() => jsonDecode(jsonString), returnsNormally);
-      
+
       // Convert back to workspace
       final parsedWorkspace = JsonSerialization.workspaceFromJson(jsonString);
-      
+
       // Verify properties
       expect(parsedWorkspace.id, equals(workspace.id));
       expect(parsedWorkspace.name, equals(workspace.name));
       expect(parsedWorkspace.description, equals(workspace.description));
-      expect(parsedWorkspace.model.people.length, equals(workspace.model.people.length));
-      expect(parsedWorkspace.model.softwareSystems.length, equals(workspace.model.softwareSystems.length));
+      expect(parsedWorkspace.model.people.length,
+          equals(workspace.model.people.length));
+      expect(parsedWorkspace.model.softwareSystems.length,
+          equals(workspace.model.softwareSystems.length));
     });
-    
+
     test('converts model to and from JSON', () {
       final model = Model(
         enterpriseName: 'Test Enterprise',
@@ -62,76 +64,80 @@ void main() {
           SoftwareSystem.create(name: 'System'),
         ],
       );
-      
+
       // Convert to JSON string
       final jsonString = JsonSerialization.modelToJson(model);
-      
+
       // Verify it's valid JSON
       expect(() => jsonDecode(jsonString), returnsNormally);
-      
+
       // Convert back to model
       final parsedModel = JsonSerialization.modelFromJson(jsonString);
-      
+
       // Verify properties
       expect(parsedModel.enterpriseName, equals(model.enterpriseName));
       expect(parsedModel.people.length, equals(model.people.length));
-      expect(parsedModel.softwareSystems.length, equals(model.softwareSystems.length));
+      expect(parsedModel.softwareSystems.length,
+          equals(model.softwareSystems.length));
     });
-    
+
     test('converts person element to and from JSON', () {
       final person = Person.create(
         name: 'User',
         description: 'A user of the system',
         location: 'External',
       );
-      
+
       // Convert to JSON string
       final jsonString = JsonSerialization.elementToJson(person);
-      
+
       // Verify it's valid JSON
       expect(() => jsonDecode(jsonString), returnsNormally);
-      
+
       // Convert back to element
-      final parsedElement = JsonSerialization.elementFromJson(jsonString) as Person;
-      
+      final parsedElement =
+          JsonSerialization.elementFromJson(jsonString) as Person;
+
       // Verify properties
       expect(parsedElement.name, equals(person.name));
       expect(parsedElement.description, equals(person.description));
       expect(parsedElement.location, equals(person.location));
     });
-    
+
     test('converts software system element to and from JSON', () {
       final container = Container.create(
         name: 'Container',
         parentId: 'system-id',
         technology: 'Java',
       );
-      
+
       final system = SoftwareSystem.create(
         name: 'System',
         description: 'A software system',
         containers: [container],
       );
-      
+
       // Convert to JSON string
       final jsonString = JsonSerialization.elementToJson(system);
-      
+
       // Verify it's valid JSON
       expect(() => jsonDecode(jsonString), returnsNormally);
-      
+
       // Convert back to element
-      final parsedElement = JsonSerialization.elementFromJson(jsonString) as SoftwareSystem;
-      
+      final parsedElement =
+          JsonSerialization.elementFromJson(jsonString) as SoftwareSystem;
+
       // Verify properties
       expect(parsedElement.name, equals(system.name));
       expect(parsedElement.description, equals(system.description));
       expect(parsedElement.containers.length, equals(system.containers.length));
       expect(parsedElement.containers[0].name, equals(container.name));
-      expect(parsedElement.containers[0].technology, equals(container.technology));
+      expect(
+          parsedElement.containers[0].technology, equals(container.technology));
     });
-    
+
     test('converts styles to and from JSON', () {
-      final styles = Styles(
+      const styles = Styles(
         elements: [
           ElementStyle(
             tag: 'Person',
@@ -146,36 +152,41 @@ void main() {
         ],
         themes: ['default'],
       );
-      
+
       // Convert to JSON string
       final jsonString = JsonSerialization.stylesToJson(styles);
-      
+
       // Verify it's valid JSON
       expect(() => jsonDecode(jsonString), returnsNormally);
-      
+
       // Convert back to styles
       final parsedStyles = JsonSerialization.stylesFromJson(jsonString);
-      
+
       // Verify properties
       expect(parsedStyles.elements.length, equals(styles.elements.length));
       expect(parsedStyles.elements[0].tag, equals(styles.elements[0].tag));
       expect(parsedStyles.elements[0].shape, equals(styles.elements[0].shape));
-      expect(parsedStyles.relationships.length, equals(styles.relationships.length));
-      expect(parsedStyles.relationships[0].tag, equals(styles.relationships[0].tag));
-      expect(parsedStyles.relationships[0].thickness, equals(styles.relationships[0].thickness));
+      expect(parsedStyles.relationships.length,
+          equals(styles.relationships.length));
+      expect(parsedStyles.relationships[0].tag,
+          equals(styles.relationships[0].tag));
+      expect(parsedStyles.relationships[0].thickness,
+          equals(styles.relationships[0].thickness));
       expect(parsedStyles.themes.length, equals(styles.themes.length));
       expect(parsedStyles.themes[0], equals(styles.themes[0]));
     });
-    
+
     test('validates workspace JSON with detailed errors', () {
-      final model = Model();
+      const model = Model();
 
       // Create a workspace with a view to pass validation
-      final workspace = Workspace(
+      const workspace = Workspace(
         id: 1,
         name: 'Test Workspace',
         model: model,
-        views: Views(systemContextViews: [SystemContextView(key: 'test', softwareSystemId: 'system1')]),
+        views: const Views(systemContextViews: [
+          SystemContextView(key: 'test', softwareSystemId: 'system1')
+        ]),
       );
 
       final jsonString = JsonSerialization.workspaceToJson(workspace);
@@ -191,13 +202,14 @@ void main() {
         'model': {},
       });
 
-      final invalidErrors = JsonSerialization.validateWorkspaceJson(invalidJson);
+      final invalidErrors =
+          JsonSerialization.validateWorkspaceJson(invalidJson);
       expect(invalidErrors, isNotEmpty);
       expect(invalidErrors, contains('Missing required field: name'));
     });
 
     test('pretty print workspace JSON', () {
-      final workspace = Workspace(
+      const workspace = Workspace(
         id: 1,
         name: 'Test Workspace',
         model: Model(),
@@ -210,7 +222,7 @@ void main() {
     });
 
     test('extract workspace name from JSON', () {
-      final json = '''{
+      const json = '''{
         "id": 1,
         "name": "Extracted Name",
         "model": {}
@@ -222,22 +234,23 @@ void main() {
 
     test('isValidWorkspaceJson convenience method', () {
       // Include systemContextViews to pass validation
-      final validJson = '{"id": 1, "name": "Test Workspace", "model": {}, "views": {"systemContextViews": [{"key": "test", "softwareSystemId": "system1"}]}}';
-      final invalidJson = '{"id": 1, "model": {}}';
+      const validJson =
+          '{"id": 1, "name": "Test Workspace", "model": {}, "views": {"systemContextViews": [{"key": "test", "softwareSystemId": "system1"}]}}';
+      const invalidJson = '{"id": 1, "model": {}}';
 
       expect(JsonSerialization.isValidWorkspaceJson(validJson), isTrue);
       expect(JsonSerialization.isValidWorkspaceJson(invalidJson), isFalse);
     });
-    
+
     test('throws JsonParsingException on invalid JSON', () {
       const invalidJson = '{not valid json}';
-      
+
       expect(
         () => JsonSerialization.workspaceFromJson(invalidJson),
         throwsA(isA<JsonParsingException>()),
       );
     });
-    
+
     test('parses list of elements correctly', () {
       final json = {
         'people': [
@@ -253,36 +266,36 @@ void main() {
           },
         ],
       };
-      
+
       final people = JsonSerialization.parseList<Person>(
         json,
         'people',
         Person.fromJson,
       );
-      
+
       expect(people.length, equals(2));
       expect(people[0].id, equals('1'));
       expect(people[0].name, equals('User 1'));
       expect(people[1].id, equals('2'));
       expect(people[1].name, equals('User 2'));
     });
-    
+
     test('returns empty list when key is not found', () {
       final json = {'otherKey': []};
-      
+
       final people = JsonSerialization.parseList<Person>(
         json,
         'people',
         Person.fromJson,
       );
-      
+
       expect(people, isEmpty);
     });
   });
 
   group('JsonSerializationHelper', () {
     test('workspaceToJson and workspaceFromJson', () {
-      final workspace = Workspace(
+      const workspace = Workspace(
         id: 1,
         name: 'Test Workspace',
         model: Model(),
@@ -291,28 +304,31 @@ void main() {
       final json = JsonSerializationHelper.workspaceToJson(workspace);
       expect(json, isNotEmpty);
 
-      final deserializedWorkspace = JsonSerializationHelper.workspaceFromJson(json);
+      final deserializedWorkspace =
+          JsonSerializationHelper.workspaceFromJson(json);
       expect(deserializedWorkspace.id, equals(workspace.id));
       expect(deserializedWorkspace.name, equals(workspace.name));
     });
 
     test('prettyPrintWorkspace formats JSON nicely', () {
-      final workspace = Workspace(
+      const workspace = Workspace(
         id: 1,
         name: 'Test Workspace',
         model: Model(),
       );
 
-      final prettyJson = JsonSerializationHelper.prettyPrintWorkspace(workspace);
+      final prettyJson =
+          JsonSerializationHelper.prettyPrintWorkspace(workspace);
       expect(prettyJson, contains('  "id": 1'));
       expect(prettyJson, contains('  "name": "Test Workspace"'));
-      expect(prettyJson.split('\n').length, greaterThan(5)); // Should be multi-line
+      expect(prettyJson.split('\n').length,
+          greaterThan(5)); // Should be multi-line
     });
 
     test('elementsToJson converts elements to JSON', () {
       final elements = [
-        Person(id: 'person1', name: 'User'),
-        SoftwareSystem(id: 'system1', name: 'System'),
+        const Person(id: 'person1', name: 'User'),
+        const SoftwareSystem(id: 'system1', name: 'System'),
       ];
 
       final json = JsonSerializationHelper.elementsToJson(elements);
@@ -330,8 +346,8 @@ void main() {
     });*/
 
     test('validateJson validates JSON structure', () {
-      final validJson = '{"id": 1, "name": "Test", "model": {}}';
-      final invalidJson = '{"id": 1}'; // Missing name
+      const validJson = '{"id": 1, "name": "Test", "model": {}}';
+      const invalidJson = '{"id": 1}'; // Missing name
 
       final validErrors = JsonSerializationHelper.validateJson(validJson);
       expect(validErrors, isEmpty);
@@ -342,8 +358,8 @@ void main() {
     });
 
     test('jsonToMap converts JSON to map safely', () {
-      final validJson = '{"id": 1, "name": "Test"}';
-      final invalidJson = '{not valid json}';
+      const validJson = '{"id": 1, "name": "Test"}';
+      const invalidJson = '{not valid json}';
 
       final validMap = JsonSerializationHelper.jsonToMap(validJson);
       expect(validMap, isNotNull);

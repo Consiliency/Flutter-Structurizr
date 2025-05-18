@@ -3,7 +3,6 @@ import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/relationship.dart';
 import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 import 'package:flutter_structurizr/domain/parser/reference_resolver.dart';
-import 'package:flutter_structurizr/domain/parser/ast/ast.dart';
 
 /// Interface for building a workspace model from AST nodes.
 ///

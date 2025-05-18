@@ -5,51 +5,52 @@ void main() {
   group('Branding', () {
     test('creates branding with default values', () {
       const branding = Branding();
-      
+
       expect(branding.logo, isNull);
       expect(branding.fonts, isEmpty);
     });
-    
+
     test('creates branding with all properties', () {
-      final font = Font(
+      const font = Font(
         name: 'Open Sans',
         url: 'https://fonts.googleapis.com/css?family=Open+Sans',
       );
-      
-      final branding = Branding(
+
+      const branding = Branding(
         logo: 'logo.png',
         fonts: [font],
       );
-      
+
       expect(branding.logo, equals('logo.png'));
       expect(branding.fonts, hasLength(1));
       expect(branding.fonts[0].name, equals('Open Sans'));
     });
-    
+
     test('adds font', () {
       const branding = Branding();
-      
-      final font = Font(
+
+      const font = Font(
         name: 'Open Sans',
         url: 'https://fonts.googleapis.com/css?family=Open+Sans',
       );
-      
+
       final updatedBranding = branding.addFont(font);
-      
+
       expect(updatedBranding.fonts, hasLength(1));
       expect(updatedBranding.fonts[0], equals(font));
     });
   });
-  
+
   group('Font', () {
     test('creates font with required properties', () {
-      final font = Font(
+      const font = Font(
         name: 'Open Sans',
         url: 'https://fonts.googleapis.com/css?family=Open+Sans',
       );
-      
+
       expect(font.name, equals('Open Sans'));
-      expect(font.url, equals('https://fonts.googleapis.com/css?family=Open+Sans'));
+      expect(font.url,
+          equals('https://fonts.googleapis.com/css?family=Open+Sans'));
     });
   });
 }

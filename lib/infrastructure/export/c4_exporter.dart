@@ -1,16 +1,26 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart' hide Element, Container, View;
-import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/model.dart';
+import 'package:flutter_structurizr/domain/model/component.dart';
+import 'package:flutter_structurizr/domain/model/deployment_node.dart';
+import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/view/view.dart';
 import 'package:flutter_structurizr/infrastructure/export/diagram_exporter.dart';
+import 'package:logging/logging.dart';
+import 'package:flutter_structurizr/domain/model/container.dart';
+import 'package:flutter_structurizr/domain/model/software_system.dart';
+import 'package:flutter_structurizr/domain/model/person.dart';
+import 'package:flutter_structurizr/domain/model/relationship.dart';
+import 'package:flutter_structurizr/domain/model/infrastructure_node.dart';
+
+final logger = Logger('C4Exporter');
 
 /// The style of C4 diagram to generate
 enum C4DiagramStyle {
   /// Standard C4 model
   standard,
-  
+
   /// C4 model with additional styling
   enhanced,
 }
@@ -19,7 +29,7 @@ enum C4DiagramStyle {
 enum C4OutputFormat {
   /// JSON format
   json,
-  
+
   /// YAML format
   yaml,
 }
@@ -73,7 +83,7 @@ class C4Exporter implements DiagramExporter<String> {
         results.add(result);
       } catch (e) {
         // Log error but continue with other diagrams
-        print('Error exporting diagram ${diagrams[i].viewKey}: $e');
+        logger.severe('Error exporting diagram ${diagrams[i].viewKey}: $e');
       }
     }
 
@@ -94,7 +104,7 @@ class C4Exporter implements DiagramExporter<String> {
       final workspace = diagram.workspace;
       final viewKey = diagram.viewKey;
       final view = _findViewByKey(workspace, viewKey);
-      
+
       if (view == null) {
         throw Exception('View not found with key: $viewKey');
       }
@@ -102,7 +112,7 @@ class C4Exporter implements DiagramExporter<String> {
       // Gather all elements and relationships for the view
       final elements = _getElementsInView(view, workspace);
       final relationships = _getRelationshipsInView(view, workspace);
-      
+
       // Report data gathering progress
       onProgress?.call(0.3);
 
@@ -120,7 +130,7 @@ class C4Exporter implements DiagramExporter<String> {
         // Default generic model
         c4Content = _generateGenericModel(view, elements, relationships);
       }
-      
+
       // Report completion
       onProgress?.call(1.0);
 
@@ -132,52 +142,31 @@ class C4Exporter implements DiagramExporter<String> {
 
   /// Finds a view in the workspace by key
   View? _findViewByKey(workspace, String key) {
-    // Navigate through the workspace views structure to find the view with the specified key
     final views = workspace.views;
-
     // Check system landscape views
-    final systemLandscapeView = views.systemLandscapeViews.firstWhere(
-      (view) => view.key == key,
-      orElse: () => SystemLandscapeView(key: ''), // Empty view if not found
-    );
-    if (systemLandscapeView.key.isNotEmpty) return systemLandscapeView;
-
+    for (final view in (views.systemLandscapeViews as List<View>)) {
+      if (view.key == key) return view;
+    }
     // Check system context views
-    final systemContextView = views.systemContextViews.firstWhere(
-      (view) => view.key == key,
-      orElse: () => SystemContextView(key: '', softwareSystemId: ''), // Empty view if not found
-    );
-    if (systemContextView.key.isNotEmpty) return systemContextView;
-
+    for (final view in (views.systemContextViews as List<View>)) {
+      if (view.key == key) return view;
+    }
     // Check container views
-    final containerView = views.containerViews.firstWhere(
-      (view) => view.key == key,
-      orElse: () => ContainerView(key: '', softwareSystemId: ''), // Empty view if not found
-    );
-    if (containerView.key.isNotEmpty) return containerView;
-
+    for (final view in (views.containerViews as List<View>)) {
+      if (view.key == key) return view;
+    }
     // Check component views
-    final componentView = views.componentViews.firstWhere(
-      (view) => view.key == key,
-      orElse: () => ComponentView(key: '', containerId: '', softwareSystemId: ''), // Empty view if not found
-    );
-    if (componentView.key.isNotEmpty) return componentView;
-
+    for (final view in (views.componentViews as List<View>)) {
+      if (view.key == key) return view;
+    }
     // Check dynamic views
-    final dynamicView = views.dynamicViews.firstWhere(
-      (view) => view.key == key,
-      orElse: () => DynamicView(key: '', elementId: ''), // Empty view if not found
-    );
-    if (dynamicView.key.isNotEmpty) return dynamicView;
-
+    for (final view in (views.dynamicViews as List<View>)) {
+      if (view.key == key) return view;
+    }
     // Check deployment views
-    final deploymentView = views.deploymentViews.firstWhere(
-      (view) => view.key == key,
-      orElse: () => DeploymentView(key: '', environment: ''), // Empty view if not found
-    );
-    if (deploymentView.key.isNotEmpty) return deploymentView;
-
-    // Not found in any collection
+    for (final view in (views.deploymentViews as List<View>)) {
+      if (view.key == key) return view;
+    }
     return null;
   }
 
@@ -186,56 +175,53 @@ class C4Exporter implements DiagramExporter<String> {
     final result = <Element>[];
     final model = workspace.model;
 
-    // Go through each element ID in the view and find the corresponding element in the model
     for (final elementView in view.elements) {
       final id = elementView.id;
 
       // Check in people
-      final person = model.getPeopleById(id);
+      final person = model.getPeopleById(id) as Person?;
       if (person != null) {
         result.add(person);
         continue;
       }
 
       // Check in software systems
-      final softwareSystem = model.getSoftwareSystemById(id);
+      final softwareSystem = model.getSoftwareSystemById(id) as SoftwareSystem?;
       if (softwareSystem != null) {
         result.add(softwareSystem);
-
         // If this is a container view for this system, add all its containers
         if (view is ContainerView && view.softwareSystemId == id) {
-          result.addAll(softwareSystem.containers);
+          result.addAll(softwareSystem.containers.cast<Element>());
         }
         continue;
       }
 
       // Check containers in all systems
-      for (final system in model.softwareSystems) {
+      for (final system in (model.softwareSystems as List<SoftwareSystem>)) {
         final container = system.containers.firstWhere(
           (c) => c.id == id,
-          orElse: () => Container(id: '', name: '', parentId: '')
+          orElse: () => Container(id: '', name: '', parentId: ''),
         );
         if (container.id.isNotEmpty) {
-          result.add(container);
-
+          result.add(container as Element);
           // If this is a component view for this container, add all its components
           if (view is ComponentView && view.containerId == id) {
-            result.addAll(container.components);
+            result.addAll((container.components as List).cast<Element>());
           }
           break;
         }
       }
 
       // Check components in all containers of all systems
-      for (final system in model.softwareSystems) {
+      for (final system in (model.softwareSystems as List<SoftwareSystem>)) {
         bool found = false;
-        for (final container in system.containers) {
+        for (final container in (system.containers as List<Container>)) {
           final component = container.components.firstWhere(
             (c) => c.id == id,
-            orElse: () => Component(id: '', name: '', parentId: '')
+            orElse: () => Component(id: '', name: '', parentId: ''),
           );
           if (component.id.isNotEmpty) {
-            result.add(component);
+            result.add(component as Element);
             found = true;
             break;
           }
@@ -246,14 +232,13 @@ class C4Exporter implements DiagramExporter<String> {
       // Check in deployment nodes
       final deploymentNode = model.deploymentNodes.firstWhere(
         (n) => n.id == id,
-        orElse: () => DeploymentNode(id: '', name: '', environment: '')
+        orElse: () => null,
       );
-      if (deploymentNode.id.isNotEmpty) {
-        result.add(deploymentNode);
+      if (deploymentNode != null && deploymentNode.id.isNotEmpty) {
+        result.add(deploymentNode as Element);
         continue;
       }
     }
-
     return result;
   }
 
@@ -269,35 +254,35 @@ class C4Exporter implements DiagramExporter<String> {
         final id = relationshipView.id;
 
         // Find relationships in people
-        for (final person in model.people) {
+        for (final person in (model.people as List<Person>)) {
           final relationship = person.getRelationshipById(id);
           if (relationship != null) {
-            result.add(relationship);
+            result.add(relationship as Relationship);
             break;
           }
         }
 
         // Find relationships in software systems
-        for (final system in model.softwareSystems) {
+        for (final system in (model.softwareSystems as List<SoftwareSystem>)) {
           final relationship = system.getRelationshipById(id);
           if (relationship != null) {
-            result.add(relationship);
+            result.add(relationship as Relationship);
             break;
           }
 
           // Find relationships in containers
-          for (final container in system.containers) {
+          for (final container in (system.containers as List<Container>)) {
             final relationship = container.getRelationshipById(id);
             if (relationship != null) {
-              result.add(relationship);
+              result.add(relationship as Relationship);
               break;
             }
 
             // Find relationships in components
-            for (final component in container.components) {
+            for (final component in (container.components as List<Component>)) {
               final relationship = component.getRelationshipById(id);
               if (relationship != null) {
-                result.add(relationship);
+                result.add(relationship as Relationship);
                 break;
               }
             }
@@ -310,48 +295,53 @@ class C4Exporter implements DiagramExporter<String> {
 
       // Function to check if both source and destination are in the view
       bool isRelationshipInView(Relationship rel) {
-        return elementIds.contains(rel.sourceId) && elementIds.contains(rel.destinationId);
+        return elementIds.contains(rel.sourceId) &&
+            elementIds.contains(rel.destinationId);
       }
 
       // Collect all relationships between elements in the view
 
       // From people
-      for (final person in model.people) {
+      for (final person in (model.people as List<Person>)) {
         if (elementIds.contains(person.id)) {
-          for (final relationship in person.relationships) {
+          for (final relationship
+              in (person.relationships as List<Relationship>)) {
             if (isRelationshipInView(relationship)) {
-              result.add(relationship);
+              result.add(relationship as Relationship);
             }
           }
         }
       }
 
       // From software systems and their containers/components
-      for (final system in model.softwareSystems) {
+      for (final system in (model.softwareSystems as List<SoftwareSystem>)) {
         if (elementIds.contains(system.id)) {
-          for (final relationship in system.relationships) {
+          for (final relationship
+              in (system.relationships as List<Relationship>)) {
             if (isRelationshipInView(relationship)) {
-              result.add(relationship);
+              result.add(relationship as Relationship);
             }
           }
         }
 
         // From containers
-        for (final container in system.containers) {
+        for (final container in (system.containers as List<Container>)) {
           if (elementIds.contains(container.id)) {
-            for (final relationship in container.relationships) {
+            for (final relationship
+                in (container.relationships as List<Relationship>)) {
               if (isRelationshipInView(relationship)) {
-                result.add(relationship);
+                result.add(relationship as Relationship);
               }
             }
           }
 
           // From components
-          for (final component in container.components) {
+          for (final component in (container.components as List<Component>)) {
             if (elementIds.contains(component.id)) {
-              for (final relationship in component.relationships) {
+              for (final relationship
+                  in (component.relationships as List<Relationship>)) {
                 if (isRelationshipInView(relationship)) {
-                  result.add(relationship);
+                  result.add(relationship as Relationship);
                 }
               }
             }
@@ -372,13 +362,14 @@ class C4Exporter implements DiagramExporter<String> {
         final description = interaction.description;
 
         // Create a representation of this interaction
-        final relationshipId = interaction.id ?? '${sourceId}_${destinationId}_${result.length}';
-        
+        final relationshipId =
+            interaction.id ?? '${sourceId}_${destinationId}_${result.length}';
+
         // Handle potentially null strings by providing defaults
         final safeSourceId = sourceId ?? '';
         final safeDestId = destinationId ?? '';
         final safeDescription = description ?? '';
-        
+
         final relationship = Relationship(
           id: relationshipId,
           sourceId: safeSourceId,
@@ -386,7 +377,7 @@ class C4Exporter implements DiagramExporter<String> {
           description: safeDescription,
         );
 
-        result.add(relationship);
+        result.add(relationship as Relationship);
       }
     }
 
@@ -402,33 +393,35 @@ class C4Exporter implements DiagramExporter<String> {
     // Find the central system being described
     final centralSystem = elements.firstWhere(
       (element) => element.id == view.softwareSystemId,
-      orElse: () => SoftwareSystem(id: '', name: 'Unknown System'),
+      orElse: () => const SoftwareSystem(id: '', name: 'Unknown System'),
     );
-    
+
     final Map<String, dynamic> c4Model = {};
-    
+
     // Add metadata
     if (includeMetadata) {
       c4Model['type'] = 'SystemContext';
       c4Model['scope'] = centralSystem.name;
-      c4Model['description'] = view.description ?? 'System Context diagram for ${centralSystem.name}';
+      c4Model['description'] = view.description ??
+          'System Context diagram for ${centralSystem.name}';
       c4Model['viewKey'] = view.key;
       c4Model['title'] = view.title ?? view.key;
     }
-    
+
     // Add elements
     c4Model['elements'] = _generateElementsSection(elements, view);
-    
+
     // Add relationships
     if (includeRelationships) {
-      c4Model['relationships'] = _generateRelationshipsSection(relationships, elements);
+      c4Model['relationships'] =
+          _generateRelationshipsSection(relationships, elements);
     }
-    
+
     // Add styles
     if (includeStyles) {
       c4Model['styles'] = _generateStylesSection(elements);
     }
-    
+
     // Convert to the requested format
     return format == C4OutputFormat.json
         ? _convertToJson(c4Model)
@@ -444,33 +437,35 @@ class C4Exporter implements DiagramExporter<String> {
     // Find the system being described
     final system = elements.firstWhere(
       (element) => element.id == view.softwareSystemId,
-      orElse: () => SoftwareSystem(id: '', name: 'Unknown System'),
+      orElse: () => const SoftwareSystem(id: '', name: 'Unknown System'),
     );
-    
+
     final Map<String, dynamic> c4Model = {};
-    
+
     // Add metadata
     if (includeMetadata) {
       c4Model['type'] = 'Container';
       c4Model['scope'] = system.name;
-      c4Model['description'] = view.description ?? 'Container diagram for ${system.name}';
+      c4Model['description'] =
+          view.description ?? 'Container diagram for ${system.name}';
       c4Model['viewKey'] = view.key;
       c4Model['title'] = view.title ?? view.key;
     }
-    
+
     // Add elements
     c4Model['elements'] = _generateElementsSection(elements, view);
-    
+
     // Add relationships
     if (includeRelationships) {
-      c4Model['relationships'] = _generateRelationshipsSection(relationships, elements);
+      c4Model['relationships'] =
+          _generateRelationshipsSection(relationships, elements);
     }
-    
+
     // Add styles
     if (includeStyles) {
       c4Model['styles'] = _generateStylesSection(elements);
     }
-    
+
     // Convert to the requested format
     return format == C4OutputFormat.json
         ? _convertToJson(c4Model)
@@ -486,33 +481,35 @@ class C4Exporter implements DiagramExporter<String> {
     // Find the container being described
     final container = elements.firstWhere(
       (element) => element.id == view.containerId,
-      orElse: () => Container(id: '', name: 'Unknown Container', parentId: ''),
+      orElse: () => SoftwareSystem(id: '', name: 'Unknown Container'),
     );
-    
+
     final Map<String, dynamic> c4Model = {};
-    
+
     // Add metadata
     if (includeMetadata) {
       c4Model['type'] = 'Component';
       c4Model['scope'] = container.name;
-      c4Model['description'] = view.description ?? 'Component diagram for ${container.name}';
+      c4Model['description'] =
+          view.description ?? 'Component diagram for ${container.name}';
       c4Model['viewKey'] = view.key;
       c4Model['title'] = view.title ?? view.key;
     }
-    
+
     // Add elements
     c4Model['elements'] = _generateElementsSection(elements, view);
-    
+
     // Add relationships
     if (includeRelationships) {
-      c4Model['relationships'] = _generateRelationshipsSection(relationships, elements);
+      c4Model['relationships'] =
+          _generateRelationshipsSection(relationships, elements);
     }
-    
+
     // Add styles
     if (includeStyles) {
       c4Model['styles'] = _generateStylesSection(elements);
     }
-    
+
     // Convert to the requested format
     return format == C4OutputFormat.json
         ? _convertToJson(c4Model)
@@ -526,32 +523,34 @@ class C4Exporter implements DiagramExporter<String> {
     List<Relationship> relationships,
   ) {
     final Map<String, dynamic> c4Model = {};
-    
+
     // Add metadata
     if (includeMetadata) {
       c4Model['type'] = 'Deployment';
       c4Model['scope'] = view.environment;
-      c4Model['description'] = view.description ?? 'Deployment diagram for ${view.environment}';
+      c4Model['description'] =
+          view.description ?? 'Deployment diagram for ${view.environment}';
       c4Model['viewKey'] = view.key;
       c4Model['title'] = view.title ?? view.key;
     }
-    
+
     // Add elements
     c4Model['elements'] = _generateElementsSection(elements, view);
-    
+
     // Add relationships
     if (includeRelationships) {
-      c4Model['relationships'] = _generateRelationshipsSection(relationships, elements);
+      c4Model['relationships'] =
+          _generateRelationshipsSection(relationships, elements);
     }
-    
+
     // Add styles
     if (includeStyles) {
       c4Model['styles'] = _generateStylesSection(elements);
     }
-    
+
     // Add deployment-specific metadata
     c4Model['environment'] = view.environment;
-    
+
     // Convert to the requested format
     return format == C4OutputFormat.json
         ? _convertToJson(c4Model)
@@ -565,7 +564,7 @@ class C4Exporter implements DiagramExporter<String> {
     List<Relationship> relationships,
   ) {
     final Map<String, dynamic> c4Model = {};
-    
+
     // Add metadata
     if (includeMetadata) {
       c4Model['type'] = 'Generic';
@@ -573,20 +572,21 @@ class C4Exporter implements DiagramExporter<String> {
       c4Model['viewKey'] = view.key;
       c4Model['title'] = view.title ?? view.key;
     }
-    
+
     // Add elements
     c4Model['elements'] = _generateElementsSection(elements, view);
-    
+
     // Add relationships
     if (includeRelationships) {
-      c4Model['relationships'] = _generateRelationshipsSection(relationships, elements);
+      c4Model['relationships'] =
+          _generateRelationshipsSection(relationships, elements);
     }
-    
+
     // Add styles
     if (includeStyles) {
       c4Model['styles'] = _generateStylesSection(elements);
     }
-    
+
     // Convert to the requested format
     return format == C4OutputFormat.json
         ? _convertToJson(c4Model)
@@ -594,19 +594,20 @@ class C4Exporter implements DiagramExporter<String> {
   }
 
   /// Generates the elements section for a C4 model
-  List<Map<String, dynamic>> _generateElementsSection(List<Element> elements, View view) {
+  List<Map<String, dynamic>> _generateElementsSection(
+      List<Element> elements, View view) {
     final result = <Map<String, dynamic>>[];
-    
+
     for (final element in elements) {
       final elementMap = <String, dynamic>{
         'id': element.id,
         'name': element.name,
       };
-      
+
       if (element.description != null && element.description!.isNotEmpty) {
         elementMap['description'] = element.description;
       }
-      
+
       // Add element-type specific attributes
       if (element is Person) {
         elementMap['type'] = 'person';
@@ -617,55 +618,75 @@ class C4Exporter implements DiagramExporter<String> {
       } else if (element is Container) {
         elementMap['type'] = 'container';
         elementMap['parent'] = element.parentId;
-        if (element.technology != null && element.technology!.isNotEmpty) {
-          elementMap['technology'] = element.technology;
+        if ((element as Container).technology != null &&
+            (element as Container).technology!.isNotEmpty) {
+          elementMap['technology'] = (element as Container).technology;
         }
       } else if (element is Component) {
         elementMap['type'] = 'component';
         elementMap['parent'] = element.parentId;
-        if (element.technology != null && element.technology!.isNotEmpty) {
-          elementMap['technology'] = element.technology;
+        if ((element as Component).technology != null &&
+            (element as Component).technology!.isNotEmpty) {
+          elementMap['technology'] = (element as Component).technology;
         }
       } else if (element is DeploymentNode) {
         elementMap['type'] = 'deploymentNode';
-        elementMap['environment'] = element.environment;
-        if (element.technology != null && element.technology!.isNotEmpty) {
-          elementMap['technology'] = element.technology;
+        elementMap['environment'] = (element as dynamic).environment ?? '';
+        if ((element as dynamic).technology != null &&
+            (element as dynamic).technology != '') {
+          elementMap['technology'] = (element as dynamic).technology;
         }
-        
         // Add infrastructure nodes if any
-        if (element.infrastructureNodes.isNotEmpty) {
-          elementMap['infrastructureNodes'] = element.infrastructureNodes.map((node) => {
-            'id': node.id,
-            'name': node.name,
-            'description': node.description,
-            'technology': node.technology,
+        if ((element as dynamic).infrastructureNodes != null &&
+            (element as dynamic).infrastructureNodes.isNotEmpty) {
+          elementMap['infrastructureNodes'] =
+              (element as dynamic).infrastructureNodes.map((node) {
+            final tech = (node as dynamic).technology;
+            if (tech is String && tech.isNotEmpty) {
+              return {
+                'id': node.id,
+                'name': node.name,
+                'description': node.description,
+                'technology': tech,
+              };
+            } else {
+              return {
+                'id': node.id,
+                'name': node.name,
+                'description': node.description,
+              };
+            }
           }).toList();
         }
-        
         // Add container instances if any
-        if (element.containerInstances.isNotEmpty) {
-          elementMap['containerInstances'] = element.containerInstances.map((instance) => {
-            'id': instance.id,
-            'containerId': instance.containerId,
-          }).toList();
+        if ((element as dynamic).containerInstances != null &&
+            (element as dynamic).containerInstances.isNotEmpty) {
+          elementMap['containerInstances'] = (element as dynamic)
+              .containerInstances
+              .map((instance) => {
+                    'id': instance.id,
+                    'containerId': instance.containerId,
+                  })
+              .toList();
         }
       }
-      
+
       // Add layout-specific information from view
       final elementView = view.elements.firstWhere(
         (e) => e.id == element.id,
-        orElse: () => ElementView(id: ''),
+        orElse: () => const ElementView(id: ''),
       );
-      
-      if (elementView.id.isNotEmpty && elementView.x != null && elementView.y != null) {
+
+      if (elementView.id.isNotEmpty &&
+          elementView.x != null &&
+          elementView.y != null) {
         elementMap['x'] = elementView.x;
         elementMap['y'] = elementView.y;
       }
-      
+
       result.add(elementMap);
     }
-    
+
     return result;
   }
 
@@ -675,29 +696,30 @@ class C4Exporter implements DiagramExporter<String> {
     List<Element> elements,
   ) {
     final result = <Map<String, dynamic>>[];
-    
+
     for (final relationship in relationships) {
       final relationshipMap = <String, dynamic>{
         'id': relationship.id,
         'source': relationship.sourceId,
         'destination': relationship.destinationId,
       };
-      
-      if (relationship.description != null && relationship.description!.isNotEmpty) {
+
+      if (relationship.description.isNotEmpty) {
         relationshipMap['description'] = relationship.description;
       }
-      
-      if (relationship.technology != null && relationship.technology!.isNotEmpty) {
+
+      if (relationship.technology != null &&
+          relationship.technology!.isNotEmpty) {
         relationshipMap['technology'] = relationship.technology;
       }
-      
+
       // The relationship order is not available in this implementation
       // But we'll keep it in the generated JSON/YAML for compatibility
       relationshipMap['order'] = 1;
-      
+
       result.add(relationshipMap);
     }
-    
+
     return result;
   }
 
@@ -740,11 +762,11 @@ class C4Exporter implements DiagramExporter<String> {
         },
       },
     };
-    
+
     // Add element-specific styles (enhanced mode only)
     if (style == C4DiagramStyle.enhanced) {
       final elementStyles = <Map<String, dynamic>>[];
-      
+
       for (final element in elements) {
         // Add custom styles based on element properties
         // This would be more sophisticated in a real implementation
@@ -756,43 +778,43 @@ class C4Exporter implements DiagramExporter<String> {
           });
         }
       }
-      
+
       if (elementStyles.isNotEmpty) {
         styles['customStyles'] = elementStyles;
       }
     }
-    
+
     return styles;
   }
-  
+
   /// Converts a Map to a JSON string
   String _convertToJson(Map<String, dynamic> model) {
     // In a real implementation, use json.encode with proper indentation
     // This is a placeholder for a prettier JSON format
     StringBuffer buffer = StringBuffer();
     buffer.writeln('{');
-    
+
     final entries = model.entries.toList();
     for (int i = 0; i < entries.length; i++) {
       final entry = entries[i];
       buffer.write('  "${entry.key}": ');
       _writeJsonValue(buffer, entry.value, indent: 2);
-      
+
       if (i < entries.length - 1) {
         buffer.writeln(',');
       } else {
         buffer.writeln();
       }
     }
-    
+
     buffer.writeln('}');
     return buffer.toString();
   }
-  
+
   /// Helper function to write a JSON value with proper indentation
   void _writeJsonValue(StringBuffer buffer, dynamic value, {int indent = 0}) {
     final indentStr = ' ' * indent;
-    
+
     if (value is String) {
       buffer.write('"${_escapeJsonString(value)}"');
     } else if (value is num || value is bool || value == null) {
@@ -835,7 +857,7 @@ class C4Exporter implements DiagramExporter<String> {
       buffer.write('"$value"');
     }
   }
-  
+
   /// Escapes a string for JSON
   String _escapeJsonString(String s) {
     return s
@@ -845,26 +867,26 @@ class C4Exporter implements DiagramExporter<String> {
         .replaceAll('\r', '\\r')
         .replaceAll('\t', '\\t');
   }
-  
+
   /// Converts a Map to a YAML string
   String _convertToYaml(Map<String, dynamic> model) {
     // In a real implementation, use a YAML library
     // This is a placeholder for a basic YAML format
     StringBuffer buffer = StringBuffer();
-    
+
     for (final entry in model.entries) {
       buffer.write('${entry.key}: ');
       _writeYamlValue(buffer, entry.value);
       buffer.writeln();
     }
-    
+
     return buffer.toString();
   }
-  
+
   /// Helper function to write a YAML value with proper indentation
   void _writeYamlValue(StringBuffer buffer, dynamic value, {int indent = 0}) {
     final indentStr = ' ' * indent;
-    
+
     if (value is String) {
       // Quote strings that contain special characters
       if (_needsQuoting(value)) {
@@ -900,14 +922,16 @@ class C4Exporter implements DiagramExporter<String> {
       buffer.write('$value');
     }
   }
-  
+
   /// Checks if a string needs to be quoted in YAML
   bool _needsQuoting(String s) {
     final specialChars = RegExp(r'[:\{\}\[\],&\*#\?|\-<>=!%@`]');
     final numericStart = RegExp(r'^[\d\-]');
-    return specialChars.hasMatch(s) || numericStart.hasMatch(s) || s.contains('\n');
+    return specialChars.hasMatch(s) ||
+        numericStart.hasMatch(s) ||
+        s.contains('\n');
   }
-  
+
   /// Escapes a string for YAML
   String _escapeYamlString(String s) {
     return s

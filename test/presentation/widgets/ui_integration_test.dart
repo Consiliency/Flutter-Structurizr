@@ -1,37 +1,42 @@
 import 'package:flutter/material.dart' hide Element, Container, View;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_structurizr/domain/model/element.dart';
-import 'package:flutter_structurizr/domain/model/workspace.dart';
-import 'package:flutter_structurizr/domain/view/view.dart';
+import 'package:flutter_structurizr/domain/model/workspace.dart'
+    as structurizr_model;
 import 'package:flutter_structurizr/presentation/widgets/diagram/structurizr_diagram.dart';
 import 'package:flutter_structurizr/presentation/widgets/diagram/animation_controls.dart';
 import 'package:flutter_structurizr/presentation/widgets/diagram_controls.dart';
 import 'package:flutter_structurizr/presentation/widgets/element_explorer.dart';
+import 'package:flutter_structurizr/domain/model/model.dart'
+    as structurizr_model;
+import 'package:flutter_structurizr/domain/model/container.dart'
+    as structurizr_model;
+import 'package:flutter_structurizr/domain/view/model_view.dart'
+    as structurizr_model;
 
 void main() {
   group('UI Components Integration', () {
     // Create a test workspace with sample elements
-    final person = Person.create(
+    final person = structurizr_model.Person.create(
       name: 'User',
       description: 'A user of the system',
       tags: ['External'],
     );
 
-    final system = SoftwareSystem.create(
+    final system = structurizr_model.SoftwareSystem.create(
       name: 'Software System',
       description: 'Main system',
       tags: ['Internal'],
     );
 
     // Create the containers
-    final api = Container.create(
+    final api = structurizr_model.Container.create(
       name: 'API Container',
       parentId: system.id,
       description: 'API for the system',
       tags: ['Container'],
     );
 
-    final database = Container.create(
+    final database = structurizr_model.Container.create(
       name: 'Database',
       parentId: system.id,
       description: 'Database for the system',
@@ -44,11 +49,11 @@ void main() {
     );
 
     // Create workspace with the model
-    final workspace = Workspace(
+    final workspace = structurizr_model.Workspace(
       id: 42,
       name: 'Test Workspace',
       description: 'Test workspace for UI integration',
-      model: Model(
+      model: structurizr_model.Model(
         people: [person],
         softwareSystems: [systemWithContainers],
       ),
@@ -66,7 +71,7 @@ void main() {
     );
 
     // Update model with elements that have relationships
-    final updatedModel = Model(
+    final updatedModel = structurizr_model.Model(
       people: [personWithRel],
       softwareSystems: [
         systemWithContainers.copyWith(
@@ -84,40 +89,46 @@ void main() {
     );
 
     // Sample view for testing
-    final view = ContainerView(
+    final view = structurizr_model.ContainerView(
       key: 'Containers',
       softwareSystemId: system.id,
       description: 'Container view of the system',
       elements: [
-        ElementView(id: person.id),
-        ElementView(id: system.id),
-        ElementView(id: api.id),
-        ElementView(id: database.id),
+        structurizr_model.ElementView(id: person.id),
+        structurizr_model.ElementView(id: system.id),
+        structurizr_model.ElementView(id: api.id),
+        structurizr_model.ElementView(id: database.id),
       ],
       relationships: [
-        RelationshipView(id: personWithRel.relationships.first.id),
-        RelationshipView(id: apiWithRel.relationships.first.id),
+        structurizr_model.RelationshipView(
+            id: personWithRel.relationships.first.id),
+        structurizr_model.RelationshipView(
+            id: apiWithRel.relationships.first.id),
       ],
       animations: [
-        AnimationStep(
+        structurizr_model.AnimationStep(
           order: 1,
           elements: [system.id],
           relationships: [],
         ),
-        AnimationStep(
+        structurizr_model.AnimationStep(
           order: 2,
           elements: [system.id, api.id],
           relationships: [personWithRel.relationships.first.id],
         ),
-        AnimationStep(
+        structurizr_model.AnimationStep(
           order: 3,
           elements: [system.id, api.id, database.id],
-          relationships: [personWithRel.relationships.first.id, apiWithRel.relationships.first.id],
+          relationships: [
+            personWithRel.relationships.first.id,
+            apiWithRel.relationships.first.id
+          ],
         ),
       ],
     );
 
-    testWidgets('integrates DiagramControls with StructurizrDiagram', (WidgetTester tester) async {
+    testWidgets('integrates DiagramControls with StructurizrDiagram',
+        (WidgetTester tester) async {
       // Variables to track control actions
       bool zoomInCalled = false;
       bool zoomOutCalled = false;
@@ -193,7 +204,8 @@ void main() {
       expect(diagramKey.currentState, isNotNull);
     });
 
-    testWidgets('integrates AnimationControls with StructurizrDiagram', (WidgetTester tester) async {
+    testWidgets('integrates AnimationControls with StructurizrDiagram',
+        (WidgetTester tester) async {
       // Track the current animation step
       int currentStep = 0;
 
@@ -263,12 +275,14 @@ void main() {
       expect(find.text('Step 2 of 3'), findsOneWidget);
     });
 
-    testWidgets('integrates ElementExplorer with StructurizrDiagram', (WidgetTester tester) async {
+    testWidgets('integrates ElementExplorer with StructurizrDiagram',
+        (WidgetTester tester) async {
       // Skip this test for now as we need to fix the test data issues
       // Will need to reinstate this test when data creation is fixed
     }, skip: true);
 
-    testWidgets('ElementExplorer properly displays and filters elements', (WidgetTester tester) async {
+    testWidgets('ElementExplorer properly displays and filters elements',
+        (WidgetTester tester) async {
       String? selectedElementId;
 
       await tester.pumpWidget(
@@ -295,7 +309,7 @@ void main() {
       // With initiallyExpanded = true they should be visible
       expect(find.text('User'), findsOneWidget);
       expect(find.text('Software System'), findsOneWidget);
-      
+
       // Test search functionality
       await tester.enterText(find.byType(TextField), 'database');
       await tester.pumpAndSettle();
@@ -303,17 +317,18 @@ void main() {
       // Only Database should be visible now
       expect(find.text('Database'), findsOneWidget);
       expect(find.text('User'), findsNothing);
-      
+
       // Clear search
       await tester.enterText(find.byType(TextField), '');
       await tester.pumpAndSettle();
-      
+
       // All elements should be visible again since we have initiallyExpanded=true
       expect(find.text('User'), findsOneWidget);
       expect(find.text('Software System'), findsOneWidget);
     });
-    
-    testWidgets('AnimationControls basic functionality works', (WidgetTester tester) async {
+
+    testWidgets('AnimationControls basic functionality works',
+        (WidgetTester tester) async {
       int currentStep = 0;
 
       await tester.pumpWidget(

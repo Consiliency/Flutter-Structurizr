@@ -14,6 +14,7 @@
    - Analyze requirements, dependencies, and implementation approach
    - Create a detailed task breakdown of remaining implementation work
    - Review original Structurizr code mentioned in specs to understand expected functionality
+   - Check for recent best practices and lessons learned in CLAUDE.md before starting implementation
 
 ## Implementation Strategy
 
@@ -22,8 +23,9 @@
    - Break down complex tasks into manageable components
    - Ensure compatibility with already implemented phases
    - Consider potential name conflicts with Flutter built-ins
+   - Coordinate with the latest modular parser refactor and alias/type usage guidelines
    - Reference the `ai_doc/` directory for specific framework and library documentation
-   - Use Web Fetch, Web Search, and Fetch tools to find examples and documentation if nit in `/ai_docs`
+   - Use Web Fetch, Web Search, and Fetch tools to find examples and documentation if not in `/ai_docs`
      - Compile new documentation that you find into a library specific markdown file and save it in `/ai_docs` for future reference
 
 2. Implementation execution: Think Hard
@@ -31,9 +33,11 @@
    - Follow clean architecture principles
    - Implement all remaining tasks from the phase specification
    - Ensure code quality meets project standards
+   - After each major implementation step, run flutter analyze and flutter test to catch issues early
    - Resolve any compilation errors immediately
    - Follow existing code patterns and naming conventions
    - Handle name conflicts with Flutter built-ins as described in CLAUDE.md
+   - Document any new best practices or lessons learned during implementation for later inclusion in CLAUDE.md or specs
 
 3. Use parallel processing with Agent/Task/Batch tools:
    - Launch multiple agents for different implementation tasks

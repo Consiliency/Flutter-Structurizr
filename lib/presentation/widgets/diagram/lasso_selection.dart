@@ -2,8 +2,6 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart' hide Element, Container, View;
-import 'package:flutter_structurizr/domain/model/element.dart';
-import 'package:flutter_structurizr/domain/model/relationship.dart';
 
 /// A utility class for implementing lasso selection in a diagram
 class LassoSelection {

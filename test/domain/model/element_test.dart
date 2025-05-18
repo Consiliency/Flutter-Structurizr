@@ -21,7 +21,7 @@ void main() {
     });
 
     test('creates an element with all properties', () {
-      final element = BasicElement(
+      const element = BasicElement(
         id: 'test-id',
         name: 'Test Element',
         description: 'A test element',
@@ -117,7 +117,8 @@ void main() {
       expect(updatedElement.relationships, hasLength(1));
       expect(updatedElement.relationships[0].sourceId, equals('source-id'));
       expect(updatedElement.relationships[0].destinationId, equals('dest-id'));
-      expect(updatedElement.relationships[0].description, equals('Test relationship'));
+      expect(updatedElement.relationships[0].description,
+          equals('Test relationship'));
     });
 
     test('gets relationships to a specific destination', () {

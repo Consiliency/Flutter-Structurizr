@@ -1,4 +1,6 @@
-import 'dart:ui';
+// REMOVE: import 'dart:ui';
+// typedef Color = String; // TODO: Replace with platform-specific color handling
+
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:flutter_structurizr/domain/style/styles.dart';
 
@@ -22,13 +24,13 @@ class BoundaryStyle with _$BoundaryStyle {
     @Default(Shape.roundedBox) Shape shape,
 
     /// Background color.
-    @ColorConverter() Color? background,
+    @ColorConverter() String? background,
 
     /// Text color.
-    @ColorConverter() Color? color,
+    @ColorConverter() String? color,
 
     /// Border color.
-    @ColorConverter() Color? stroke,
+    @ColorConverter() String? stroke,
 
     /// Border thickness (1-10px).
     int? strokeWidth,

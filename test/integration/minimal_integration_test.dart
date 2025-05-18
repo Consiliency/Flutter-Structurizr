@@ -7,13 +7,13 @@ void main() {
   group('Minimal Integration Test', () {
     test('parser and mapper complete without errors', () {
       // Arrange
-      final source = '''
+      const source = '''
         workspace "Test" {
           model {
           }
         }
       ''';
-      
+
       final errorReporter = ErrorReporter(source);
       final parser = Parser(source);
       final mapper = WorkspaceMapper(source, errorReporter);

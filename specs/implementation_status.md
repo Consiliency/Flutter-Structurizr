@@ -345,3 +345,32 @@ All major formats, batch export, dialogs, preview, and documentation/ADR export 
   - Cross-platform enhancements (mobile/desktop optimizations)
   - Advanced testing (golden images, performance, accessibility)
 - See the implementation plan for detailed tasks, technical approach, and references.
+
+## Modular Parser and Method Relationships
+
+The parser and model-building pipeline is now fully modularized. The following method relationship tables define the build order and dependencies for all parser/model components (see also the main implementation spec):
+
+- Token/ContextStack/Node Foundation
+- Model Node/Group/Enterprise/Element Foundation
+- IncludeParser Methods
+- ElementParser Methods
+- RelationshipParser Methods
+- ViewsParser Methods
+- ModelParser Methods
+- WorkspaceBuilderImpl & SystemContextViewParser Methods
+
+Each table groups methods that are tightly coupled and should be implemented/tested together. This structure is now reflected in the codebase and test suite.
+
+## 2024-06 Update: Batch Fixes and Stabilization
+
+- Major batch fixes completed for ambiguous imports, type mismatches, and widget layout errors in tests.
+- Parser, model, and widget tests are now stabilized and passing in most environments.
+- Modular parser refactor is in progress; all parser/model/view files now use explicit imports and type aliases to avoid conflicts with Flutter built-ins.
+- Widget layout errors in tests are resolved by removing top-level Expanded/Flexible or wrapping in SizedBox with explicit constraints.
+- All contributors should use `flutter test` for running tests.
+
+### Next Steps
+- Continue modular parser refactor, following the audit and handoff tables.
+- Complete integration of documentation and ADR components.
+- Expand test coverage for new parser interfaces and UI components.
+- Monitor for any remaining ambiguous import/type issues as refactor progresses.

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart' as flutter_md;
-import 'package:flutter_markdown/flutter_markdown.dart' show MarkdownElementBuilder, MarkdownStyleSheet;
+import 'package:flutter_markdown/flutter_markdown.dart'
+    show MarkdownElementBuilder, MarkdownStyleSheet;
 import 'package:markdown/markdown.dart' as md;
 
 /// Extension for task lists in Markdown
@@ -44,7 +45,7 @@ class TaskListSyntax extends md.BlockSyntax {
 
     final content = itemLines.join('\n');
     final taskItem = TaskListItem(bullet, checked, content);
-    
+
     return md.Element('task-list', [taskItem]);
   }
 }
@@ -76,7 +77,7 @@ class TaskListBuilder extends flutter_md.MarkdownElementBuilder {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: (element.children ?? [])
-            .map((child) => child is TaskListItem 
+            .map((child) => child is TaskListItem
                 ? _buildTaskItem(child, preferredStyle)
                 : const SizedBox.shrink())
             .toList(),
@@ -87,7 +88,7 @@ class TaskListBuilder extends flutter_md.MarkdownElementBuilder {
 
   Widget _buildTaskItem(TaskListItem item, TextStyle? style) {
     final checked = item.checked;
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2.0),
       child: Row(
@@ -99,9 +100,11 @@ class TaskListBuilder extends flutter_md.MarkdownElementBuilder {
             child: Checkbox(
               value: checked,
               onChanged: null, // Read-only checkbox
-              fillColor: MaterialStateProperty.resolveWith<Color>((states) {
+              fillColor: WidgetStateProperty.resolveWith<Color>((states) {
                 if (checked) {
-                  return isDarkMode ? Colors.blue.shade700 : Colors.blue.shade600;
+                  return isDarkMode
+                      ? Colors.blue.shade700
+                      : Colors.blue.shade600;
                 }
                 return isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200;
               }),
@@ -113,7 +116,7 @@ class TaskListBuilder extends flutter_md.MarkdownElementBuilder {
             child: DefaultTextStyle(
               style: (style ?? const TextStyle()).copyWith(
                 decoration: checked ? TextDecoration.lineThrough : null,
-                color: checked 
+                color: checked
                     ? (isDarkMode ? Colors.white54 : Colors.black54)
                     : (isDarkMode ? Colors.white : Colors.black87),
               ),
@@ -137,13 +140,13 @@ class EnhancedImageSyntax extends md.InlineSyntax {
   bool onMatch(md.InlineParser parser, Match match) {
     final alt = match[1] ?? '';
     final url = match[2] ?? '';
-    
+
     // Parse optional parameters if present
     final params = <String, String>{};
     if (match.groupCount >= 3 && match[3] != null) {
       final paramString = match[3]!;
       final paramPairs = paramString.split('&');
-      
+
       for (final pair in paramPairs) {
         final parts = pair.split('=');
         if (parts.length == 2) {
@@ -151,7 +154,7 @@ class EnhancedImageSyntax extends md.InlineSyntax {
         }
       }
     }
-    
+
     parser.addNode(EnhancedImageElement(alt, url, params));
     return true;
   }
@@ -163,10 +166,11 @@ class EnhancedImageElement extends md.Element {
   final String url;
   final Map<String, String> params;
 
-  EnhancedImageElement(this.alt, this.url, this.params) : super('enhanced-image', []) {
+  EnhancedImageElement(this.alt, this.url, this.params)
+      : super('enhanced-image', []) {
     attributes['alt'] = alt;
     attributes['src'] = url;
-    
+
     // Store parameters as attributes
     params.forEach((key, value) {
       attributes[key] = value;
@@ -174,19 +178,23 @@ class EnhancedImageElement extends md.Element {
   }
 
   /// Gets the width of the image, defaults to null (auto)
-  double? get width => params.containsKey('width') ? double.tryParse(params['width']!) : null;
-  
+  double? get width =>
+      params.containsKey('width') ? double.tryParse(params['width']!) : null;
+
   /// Gets the height of the image, defaults to null (auto)
-  double? get height => params.containsKey('height') ? double.tryParse(params['height']!) : null;
-  
+  double? get height =>
+      params.containsKey('height') ? double.tryParse(params['height']!) : null;
+
   /// Gets the caption for the image, if any
   String? get caption => params['caption'];
-  
+
   /// Gets the alignment for the image, defaults to center
   String get alignment => params['align'] ?? 'center';
-  
+
   /// Gets the border radius for the image, defaults to 0
-  double get borderRadius => params.containsKey('radius') ? double.tryParse(params['radius']!) ?? 0 : 0;
+  double get borderRadius => params.containsKey('radius')
+      ? double.tryParse(params['radius']!) ?? 0
+      : 0;
 }
 
 /// Builder for rendering enhanced images
@@ -214,10 +222,10 @@ class EnhancedImageBuilder extends flutter_md.MarkdownElementBuilder {
     final caption = element.caption;
     final alignment = _parseAlignment(element.alignment);
     final borderRadius = element.borderRadius;
-    
+
     // Get or create image provider
     final imageProvider = _getImageProvider(src);
-    
+
     // Create the image widget
     final imageWidget = ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
@@ -239,13 +247,17 @@ class EnhancedImageBuilder extends flutter_md.MarkdownElementBuilder {
                   Icon(
                     Icons.broken_image,
                     size: 48,
-                    color: isDarkMode ? Colors.grey.shade600 : Colors.grey.shade400,
+                    color: isDarkMode
+                        ? Colors.grey.shade600
+                        : Colors.grey.shade400,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Failed to load image',
                     style: TextStyle(
-                      color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700,
+                      color: isDarkMode
+                          ? Colors.grey.shade400
+                          : Colors.grey.shade700,
                     ),
                   ),
                   if (alt.isNotEmpty) ...[
@@ -255,7 +267,9 @@ class EnhancedImageBuilder extends flutter_md.MarkdownElementBuilder {
                       style: TextStyle(
                         fontStyle: FontStyle.italic,
                         fontSize: 12,
-                        color: isDarkMode ? Colors.grey.shade500 : Colors.grey.shade600,
+                        color: isDarkMode
+                            ? Colors.grey.shade500
+                            : Colors.grey.shade600,
                       ),
                     ),
                   ],
@@ -275,8 +289,8 @@ class EnhancedImageBuilder extends flutter_md.MarkdownElementBuilder {
             child: Center(
               child: CircularProgressIndicator(
                 value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded / 
-                      loadingProgress.expectedTotalBytes!
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
                     : null,
                 color: isDarkMode ? Colors.blue.shade300 : Colors.blue,
               ),
@@ -285,7 +299,7 @@ class EnhancedImageBuilder extends flutter_md.MarkdownElementBuilder {
         },
       ),
     );
-    
+
     // Wrap with caption if provided
     if (caption != null) {
       return Column(
@@ -308,7 +322,7 @@ class EnhancedImageBuilder extends flutter_md.MarkdownElementBuilder {
         ],
       );
     }
-    
+
     return Align(
       alignment: alignment,
       child: imageWidget,
@@ -319,7 +333,7 @@ class EnhancedImageBuilder extends flutter_md.MarkdownElementBuilder {
     if (enableCaching && _imageCache.containsKey(src)) {
       return _imageCache[src]!;
     }
-    
+
     ImageProvider provider;
     if (src.startsWith('http://') || src.startsWith('https://')) {
       provider = NetworkImage(src);
@@ -330,11 +344,11 @@ class EnhancedImageBuilder extends flutter_md.MarkdownElementBuilder {
       // Assume it's a file path
       provider = AssetImage(src);
     }
-    
+
     if (enableCaching) {
       _imageCache[src] = provider;
     }
-    
+
     return provider;
   }
 
@@ -381,7 +395,9 @@ class EnhancedTableBuilder extends MarkdownElementBuilder {
             ));
           }
         }
-        if (row.children!.isNotEmpty && row.children!.first is md.Element && (row.children!.first as md.Element).tag == 'th') {
+        if (row.children!.isNotEmpty &&
+            row.children!.first is md.Element &&
+            (row.children!.first as md.Element).tag == 'th') {
           headerCells = cells;
         } else {
           rows.add(cells);
@@ -405,9 +421,10 @@ class EnhancedTableBuilder extends MarkdownElementBuilder {
             if (headerCells != null)
               TableRow(
                 decoration: BoxDecoration(
-                  color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade100,
+                  color:
+                      isDarkMode ? Colors.grey.shade800 : Colors.grey.shade100,
                 ),
-                children: headerCells!,
+                children: headerCells,
               ),
             ...rows.asMap().entries.map((entry) {
               final index = entry.key;
@@ -416,7 +433,9 @@ class EnhancedTableBuilder extends MarkdownElementBuilder {
                 decoration: BoxDecoration(
                   color: index % 2 == 0
                       ? (isDarkMode ? Colors.grey.shade900 : Colors.white)
-                      : (isDarkMode ? Colors.grey.shade800 : Colors.grey.shade50),
+                      : (isDarkMode
+                          ? Colors.grey.shade800
+                          : Colors.grey.shade50),
                 ),
                 children: rowCells,
               );
@@ -455,21 +474,21 @@ class MetadataBlockSyntax extends md.BlockSyntax {
   md.Node parse(md.BlockParser parser) {
     // Skip the opening '---'
     parser.advance();
-    
+
     final metadata = <String, String>{};
     final lines = <String>[];
-    
+
     // Parse metadata lines until we hit the closing '---'
     while (!parser.isDone) {
       final line = parser.current.content;
-      
+
       if (_endPattern.hasMatch(line)) {
         parser.advance();
         break;
       }
-      
+
       lines.add(line);
-      
+
       // Parse key: value
       final match = RegExp(r'^([^:]+):\s*(.*)$').firstMatch(line);
       if (match != null) {
@@ -477,10 +496,10 @@ class MetadataBlockSyntax extends md.BlockSyntax {
         final value = match.group(2)!.trim();
         metadata[key] = value;
       }
-      
+
       parser.advance();
     }
-    
+
     return MetadataElement(metadata, lines.join('\n'));
   }
 }
@@ -511,7 +530,7 @@ class MetadataBuilder extends flutter_md.MarkdownElementBuilder {
   Widget? visitElementAfter(md.Element element, TextStyle? preferredStyle) {
     if (element is MetadataElement) {
       if (!visible) return const SizedBox.shrink();
-      
+
       return Container(
         margin: const EdgeInsets.only(bottom: 24.0),
         padding: const EdgeInsets.all(16.0),
@@ -548,7 +567,9 @@ class MetadataBuilder extends flutter_md.MarkdownElementBuilder {
                         entry.key,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700,
+                          color: isDarkMode
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade700,
                         ),
                       ),
                     ),
@@ -603,7 +624,7 @@ class KeyboardShortcutBuilder extends flutter_md.MarkdownElementBuilder {
   Widget? visitElementAfter(md.Element element, TextStyle? preferredStyle) {
     if (element.tag == 'kbd') {
       final key = element.attributes['key'] ?? '';
-      
+
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
         margin: const EdgeInsets.symmetric(horizontal: 2.0),
@@ -615,9 +636,9 @@ class KeyboardShortcutBuilder extends flutter_md.MarkdownElementBuilder {
           ),
           boxShadow: [
             BoxShadow(
-              color: isDarkMode 
-                  ? Colors.black.withOpacity(0.3) 
-                  : Colors.black.withOpacity(0.1),
+              color: isDarkMode
+                  ? Colors.black.withValues(alpha: 0.3)
+                  : Colors.black.withValues(alpha: 0.1),
               offset: const Offset(0, 1),
               blurRadius: 1.0,
             ),

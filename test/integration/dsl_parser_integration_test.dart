@@ -1,19 +1,16 @@
 import 'package:flutter_structurizr/application/dsl/workspace_mapper.dart';
-import 'package:flutter_structurizr/domain/model/element.dart' hide Container, Element;
-import 'package:flutter_structurizr/domain/model/workspace.dart';
 import 'package:flutter_structurizr/domain/model/model.dart';
 import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 import 'package:flutter_structurizr/domain/parser/lexer/lexer.dart';
 import 'package:flutter_structurizr/domain/parser/parser.dart';
 import 'package:flutter_structurizr/domain/style/styles.dart';
-import 'package:flutter_structurizr/domain/view/view.dart' as view;
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('DSL Parser Integration', () {
     test('parses a simple workspace with model elements', () {
       // Arrange
-      final source = '''
+      const source = '''
         workspace "Banking System" "This is a model of my banking system." {
           model {
             customer = person "Customer" "A customer of the bank."
@@ -67,7 +64,7 @@ void main() {
 
     test('parses a workspace with container and component elements', () {
       // Arrange
-      final source = '''
+      const source = '''
         workspace "Banking System" {
           model {
             customer = person "Customer"
@@ -148,7 +145,7 @@ void main() {
 
     test('parses a workspace with views', () {
       // Arrange
-      final source = '''
+      const source = '''
         workspace "Banking System" {
           model {
             customer = person "Customer"
@@ -215,7 +212,7 @@ void main() {
 
     test('reports semantic errors', () {
       // Arrange
-      final source = '''
+      const source = '''
         workspace "Banking System" {
           model {
             customer = person "Customer"
@@ -242,7 +239,7 @@ void main() {
 
     test('handles syntax errors during parsing', () {
       // Arrange
-      final source = '''
+      const source = '''
         workspace "Banking System" {
           model {
             customer = person "Customer" "A customer of the bank."
@@ -273,7 +270,7 @@ void main() {
 
     test('handles lexical errors during tokenization', () {
       // Arrange
-      final source = '''
+      const source = '''
         workspace "Banking System" {
           model {
             // Invalid character sequence
@@ -298,7 +295,7 @@ void main() {
 
     test('full C4 model with all element types', () {
       // Arrange
-      final source = '''
+      const source = '''
         workspace "Big Bank plc" "This is an example workspace for Big Bank plc" {
           
           !identifiers hierarchical
@@ -504,7 +501,7 @@ void main() {
 
     test('parses styles, themes, branding and terminology', () {
       // Arrange
-      final source = '''
+      const source = '''
         workspace "Styled System" "A system with custom styles and branding" {
           model {
             user = person "User" "A user of the system"
@@ -583,25 +580,25 @@ void main() {
 
       // Check styles
       expect(nonNullWorkspace.styles, isNotNull);
-      final styles = nonNullWorkspace.styles!;
+      final styles = nonNullWorkspace.styles;
       expect(styles.elements.length, equals(2));
       expect(styles.relationships.length, equals(1));
       expect(styles.themes.length, equals(1));
 
-      final personStyle = nonNullWorkspace.styles!.elements.firstWhere((e) => e.tag == 'Person');
+      final personStyle = nonNullWorkspace.styles.elements.firstWhere((e) => e.tag == 'Person');
       expect(personStyle.shape, equals(Shape.person));
       expect(personStyle.fontSize, equals(22));
       expect(personStyle.border, equals(Border.dashed));
       expect(personStyle.opacity, equals(90));
 
-      final relationshipStyle = nonNullWorkspace.styles!.relationships.first;
+      final relationshipStyle = nonNullWorkspace.styles.relationships.first;
       expect(relationshipStyle.tag, equals('Relationship'));
       expect(relationshipStyle.thickness, equals(2));
       expect(relationshipStyle.style, equals(LineStyle.dashed));
       expect(relationshipStyle.routing, equals(StyleRouting.orthogonal));
 
       // Check themes
-      expect(nonNullWorkspace.styles!.themes.first, equals('https://structurizr.com/themes/default'));
+      expect(nonNullWorkspace.styles.themes.first, equals('https://structurizr.com/themes/default'));
 
       // Check branding
       expect(nonNullWorkspace.branding, isNotNull);

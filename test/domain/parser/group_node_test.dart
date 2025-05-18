@@ -1,6 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_structurizr/domain/parser/ast/ast_base.dart';
-import 'package:flutter_structurizr/domain/parser/ast/nodes/model_node.dart';
 import 'package:flutter_structurizr/domain/parser/ast/nodes/model_element_node.dart';
 import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 
@@ -14,7 +12,7 @@ void main() {
         elements: [],
         children: [],
         relationships: [],
-        sourcePosition: SourcePosition(0, 0),
+        sourcePosition: const SourcePosition(0, 0),
       );
     });
     
@@ -24,7 +22,7 @@ void main() {
         name: 'User',
         description: 'A user of the system',
         relationships: [],
-        sourcePosition: SourcePosition(0, 0),
+        sourcePosition: const SourcePosition(0, 0),
       );
       
       final updatedGroup = groupNode.addElement(personNode);

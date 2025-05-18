@@ -458,3 +458,7 @@ During the implementation of Phase 3, several best practices were identified:
 - Original Structurizr UI code: `/ui/src/js/structurizr-ui.js`
 - Flutter widget documentation
 - Test files in `/test/presentation/widgets/`
+
+## Method Relationship Table Reference
+
+See the main implementation spec for the method relationship tables and build order. All UI and interaction methods are implemented in accordance with the modular parser/model structure.

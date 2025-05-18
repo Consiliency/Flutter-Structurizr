@@ -15,12 +15,12 @@ void main() {
       // Set up test documentation
       documentation = Documentation(
         sections: [
-          DocumentationSection(
+          const DocumentationSection(
             title: 'Getting Started',
             content: 'This is a guide to getting started with the application.',
             order: 1,
           ),
-          DocumentationSection(
+          const DocumentationSection(
             title: 'Advanced Features',
             content: 'These are the advanced features of the application. '
                 'Some features require configuration.',
@@ -132,34 +132,37 @@ void main() {
       expect(controller.isSearching, false);
     });
   });
-  
+
   group('Enhanced Documentation Search', () {
     late DocumentationSearchIndex searchIndex;
     late Workspace workspace;
-    
+
     setUp(() {
       // Create a test workspace with documentation
       final documentation = Documentation(
         sections: [
-          DocumentationSection(
+          const DocumentationSection(
             title: 'Introduction',
-            content: 'This is the introduction to the project. It provides an overview of the system architecture.',
+            content:
+                'This is the introduction to the project. It provides an overview of the system architecture.',
             metadata: {
               'author': 'John Doe',
               'date': '2023-05-20',
             },
           ),
-          DocumentationSection(
+          const DocumentationSection(
             title: 'Architecture',
-            content: 'The architecture follows a clean architecture approach with domain-driven design.',
+            content:
+                'The architecture follows a clean architecture approach with domain-driven design.',
             metadata: {
               'author': 'Jane Smith',
               'date': '2023-05-21',
             },
           ),
-          DocumentationSection(
+          const DocumentationSection(
             title: 'Components',
-            content: 'The system consists of multiple components including the backend API and frontend UI.',
+            content:
+                'The system consists of multiple components including the backend API and frontend UI.',
             metadata: {
               'author': 'John Doe',
               'date': '2023-05-22',
@@ -172,93 +175,99 @@ void main() {
             title: 'Use Markdown for Documentation',
             status: 'Accepted',
             date: DateTime(2023, 5, 15),
-            content: 'We will use Markdown for documentation because it is simple and widely supported.',
+            content:
+                'We will use Markdown for documentation because it is simple and widely supported.',
           ),
           Decision(
             id: 'ADR-002',
             title: 'Database Technology Selection',
             status: 'Proposed',
             date: DateTime(2023, 5, 16),
-            content: 'We are considering PostgreSQL for the database due to its robust features and reliability.',
+            content:
+                'We are considering PostgreSQL for the database due to its robust features and reliability.',
           ),
           Decision(
             id: 'ADR-003',
             title: 'Frontend Framework',
             status: 'Rejected',
             date: DateTime(2023, 5, 17),
-            content: 'We considered using React but decided against it in favor of Flutter for cross-platform support.',
+            content:
+                'We considered using React but decided against it in favor of Flutter for cross-platform support.',
           ),
         ],
       );
-      
+
       workspace = Workspace(
         name: 'Test Workspace',
         documentation: documentation,
       );
-      
+
       searchIndex = DocumentationSearchIndex.fromWorkspace(workspace);
     });
-    
+
     test('indexWorkspace builds the search index correctly', () {
       expect(searchIndex.isBuilt, isTrue);
       expect(searchIndex.documentCount, equals(6)); // 3 sections + 3 decisions
     });
-    
+
     test('search returns results for basic query', () {
       final results = searchIndex.search('architecture');
-      
+
       expect(results, isNotEmpty);
       expect(results.any((result) => result.title == 'Architecture'), isTrue);
-      expect(results.any((result) => result.content.contains('architecture')), isTrue);
+      expect(results.any((result) => result.content.contains('architecture')),
+          isTrue);
     });
-    
+
     test('search returns empty list for empty query', () {
       final results = searchIndex.search('');
       expect(results, isEmpty);
     });
-    
+
     test('search prioritizes title matches over content matches', () {
       final results = searchIndex.search('architecture');
-      
+
       // The Architecture section should be ranked higher than sections that only
       // mention architecture in their content
-      final titleMatch = results.firstWhere((result) => result.title == 'Architecture');
-      final contentMatch = results.firstWhere((result) => 
-          result.title != 'Architecture' && result.content.contains('architecture'));
-      
+      final titleMatch =
+          results.firstWhere((result) => result.title == 'Architecture');
+      final contentMatch = results.firstWhere((result) =>
+          result.title != 'Architecture' &&
+          result.content.contains('architecture'));
+
       expect(titleMatch.relevance, greaterThan(contentMatch.relevance));
     });
-    
+
     test('search includes matched terms in results', () {
       final results = searchIndex.search('architecture');
-      
+
       expect(results, isNotEmpty);
       for (final result in results) {
         expect(result.matchedTerms, contains('architecture'));
       }
     });
-    
+
     test('search supports filtering by type', () {
       final results = searchIndex.search('type:decision');
-      
+
       expect(results, isNotEmpty);
       for (final result in results) {
         expect(result.type, equals('decision'));
       }
     });
-    
+
     test('search supports filtering by status', () {
       final results = searchIndex.search('status:accepted');
-      
+
       expect(results, isNotEmpty);
       for (final result in results) {
         expect(result.metadata['status']?.toLowerCase(), equals('accepted'));
       }
     });
-    
+
     test('search supports combined filtering and terms', () {
       final results = searchIndex.search('documentation type:decision');
-      
+
       expect(results, isNotEmpty);
       for (final result in results) {
         expect(result.type, equals('decision'));
@@ -274,12 +283,12 @@ void main() {
       // Set up test documentation
       documentation = Documentation(
         sections: [
-          DocumentationSection(
+          const DocumentationSection(
             title: 'Getting Started',
             content: 'This is a guide to getting started with the application.',
             order: 1,
           ),
-          DocumentationSection(
+          const DocumentationSection(
             title: 'Advanced Features',
             content: 'These are the advanced features of the application.',
             order: 2,
@@ -297,7 +306,8 @@ void main() {
       );
     });
 
-    testWidgets('renders search field and initial state', (WidgetTester tester) async {
+    testWidgets('renders search field and initial state',
+        (WidgetTester tester) async {
       // Act
       await tester.pumpWidget(
         MaterialApp(
@@ -335,7 +345,8 @@ void main() {
       // Enter search query
       await tester.enterText(find.byType(TextField), 'guide');
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300)); // Allow for async search
+      await tester
+          .pump(const Duration(milliseconds: 300)); // Allow for async search
 
       // Assert
       expect(find.text('Getting Started'), findsOneWidget);
@@ -362,13 +373,15 @@ void main() {
       // Enter search query that won't match anything
       await tester.enterText(find.byType(TextField), 'nonexistent');
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300)); // Allow for async search
+      await tester
+          .pump(const Duration(milliseconds: 300)); // Allow for async search
 
       // Assert
       expect(find.text('No results found for "nonexistent"'), findsOneWidget);
     });
 
-    testWidgets('clears search when clear button is tapped', (WidgetTester tester) async {
+    testWidgets('clears search when clear button is tapped',
+        (WidgetTester tester) async {
       // Arrange
       final controller = DocumentationSearchController();
       controller.setDocumentation(documentation);
@@ -401,7 +414,7 @@ void main() {
       expect(find.byType(ListTile), findsNothing);
     });
 
-    testWidgets('calls onSectionSelected when a section result is tapped', 
+    testWidgets('calls onSectionSelected when a section result is tapped',
         (WidgetTester tester) async {
       // Arrange
       int? selectedSectionIndex;
@@ -426,7 +439,8 @@ void main() {
       // Enter search query
       await tester.enterText(find.byType(TextField), 'guide');
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300)); // Allow for async search
+      await tester
+          .pump(const Duration(milliseconds: 300)); // Allow for async search
 
       // Tap on the result
       await tester.tap(find.text('Getting Started'));

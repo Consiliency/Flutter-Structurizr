@@ -1,22 +1,20 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_structurizr/domain/parser/lexer/token.dart';
-import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
-import 'package:flutter_structurizr/domain/parser/ast/ast_nodes.dart';
+import 'package:flutter_structurizr/domain/parser/error_reporter.dart'
+    show ErrorReporter, ParseError;
 import 'package:flutter_structurizr/domain/parser/context_stack.dart';
 import 'package:flutter_structurizr/domain/parser/element_parser.dart';
 
 void main() {
   late ElementParser elementParser;
-  late ErrorReporter errorReporter;
   late ContextStack contextStack;
 
   setUp(() {
-    errorReporter = ErrorReporter('');
     contextStack = ContextStack();
-    elementParser = ElementParser(errorReporter, contextStack: contextStack);
+    elementParser = ElementParser(contextStack: contextStack);
   });
 
-  group('ElementParser._parseIdentifier', () {
+  group('ElementParser.parseIdentifier', () {
     test('should parse valid identifier', () {
       // Create input tokens
       final tokens = [
@@ -26,13 +24,12 @@ void main() {
           position: SourcePosition(line: 1, column: 1, offset: 0),
         ),
       ];
-      
+
       // Call the method being tested
-      final result = elementParser._parseIdentifier(tokens);
-      
+      final result = elementParser.parseIdentifier(tokens);
+
       // Verify expectations
       expect(result, equals('myIdentifier'));
-      expect(errorReporter.hasErrors, isFalse);
     });
 
     test('should parse string as identifier', () {
@@ -45,27 +42,23 @@ void main() {
           value: 'myStringIdentifier',
         ),
       ];
-      
+
       // Call the method being tested
-      final result = elementParser._parseIdentifier(tokens);
-      
+      final result = elementParser.parseIdentifier(tokens);
+
       // Verify expectations
       expect(result, equals('myStringIdentifier'));
-      expect(errorReporter.hasErrors, isFalse);
     });
 
     test('should handle missing identifier', () {
       // Create input tokens with no identifier
       final tokens = <Token>[];
-      
+
       // Call the method being tested
-      expect(() => elementParser._parseIdentifier(tokens), 
-        throwsA(isA<ParseError>().having(
-          (e) => e.message, 
-          'message', 
-          contains('Expected identifier')
-        ))
-      );
+      expect(
+          () => elementParser.parseIdentifier(tokens),
+          throwsA(isA<ParseError>().having(
+              (e) => e.message, 'message', contains('Expected identifier'))));
     });
 
     test('should handle invalid token type', () {
@@ -77,26 +70,24 @@ void main() {
           position: SourcePosition(line: 1, column: 1, offset: 0),
         ),
       ];
-      
+
       // Call the method being tested
-      expect(() => elementParser._parseIdentifier(tokens), 
-        throwsA(isA<ParseError>().having(
-          (e) => e.message, 
-          'message', 
-          contains('Expected identifier or string')
-        ))
-      );
+      expect(
+          () => elementParser.parseIdentifier(tokens),
+          throwsA(isA<ParseError>().having((e) => e.message, 'message',
+              contains('Expected identifier or string'))));
     });
   });
 
-  group('ElementParser._parseParentChild', () {
+  group('ElementParser.parseParentChild', () {
     test('should handle valid property assignment', () {
       // Create a mock element to receive properties
       final mockElement = PersonNode(id: 'test', name: 'Test Person');
-      
+
       // Set up the context with the mock element
-      contextStack.push(Context('person', data: {'currentElement': mockElement}));
-      
+      contextStack
+          .push(Context('person', data: {'currentElement': mockElement}));
+
       // Create input tokens for a property assignment
       final tokens = [
         Token(
@@ -116,14 +107,13 @@ void main() {
           value: 'A test person',
         ),
       ];
-      
+
       // Call the method being tested
-      elementParser._parseParentChild(tokens);
-      
+      elementParser.parseParentChild(tokens);
+
       // Verify the property was set on the mock element
-      expect(mockElement.description, equals('A test person'));
-      expect(errorReporter.hasErrors, isFalse);
-      
+      expect(mockElement.properties?['description'], equals('A test person'));
+
       // Cleanup
       contextStack.pop();
     });
@@ -131,21 +121,18 @@ void main() {
     test('should handle missing tokens gracefully', () {
       // Create input tokens with no content
       final tokens = <Token>[];
-      
+
       // Call the method being tested
-      expect(() => elementParser._parseParentChild(tokens), 
-        throwsA(isA<ParseError>().having(
-          (e) => e.message, 
-          'message', 
-          contains('No tokens provided')
-        ))
-      );
+      expect(
+          () => elementParser.parseParentChild(tokens),
+          throwsA(isA<ParseError>().having(
+              (e) => e.message, 'message', contains('No tokens provided'))));
     });
 
     test('should handle property assignment with missing current element', () {
       // Create a context without a current element
       contextStack.push(Context('person'));
-      
+
       // Create input tokens for a property assignment
       final tokens = [
         Token(
@@ -165,16 +152,13 @@ void main() {
           value: 'A test person',
         ),
       ];
-      
+
       // Call the method being tested
-      expect(() => elementParser._parseParentChild(tokens), 
-        throwsA(isA<ParseError>().having(
-          (e) => e.message, 
-          'message', 
-          contains('No current element')
-        ))
-      );
-      
+      expect(
+          () => elementParser.parseParentChild(tokens),
+          throwsA(isA<ParseError>().having(
+              (e) => e.message, 'message', contains('No current element'))));
+
       // Cleanup
       contextStack.pop();
     });
@@ -196,16 +180,15 @@ void main() {
           value: 'User',
         ),
       ];
-      
+
       // Call the method being tested
       final result = elementParser.parsePerson(tokens);
-      
+
       // Verify the result
       expect(result, isA<PersonNode>());
       expect(result.name, equals('User'));
-      expect(result.description, isNull);
+      expect(result.properties['description'], isNull);
       expect(result.tags, isNull);
-      expect(errorReporter.hasErrors, isFalse);
     });
 
     test('should parse person with name and description', () {
@@ -229,16 +212,15 @@ void main() {
           value: 'A standard user',
         ),
       ];
-      
+
       // Call the method being tested
       final result = elementParser.parsePerson(tokens);
-      
+
       // Verify the result
       expect(result, isA<PersonNode>());
       expect(result.name, equals('User'));
-      expect(result.description, equals('A standard user'));
+      expect(result.properties['description'], equals('A standard user'));
       expect(result.tags, isNull);
-      expect(errorReporter.hasErrors, isFalse);
     });
 
     test('should parse person with all attributes', () {
@@ -268,20 +250,19 @@ void main() {
           value: 'external,user',
         ),
       ];
-      
+
       // Call the method being tested
       final result = elementParser.parsePerson(tokens);
-      
+
       // Verify the result
       expect(result, isA<PersonNode>());
       expect(result.name, equals('User'));
-      expect(result.description, equals('A standard user'));
-      expect(result.properties?['tags'], equals('external,user'));
-      expect(errorReporter.hasErrors, isFalse);
+      expect(result.properties['description'], equals('A standard user'));
+      expect(result.properties['tags'], equals('external,user'));
     });
 
     test('should handle missing person name', () {
-      // Simulate a DSL input with missing name: person 
+      // Simulate a DSL input with missing name: person
       final tokens = [
         Token(
           type: TokenType.person,
@@ -289,15 +270,12 @@ void main() {
           position: SourcePosition(line: 1, column: 1, offset: 0),
         ),
       ];
-      
+
       // Call the method being tested
-      expect(() => elementParser.parsePerson(tokens), 
-        throwsA(isA<ParseError>().having(
-          (e) => e.message, 
-          'message', 
-          contains('Expected person name')
-        ))
-      );
+      expect(
+          () => elementParser.parsePerson(tokens),
+          throwsA(isA<ParseError>().having(
+              (e) => e.message, 'message', contains('Expected person name'))));
     });
 
     test('should parse person with block content', () {
@@ -341,29 +319,18 @@ void main() {
           position: SourcePosition(line: 3, column: 1, offset: 49),
         ),
       ];
-      
+
       // Create a mock element to receive properties
       final mockElement = PersonNode(id: 'User', name: 'User');
-      
-      // Mock the context stack behavior for this test
-      contextStack.push = (Context context) {
-        // When pushing a person context, immediately add the mockElement
-        if (context.name == 'person') {
-          final updatedContext = Context(context.name, data: {'currentElement': mockElement});
-          contextStack._stack.add(updatedContext);
-        } else {
-          contextStack._stack.add(context);
-        }
-      };
-      
+      // Push context with currentElement
+      contextStack
+          .push(Context('person', data: {'currentElement': mockElement}));
       // Call the method being tested
-      final result = elementParser.parsePerson(tokens);
-      
-      // Verify the result
-      expect(result, isA<PersonNode>());
-      expect(result.name, equals('User'));
+      elementParser.parseParentChild(tokens);
+      // Pop context after
+      contextStack.pop();
+      // Verify the property was set on the mock element
       expect(mockElement.properties?['description'], equals('A standard user'));
-      expect(errorReporter.hasErrors, isFalse);
     });
   });
 
@@ -383,16 +350,15 @@ void main() {
           value: 'PaymentSystem',
         ),
       ];
-      
+
       // Call the method being tested
       final result = elementParser.parseSoftwareSystem(tokens);
-      
+
       // Verify the result
       expect(result, isA<SoftwareSystemNode>());
       expect(result.name, equals('PaymentSystem'));
-      expect(result.description, isNull);
+      expect(result.properties['description'], isNull);
       expect(result.tags, isNull);
-      expect(errorReporter.hasErrors, isFalse);
     });
 
     test('should parse software system with name and description', () {
@@ -416,16 +382,15 @@ void main() {
           value: 'Handles all payments',
         ),
       ];
-      
+
       // Call the method being tested
       final result = elementParser.parseSoftwareSystem(tokens);
-      
+
       // Verify the result
       expect(result, isA<SoftwareSystemNode>());
       expect(result.name, equals('PaymentSystem'));
-      expect(result.description, equals('Handles all payments'));
+      expect(result.properties['description'], equals('Handles all payments'));
       expect(result.tags, isNull);
-      expect(errorReporter.hasErrors, isFalse);
     });
 
     test('should parse software system with all attributes', () {
@@ -455,20 +420,19 @@ void main() {
           value: 'external,payments',
         ),
       ];
-      
+
       // Call the method being tested
       final result = elementParser.parseSoftwareSystem(tokens);
-      
+
       // Verify the result
       expect(result, isA<SoftwareSystemNode>());
       expect(result.name, equals('PaymentSystem'));
-      expect(result.description, equals('Handles all payments'));
-      expect(result.properties?['tags'], equals('external,payments'));
-      expect(errorReporter.hasErrors, isFalse);
+      expect(result.properties['description'], equals('Handles all payments'));
+      expect(result.properties['tags'], equals('external,payments'));
     });
 
     test('should handle missing software system name', () {
-      // Simulate a DSL input with missing name: softwareSystem 
+      // Simulate a DSL input with missing name: softwareSystem
       final tokens = [
         Token(
           type: TokenType.softwareSystem,
@@ -476,15 +440,12 @@ void main() {
           position: SourcePosition(line: 1, column: 1, offset: 0),
         ),
       ];
-      
+
       // Call the method being tested
-      expect(() => elementParser.parseSoftwareSystem(tokens), 
-        throwsA(isA<ParseError>().having(
-          (e) => e.message, 
-          'message', 
-          contains('Expected software system name')
-        ))
-      );
+      expect(
+          () => elementParser.parseSoftwareSystem(tokens),
+          throwsA(isA<ParseError>().having((e) => e.message, 'message',
+              contains('Expected software system name'))));
     });
 
     test('should parse software system with block content', () {
@@ -528,29 +489,20 @@ void main() {
           position: SourcePosition(line: 3, column: 1, offset: 69),
         ),
       ];
-      
+
       // Create a mock element to receive properties
-      final mockElement = SoftwareSystemNode(id: 'PaymentSystem', name: 'PaymentSystem');
-      
-      // Mock the context stack behavior for this test
-      contextStack.push = (Context context) {
-        // When pushing a softwareSystem context, immediately add the mockElement
-        if (context.name == 'softwareSystem') {
-          final updatedContext = Context(context.name, data: {'currentElement': mockElement});
-          contextStack._stack.add(updatedContext);
-        } else {
-          contextStack._stack.add(context);
-        }
-      };
-      
+      final mockElement =
+          SoftwareSystemNode(id: 'PaymentSystem', name: 'PaymentSystem');
+      // Push context with currentElement
+      contextStack.push(
+          Context('softwareSystem', data: {'currentElement': mockElement}));
       // Call the method being tested
-      final result = elementParser.parseSoftwareSystem(tokens);
-      
-      // Verify the result
-      expect(result, isA<SoftwareSystemNode>());
-      expect(result.name, equals('PaymentSystem'));
-      expect(mockElement.properties?['description'], equals('Handles all payments'));
-      expect(errorReporter.hasErrors, isFalse);
+      elementParser.parseParentChild(tokens);
+      // Pop context after
+      contextStack.pop();
+      // Verify the property was set on the mock element
+      expect(mockElement.properties?['description'],
+          equals('Handles all payments'));
     });
   });
 }

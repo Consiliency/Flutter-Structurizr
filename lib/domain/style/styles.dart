@@ -1,4 +1,5 @@
-import 'dart:ui';
+// REMOVE: import 'dart:ui';
+// typedef Color = String; // TODO: Replace with platform-specific color handling
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:flutter_structurizr/domain/model/element.dart';
 
@@ -6,14 +7,14 @@ part 'styles.freezed.dart';
 part 'styles.g.dart';
 
 /// Converts between a Color and a hex string
-class ColorConverter implements JsonConverter<Color?, String?> {
+class ColorConverter implements JsonConverter<String?, String?> {
   const ColorConverter();
 
   @override
-  Color? fromJson(String? json) => _colorFromJson(json);
+  String? fromJson(String? json) => _colorFromJson(json);
 
   @override
-  String? toJson(Color? object) => _colorToJson(object);
+  String? toJson(String? object) => _colorToJson(object);
 }
 
 /// Represents a collection of styles for elements and relationships.
@@ -152,13 +153,13 @@ class ElementStyle with _$ElementStyle {
     int? height,
 
     /// Background color.
-    @ColorConverter() Color? background,
+    @ColorConverter() String? background,
 
     /// Text color.
-    @ColorConverter() Color? color,
+    @ColorConverter() String? color,
 
     /// Border color.
-    @ColorConverter() Color? stroke,
+    @ColorConverter() String? stroke,
 
     /// Border thickness (1-10px).
     int? strokeWidth,
@@ -222,7 +223,7 @@ class RelationshipStyle with _$RelationshipStyle {
     @Default(1) int thickness,
 
     /// Line color.
-    @ColorConverter() Color? color,
+    @ColorConverter() String? color,
 
     /// Line style.
     @Default(LineStyle.solid) LineStyle style,
@@ -311,7 +312,7 @@ enum LabelPosition {
 
 // This is intentionally removed as we already have a ColorConverter class above
 
-Color? _colorFromJson(String? hexString) {
+String? _colorFromJson(String? hexString) {
   if (hexString == null) return null;
   
   // Remove any leading # character
@@ -322,20 +323,20 @@ Color? _colorFromJson(String? hexString) {
     final r = int.parse(hex.substring(0, 2), radix: 16);
     final g = int.parse(hex.substring(2, 4), radix: 16);
     final b = int.parse(hex.substring(4, 6), radix: 16);
-    return Color.fromARGB(255, r, g, b);
+    return '#${r.toRadixString(16).padLeft(2, '0')}${g.toRadixString(16).padLeft(2, '0')}${b.toRadixString(16).padLeft(2, '0')}';
   } else if (hex.length == 8) {
     final a = int.parse(hex.substring(0, 2), radix: 16);
     final r = int.parse(hex.substring(2, 4), radix: 16);
     final g = int.parse(hex.substring(4, 6), radix: 16);
     final b = int.parse(hex.substring(6, 8), radix: 16);
-    return Color.fromARGB(a, r, g, b);
+    return '#${a.toRadixString(16).padLeft(2, '0')}${r.toRadixString(16).padLeft(2, '0')}${g.toRadixString(16).padLeft(2, '0')}${b.toRadixString(16).padLeft(2, '0')}';
   }
   
   return null;
 }
 
-String? _colorToJson(Color? color) {
+String? _colorToJson(String? color) {
   if (color == null) return null;
   
-  return '#${color.value.toRadixString(16).padLeft(8, '0')}';
+  return color;
 }

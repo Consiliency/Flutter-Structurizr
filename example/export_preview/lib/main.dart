@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
@@ -29,7 +28,8 @@ class ExportPreviewExamplePage extends StatefulWidget {
   const ExportPreviewExamplePage({Key? key}) : super(key: key);
 
   @override
-  State<ExportPreviewExamplePage> createState() => _ExportPreviewExamplePageState();
+  State<ExportPreviewExamplePage> createState() =>
+      _ExportPreviewExamplePageState();
 }
 
 class _ExportPreviewExamplePageState extends State<ExportPreviewExamplePage> {
@@ -80,25 +80,29 @@ class SvgPreviewWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     // Extract SVG dimensions
     final widthMatch = RegExp(r'width="(\d+)"').firstMatch(svgContent);
     final heightMatch = RegExp(r'height="(\d+)"').firstMatch(svgContent);
-    
-    final width = widthMatch != null ? int.tryParse(widthMatch.group(1) ?? '400') ?? 400 : 400;
-    final height = heightMatch != null ? int.tryParse(heightMatch.group(1) ?? '300') ?? 300 : 300;
-    
+
+    final width = widthMatch != null
+        ? int.tryParse(widthMatch.group(1) ?? '400') ?? 400
+        : 400;
+    final height = heightMatch != null
+        ? int.tryParse(heightMatch.group(1) ?? '300') ?? 300
+        : 300;
+
     // Count elements in SVG
     final elementCount = _countElements(svgContent);
-    
+
     // SVG size in KB
     final svgSize = (svgContent.length / 1024).toStringAsFixed(1);
-    
+
     // Create a checkerboard pattern for transparent backgrounds
-    Widget backgroundWidget = transparentBackground 
-        ? const CheckerboardBackground() 
+    Widget backgroundWidget = transparentBackground
+        ? const CheckerboardBackground()
         : Container(color: Colors.white);
-        
+
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade300),
@@ -108,7 +112,7 @@ class SvgPreviewWidget extends StatelessWidget {
         children: [
           // Background layer
           Positioned.fill(child: backgroundWidget),
-          
+
           // SVG content layer (using mock for this example)
           Center(
             child: AspectRatio(
@@ -118,7 +122,7 @@ class SvgPreviewWidget extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Information overlay
           Positioned(
             bottom: 8,
@@ -126,9 +130,10 @@ class SvgPreviewWidget extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: theme.colorScheme.surface.withOpacity(0.8),
+                color: theme.colorScheme.surface.withValues(alpha: 0.8),
                 borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: theme.colorScheme.outline.withOpacity(0.5)),
+                border: Border.all(
+                    color: theme.colorScheme.outline.withValues(alpha: 0.5)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -154,7 +159,7 @@ class SvgPreviewWidget extends StatelessWidget {
       ),
     );
   }
-  
+
   int _countElements(String svg) {
     final regex = RegExp('<(?!\\/|\\?|!)[a-zA-Z][^>]*>');
     final matches = regex.allMatches(svg);
@@ -165,9 +170,9 @@ class SvgPreviewWidget extends StatelessWidget {
 // Checkerboard pattern for transparent backgrounds
 class CheckerboardBackground extends StatelessWidget {
   final int squareSize;
-  
+
   const CheckerboardBackground({
-    Key? key, 
+    Key? key,
     this.squareSize = 10,
   }) : super(key: key);
 
@@ -181,34 +186,34 @@ class CheckerboardBackground extends StatelessWidget {
 
 class CheckerboardPainter extends CustomPainter {
   final int squareSize;
-  
+
   CheckerboardPainter({required this.squareSize});
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = const Color(0xFFCCCCCC) // Light gray
       ..style = PaintingStyle.fill;
-      
+
     final darkPaint = Paint()
       ..color = const Color(0xFFFFFFFF) // White
       ..style = PaintingStyle.fill;
-    
+
     for (int y = 0; y < (size.height / squareSize).ceil(); y++) {
       for (int x = 0; x < (size.width / squareSize).ceil(); x++) {
         final isEven = (x + y) % 2 == 0;
         final rect = Rect.fromLTWH(
-          x * squareSize.toDouble(), 
-          y * squareSize.toDouble(), 
-          squareSize.toDouble(), 
+          x * squareSize.toDouble(),
+          y * squareSize.toDouble(),
+          squareSize.toDouble(),
           squareSize.toDouble(),
         );
-        
+
         canvas.drawRect(rect, isEven ? paint : darkPaint);
       }
     }
   }
-  
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
@@ -219,7 +224,7 @@ class PngPreviewWidget extends StatelessWidget {
   final bool transparentBackground;
   final double width;
   final double height;
-  
+
   const PngPreviewWidget({
     Key? key,
     this.imageData,
@@ -227,16 +232,16 @@ class PngPreviewWidget extends StatelessWidget {
     this.width = 1920,
     this.height = 1080,
   }) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     // Create a checkerboard pattern for transparent backgrounds
-    Widget backgroundWidget = transparentBackground 
-        ? const CheckerboardBackground() 
+    Widget backgroundWidget = transparentBackground
+        ? const CheckerboardBackground()
         : Container(color: Colors.white);
-        
+
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade300),
@@ -246,7 +251,7 @@ class PngPreviewWidget extends StatelessWidget {
         children: [
           // Background layer
           Positioned.fill(child: backgroundWidget),
-          
+
           // Image content layer (using mock for this example)
           Center(
             child: AspectRatio(
@@ -256,7 +261,7 @@ class PngPreviewWidget extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Information overlay
           Positioned(
             bottom: 8,
@@ -264,9 +269,10 @@ class PngPreviewWidget extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: theme.colorScheme.surface.withOpacity(0.8),
+                color: theme.colorScheme.surface.withValues(alpha: 0.8),
                 borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: theme.colorScheme.outline.withOpacity(0.5)),
+                border: Border.all(
+                    color: theme.colorScheme.outline.withValues(alpha: 0.5)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -295,17 +301,17 @@ class PngPreviewWidget extends StatelessWidget {
 class TextPreviewWidget extends StatelessWidget {
   final String content;
   final String format;
-  
+
   const TextPreviewWidget({
     Key? key,
     required this.content,
     required this.format,
   }) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade300),
@@ -324,7 +330,7 @@ class TextPreviewWidget extends StatelessWidget {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceVariant,
+                color: theme.colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(4),
               ),
               padding: const EdgeInsets.all(12.0),
@@ -372,7 +378,7 @@ class _SimplifiedExportDialogState extends State<SimplifiedExportDialog> {
   bool _includeMetadata = true;
   bool _transparentBackground = false;
   bool _useMemoryEfficientRendering = true;
-  
+
   // Preview options
   bool _showPreview = true;
   Uint8List? _previewData;
@@ -391,46 +397,46 @@ class _SimplifiedExportDialogState extends State<SimplifiedExportDialog> {
   @override
   void initState() {
     super.initState();
-    
+
     // Generate a preview
     _generatePreview();
-    
+
     // Set up a debouncer for preview updates
     _debounceTimer = Timer(Duration.zero, () {});
   }
-  
+
   @override
   void dispose() {
     _debounceTimer.cancel();
     super.dispose();
   }
-  
+
   /// Generates a preview of the export with debounce
   void _generatePreviewDebounced() {
     // Cancel existing timer
     _debounceTimer.cancel();
-    
+
     // Set a new timer to generate preview after delay
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
       _generatePreview();
     });
   }
-  
+
   /// Generates a preview of the export
   Future<void> _generatePreview() async {
     if (!_showPreview) return;
     if (_isGeneratingPreview) return; // Prevent concurrent generations
-    
+
     try {
       setState(() {
         _isGeneratingPreview = true;
         _progress = 0.0;
         _error = null;
       });
-      
+
       // Determine the format based on selected export format
       _previewFormat = _selectedFormat.toString().split('.').last;
-      
+
       // Create mock progress updates with more realistic progression
       var currentProgress = 0.0;
       Timer.periodic(const Duration(milliseconds: 50), (timer) {
@@ -438,7 +444,7 @@ class _SimplifiedExportDialogState extends State<SimplifiedExportDialog> {
           timer.cancel();
           return;
         }
-        
+
         // Simulate non-linear progress
         double increment;
         if (currentProgress < 0.2) {
@@ -451,16 +457,16 @@ class _SimplifiedExportDialogState extends State<SimplifiedExportDialog> {
           // End slow (finalization)
           increment = 0.008;
         }
-        
+
         currentProgress += increment;
         if (currentProgress > 1.0) {
           currentProgress = 1.0;
           timer.cancel();
         }
-        
+
         setState(() {
           _progress = currentProgress;
-          
+
           // Different messages based on progress
           if (currentProgress < 0.2) {
             _progressMessage = 'Initializing export renderer...';
@@ -471,72 +477,73 @@ class _SimplifiedExportDialogState extends State<SimplifiedExportDialog> {
           } else if (currentProgress < 0.8) {
             _progressMessage = 'Rendering elements...';
           } else {
-            _progressMessage = 'Generating preview... ${(currentProgress * 100).toInt()}%';
+            _progressMessage =
+                'Generating preview... ${(currentProgress * 100).toInt()}%';
           }
         });
       });
-      
+
       // Simulate network delay with randomness to feel more realistic
       final delay = Duration(milliseconds: 800 + (math.Random().nextInt(400)));
       await Future.delayed(delay);
-      
+
       // Mock preview generation based on format
       switch (_selectedFormat) {
         case ExportFormat.svg:
           // Generate a mock SVG
           final mockSvg = _generateMockSvg();
-          
+
           setState(() {
             _svgPreviewData = mockSvg;
             _previewData = Uint8List.fromList(mockSvg.codeUnits);
             _textPreviewData = null;
           });
           break;
-          
+
         case ExportFormat.png:
           // Generate a mock PNG (actually just a colored rectangle in memory)
           final mockPng = _generateMockPng();
-          
+
           setState(() {
             _previewData = mockPng;
             _svgPreviewData = null;
             _textPreviewData = null;
           });
           break;
-          
+
         case ExportFormat.plantuml:
           final mockPlantUml = _generateMockPlantUml();
-          
+
           setState(() {
             _textPreviewData = mockPlantUml;
             _svgPreviewData = null;
             _previewData = null;
           });
           break;
-          
+
         case ExportFormat.mermaid:
           final mockMermaid = _generateMockMermaid();
-          
+
           setState(() {
             _textPreviewData = mockMermaid;
             _svgPreviewData = null;
             _previewData = null;
           });
           break;
-          
+
         case ExportFormat.dot:
           final mockDot = _generateMockDot();
-          
+
           setState(() {
             _textPreviewData = mockDot;
             _svgPreviewData = null;
             _previewData = null;
           });
           break;
-          
+
         case ExportFormat.dsl:
           final mockDsl = _generateMockDsl();
-          
+
           setState(() {
             _textPreviewData = mockDsl;
             _svgPreviewData = null;
@@ -544,7 +551,7 @@ class _SimplifiedExportDialogState extends State<SimplifiedExportDialog> {
           });
           break;
       }
-      
+
       setState(() {
         _isGeneratingPreview = false;
         _progressMessage = null;
@@ -557,21 +564,21 @@ class _SimplifiedExportDialogState extends State<SimplifiedExportDialog> {
       });
     }
   }
-  
+
   // Generate a mock PNG image as bytes
   Uint8List _generateMockPng() {
     // This would usually be a real PNG image generated from a diagram
     // For this example, we'll just create a list of bytes
     final data = List<int>.filled(100000, 0);
-    
+
     // Fill with pseudo-random data to simulate a PNG
     for (var i = 0; i < data.length; i++) {
       data[i] = (math.sin(i * 0.01) * 127 + 128).toInt();
     }
-    
+
     return Uint8List.fromList(data);
   }
-  
+
   // Generate a mock SVG string
   String _generateMockSvg() {
     return '''
@@ -603,7 +610,7 @@ class _SimplifiedExportDialogState extends State<SimplifiedExportDialog> {
 </svg>
 ''';
   }
-  
+
   // Generate mock PlantUML
   String _generateMockPlantUml() {
     return '''
@@ -625,7 +632,7 @@ ${_includeMetadata ? 'footer Generated by Structurizr' : ''}
 @enduml
 ''';
   }
-  
+
   // Generate mock Mermaid
   String _generateMockMermaid() {
     return '''
@@ -641,7 +648,7 @@ graph TD
     ${_includeMetadata ? '%% Generated by Structurizr' : ''}
 ''';
   }
-  
+
   // Generate mock DOT
   String _generateMockDot() {
     return '''
@@ -664,7 +671,7 @@ digraph {
 }
 ''';
   }
-  
+
   // Generate mock DSL
   String _generateMockDsl() {
     return '''
@@ -691,12 +698,12 @@ workspace {
 }
 ''';
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
-    
+
     return AlertDialog(
       title: const Text('Export Diagram'),
       content: SizedBox(
@@ -706,7 +713,7 @@ workspace {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 16),
-            
+
             Expanded(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -716,9 +723,9 @@ workspace {
                     flex: 3,
                     child: _buildExportOptions(isDarkMode),
                   ),
-                  
+
                   const SizedBox(width: 16),
-                  
+
                   // Right column: preview
                   Expanded(
                     flex: 4,
@@ -727,7 +734,7 @@ workspace {
                 ],
               ),
             ),
-            
+
             // Error message
             if (_error != null)
               Padding(
@@ -737,7 +744,7 @@ workspace {
                   style: TextStyle(color: theme.colorScheme.error),
                 ),
               ),
-              
+
             // Progress indicator
             if (_exporting || _isGeneratingPreview)
               Padding(
@@ -759,21 +766,19 @@ workspace {
       ),
       actions: [
         TextButton(
-          onPressed: _exporting 
-              ? null 
-              : () => Navigator.of(context).pop(),
+          onPressed: _exporting ? null : () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: _exporting 
-              ? null 
+          onPressed: _exporting
+              ? null
               : () {
                   _startExport();
                 },
-          child: _exporting 
+          child: _exporting
               ? const SizedBox(
-                  width: 16, 
-                  height: 16, 
+                  width: 16,
+                  height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : const Text('Export'),
@@ -781,7 +786,7 @@ workspace {
       ],
     );
   }
-  
+
   // Start mock export process
   void _startExport() {
     setState(() {
@@ -790,7 +795,7 @@ workspace {
       _progressMessage = 'Starting export...';
       _error = null;
     });
-    
+
     // Create realistic export progress simulation
     var currentProgress = 0.0;
     Timer.periodic(const Duration(milliseconds: 100), (timer) {
@@ -798,11 +803,11 @@ workspace {
         timer.cancel();
         return;
       }
-      
+
       // Non-linear progress steps
       double increment;
       String message;
-      
+
       if (currentProgress < 0.1) {
         increment = 0.01;
         message = 'Initializing export...';
@@ -817,18 +822,19 @@ workspace {
         message = 'Rendering elements...';
       } else if (currentProgress < 0.9) {
         increment = 0.015;
-        message = 'Processing ${_selectedFormat.toString().split('.').last.toUpperCase()} output...';
+        message =
+            'Processing ${_selectedFormat.toString().split('.').last.toUpperCase()} output...';
       } else {
         increment = 0.01;
         message = 'Finishing export...';
       }
-      
+
       currentProgress += increment;
       if (currentProgress >= 1.0) {
         currentProgress = 1.0;
         message = 'Export complete!';
         timer.cancel();
-        
+
         // Simulate file save completion
         Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
@@ -836,28 +842,29 @@ workspace {
               _exporting = false;
               _progressMessage = null;
             });
-            
+
             // Show success message
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Diagram exported successfully as ${_selectedFormat.toString().split('.').last.toUpperCase()}!'),
+                content: Text(
+                    'Diagram exported successfully as ${_selectedFormat.toString().split('.').last.toUpperCase()}!'),
                 behavior: SnackBarBehavior.floating,
               ),
             );
-            
+
             // Close dialog after export
             Navigator.of(context).pop();
           }
         });
       }
-      
+
       setState(() {
         _progress = currentProgress;
         _progressMessage = message;
       });
     });
   }
-  
+
   /// Builds the export options panel
   Widget _buildExportOptions(bool isDarkMode) {
     return Card(
@@ -872,7 +879,7 @@ workspace {
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-              
+
               // Format selector
               const Text('Format:'),
               const SizedBox(height: 8),
@@ -955,9 +962,10 @@ workspace {
                 ],
               ),
               const SizedBox(height: 16),
-              
+
               // Format-specific options
-              if (_selectedFormat == ExportFormat.png || _selectedFormat == ExportFormat.svg) ...[
+              if (_selectedFormat == ExportFormat.png ||
+                  _selectedFormat == ExportFormat.svg) ...[
                 // Size controls with adaptive-size card
                 Card(
                   color: isDarkMode ? Colors.grey[800] : Colors.grey[100],
@@ -1002,7 +1010,7 @@ workspace {
                             _generatePreviewDebounced();
                           },
                         ),
-                        
+
                         // Scale control
                         Text('Scale: ${_scale.toStringAsFixed(1)}x'),
                         Slider(
@@ -1018,9 +1026,10 @@ workspace {
                             _generatePreviewDebounced();
                           },
                         ),
-                        
+
                         // Transparent background option specific to PNG and SVG
-                        if (_selectedFormat == ExportFormat.png || _selectedFormat == ExportFormat.svg)
+                        if (_selectedFormat == ExportFormat.png ||
+                            _selectedFormat == ExportFormat.svg)
                           CheckboxListTile(
                             title: const Text('Transparent Background'),
                             value: _transparentBackground,
@@ -1038,7 +1047,7 @@ workspace {
                   ),
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Advanced rendering options
                 CheckboxListTile(
                   title: const Text('Memory-Efficient Rendering'),
@@ -1053,7 +1062,7 @@ workspace {
                   },
                 ),
               ],
-              
+
               // Common options for all formats in a card
               Card(
                 color: isDarkMode ? Colors.grey[800] : Colors.grey[100],
@@ -1070,7 +1079,6 @@ workspace {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      
                       CheckboxListTile(
                         title: const Text('Include Title'),
                         value: _includeTitle,
@@ -1112,9 +1120,10 @@ workspace {
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               // Preview options
-              if (_selectedFormat == ExportFormat.png || _selectedFormat == ExportFormat.svg)
+              if (_selectedFormat == ExportFormat.png ||
+                  _selectedFormat == ExportFormat.svg)
                 CheckboxListTile(
                   title: const Text('Show Preview'),
                   value: _showPreview,
@@ -1135,17 +1144,17 @@ workspace {
       ),
     );
   }
-  
+
   /// Builds the preview panel
   Widget _buildPreview() {
-    final showablePreview = _showPreview && 
-        (_selectedFormat == ExportFormat.png || 
-         _selectedFormat == ExportFormat.svg || 
-         _selectedFormat == ExportFormat.plantuml || 
-         _selectedFormat == ExportFormat.mermaid || 
-         _selectedFormat == ExportFormat.dot || 
-         _selectedFormat == ExportFormat.dsl);
-        
+    final showablePreview = _showPreview &&
+        (_selectedFormat == ExportFormat.png ||
+            _selectedFormat == ExportFormat.svg ||
+            _selectedFormat == ExportFormat.plantuml ||
+            _selectedFormat == ExportFormat.mermaid ||
+            _selectedFormat == ExportFormat.dot ||
+            _selectedFormat == ExportFormat.dsl);
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -1168,7 +1177,6 @@ workspace {
               ],
             ),
             const SizedBox(height: 8),
-            
             Expanded(
               child: Center(
                 child: Builder(
@@ -1181,7 +1189,7 @@ workspace {
                         ),
                       );
                     }
-                    
+
                     if (_exporting || _isGeneratingPreview) {
                       return Center(
                         child: Column(
@@ -1190,17 +1198,19 @@ workspace {
                             const CircularProgressIndicator(),
                             const SizedBox(height: 12),
                             Text(
-                              _exporting 
-                                ? 'Exporting...' 
-                                : 'Generating preview...',
+                              _exporting
+                                  ? 'Exporting...'
+                                  : 'Generating preview...',
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
                           ],
                         ),
                       );
                     }
-                    
-                    if (_previewData == null && _svgPreviewData == null && _textPreviewData == null) {
+
+                    if (_previewData == null &&
+                        _svgPreviewData == null &&
+                        _textPreviewData == null) {
                       return Center(
                         child: TextButton.icon(
                           onPressed: () => _generatePreview(),
@@ -1209,7 +1219,7 @@ workspace {
                         ),
                       );
                     }
-                    
+
                     // Display the preview based on format
                     switch (_selectedFormat) {
                       case ExportFormat.svg:
@@ -1218,7 +1228,7 @@ workspace {
                           svgContent: _svgPreviewData!,
                           transparentBackground: _transparentBackground,
                         );
-                        
+
                       case ExportFormat.png:
                         return PngPreviewWidget(
                           imageData: _previewData,
@@ -1226,7 +1236,7 @@ workspace {
                           width: _width,
                           height: _height,
                         );
-                        
+
                       case ExportFormat.plantuml:
                       case ExportFormat.mermaid:
                       case ExportFormat.dot:
@@ -1234,7 +1244,11 @@ workspace {
                         if (_textPreviewData == null) return const SizedBox();
                         return TextPreviewWidget(
                           content: _textPreviewData!,
-                          format: _selectedFormat.toString().split('.').last.toUpperCase(),
+                          format: _selectedFormat
+                              .toString()
+                              .split('.')
+                              .last
+                              .toUpperCase(),
                         );
                     }
                   },
@@ -1251,88 +1265,90 @@ workspace {
 // A simple painter to show a mock diagram preview
 class DiagramPreviewPainter extends CustomPainter {
   final bool showGrid;
-  
+
   DiagramPreviewPainter({this.showGrid = false});
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     // Draw checkerboard grid if requested
     if (showGrid) {
-      final gridSize = 10.0;
+      const gridSize = 10.0;
       final gridPaint1 = Paint()
         ..color = const Color(0xFFCCCCCC)
         ..style = PaintingStyle.fill;
-      
+
       final gridPaint2 = Paint()
         ..color = const Color(0xFFFFFFFF)
         ..style = PaintingStyle.fill;
-        
+
       for (int y = 0; y < (size.height / gridSize).ceil(); y++) {
         for (int x = 0; x < (size.width / gridSize).ceil(); x++) {
           final isEven = (x + y) % 2 == 0;
           final rect = Rect.fromLTWH(
-            x * gridSize, 
-            y * gridSize, 
-            gridSize, 
+            x * gridSize,
+            y * gridSize,
+            gridSize,
             gridSize,
           );
-          
+
           canvas.drawRect(rect, isEven ? gridPaint1 : gridPaint2);
         }
       }
     }
-    
+
     final paint = Paint()
       ..color = Colors.blue
       ..style = PaintingStyle.fill;
-    
+
     // Draw a circle in the center
     canvas.drawCircle(
       Offset(size.width / 2, size.height / 2),
       min(size.width, size.height) / 4,
       paint,
     );
-    
+
     // Draw rectangles around it
     paint.color = Colors.green;
     canvas.drawRect(
       Rect.fromLTWH(
-        size.width / 4, 
-        size.height / 4, 
-        size.width / 5, 
+        size.width / 4,
+        size.height / 4,
+        size.width / 5,
         size.height / 5,
       ),
       paint,
     );
-    
+
     paint.color = Colors.red;
     canvas.drawRect(
       Rect.fromLTWH(
-        size.width * 3 / 4 - size.width / 5, 
-        size.height / 4, 
-        size.width / 5, 
+        size.width * 3 / 4 - size.width / 5,
+        size.height / 4,
+        size.width / 5,
         size.height / 5,
       ),
       paint,
     );
-    
+
     // Draw lines connecting them
     final linePaint = Paint()
       ..color = Colors.black
       ..strokeWidth = 2;
-    
+
     canvas.drawLine(
-      Offset(size.width / 4 + size.width / 10, size.height / 4 + size.height / 5),
+      Offset(
+          size.width / 4 + size.width / 10, size.height / 4 + size.height / 5),
       Offset(size.width / 2, size.height / 2),
       linePaint,
     );
-    
+
     canvas.drawLine(
-      Offset(size.width * 3 / 4 - size.width / 10, size.height / 4 + size.height / 5),
+      Offset(size.width * 3 / 4 - size.width / 10,
+          size.height / 4 + size.height / 5),
       Offset(size.width / 2, size.height / 2),
       linePaint,
     );
-    
+
     // Draw text labels
     final textPainter = TextPainter(
       text: const TextSpan(
@@ -1341,16 +1357,16 @@ class DiagramPreviewPainter extends CustomPainter {
       ),
       textDirection: TextDirection.ltr,
     );
-    
+
     textPainter.layout();
     textPainter.paint(
-      canvas, 
+      canvas,
       Offset(
-        size.width / 2 - textPainter.width / 2, 
+        size.width / 2 - textPainter.width / 2,
         size.height / 2 - textPainter.height / 2,
       ),
     );
-    
+
     final textPainter2 = TextPainter(
       text: const TextSpan(
         text: 'Component A',
@@ -1358,16 +1374,16 @@ class DiagramPreviewPainter extends CustomPainter {
       ),
       textDirection: TextDirection.ltr,
     );
-    
+
     textPainter2.layout();
     textPainter2.paint(
-      canvas, 
+      canvas,
       Offset(
-        size.width / 4 + (size.width / 5) / 2 - textPainter2.width / 2, 
+        size.width / 4 + (size.width / 5) / 2 - textPainter2.width / 2,
         size.height / 4 + (size.height / 5) / 2 - textPainter2.height / 2,
       ),
     );
-    
+
     final textPainter3 = TextPainter(
       text: const TextSpan(
         text: 'Component B',
@@ -1375,20 +1391,20 @@ class DiagramPreviewPainter extends CustomPainter {
       ),
       textDirection: TextDirection.ltr,
     );
-    
+
     textPainter3.layout();
     textPainter3.paint(
-      canvas, 
+      canvas,
       Offset(
-        size.width * 3 / 4 - (size.width / 5) / 2 - textPainter3.width / 2, 
+        size.width * 3 / 4 - (size.width / 5) / 2 - textPainter3.width / 2,
         size.height / 4 + (size.height / 5) / 2 - textPainter3.height / 2,
       ),
     );
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => 
-    oldDelegate is DiagramPreviewPainter && oldDelegate.showGrid != showGrid;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) =>
+      oldDelegate is DiagramPreviewPainter && oldDelegate.showGrid != showGrid;
 }
 
 double min(double a, double b) => a < b ? a : b;

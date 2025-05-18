@@ -239,3 +239,7 @@ The implementation of Phase 6 has delivered the following components:
   - Example application: `/example/lib/decision_graph_example.dart`
   - Tests: `/test/presentation/widgets/documentation/enhanced_decision_graph_test.dart`
   - Documentation: `/docs/examples/decision_graph_usage.md`
+
+## Method Relationship Table Reference
+
+See the main implementation spec for the method relationship tables and build order. ADR and decision graph methods are implemented in accordance with the modular parser/model structure.

@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:flutter_structurizr/domain/model/element.dart';
+import 'package:flutter_structurizr/domain/model/element.dart'
+    show Element, Relationship, ElementListConverter;
 import 'package:uuid/uuid.dart';
 
 part 'group.freezed.dart';
@@ -20,11 +21,26 @@ class Group with _$Group implements Element {
     @Default({}) Map<String, String> properties,
     @Default([]) List<Relationship> relationships,
     required String parentId,
-    @Default([]) List<Element> elements,
+    @ElementListConverter() @Default([]) List<Element> elements,
   }) = _Group;
 
   /// Creates a group from a JSON object.
-  factory Group.fromJson(Map<String, dynamic> json) => _$GroupFromJson(json);
+  factory Group.fromJson(Map<String, dynamic> json) => _Group.fromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'type': type,
+      'tags': tags,
+      'properties': properties,
+      'relationships': relationships.map((r) => r.toJson()).toList(),
+      'parentId': parentId,
+      'elements': elements.map((e) => e.toJson()).toList(),
+    };
+  }
 
   /// Creates a new group with a generated ID.
   factory Group.create({
@@ -96,7 +112,9 @@ class Group with _$Group implements Element {
 
   @override
   List<Relationship> getRelationshipsTo(String destinationId) {
-    return relationships.where((r) => r.destinationId == destinationId).toList();
+    return relationships
+        .where((r) => r.destinationId == destinationId)
+        .toList();
   }
 
   /// Adds an element to this group.
@@ -113,5 +131,15 @@ class Group with _$Group implements Element {
       updatedProperties[key] = value.toString();
     }
     return copyWith(properties: updatedProperties);
+  }
+
+  @override
+  Group addChild(Element childNode) {
+    return copyWith(elements: [...elements, childNode]);
+  }
+
+  @override
+  Group setIdentifier(String identifier) {
+    return copyWith(id: identifier);
   }
 }

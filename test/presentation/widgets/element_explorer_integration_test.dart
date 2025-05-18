@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart' hide Element, Container, View;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/workspace.dart';
 import 'package:flutter_structurizr/domain/view/view.dart';
 import 'package:flutter_structurizr/presentation/widgets/diagram/structurizr_diagram.dart';
 import 'package:flutter_structurizr/presentation/widgets/element_explorer.dart';
-import 'package:flutter_structurizr/domain/model/person.dart';
-import 'package:flutter_structurizr/domain/model/software_system.dart';
-import 'package:flutter_structurizr/domain/model/container.dart';
 import 'package:flutter_structurizr/domain/model/model.dart';
+import 'package:flutter_structurizr/domain/model/container.dart'
+    as structurizr_model;
 
 void main() {
   group('ElementExplorer and StructurizrDiagram Integration', () {
@@ -36,7 +34,7 @@ void main() {
       systemId = system.id;
 
       // Create containers
-      final api = Container.create(
+      final api = structurizr_model.Container.create(
         name: 'API Container',
         description: 'API for the system',
         tags: ['Container'],
@@ -44,7 +42,7 @@ void main() {
       );
       apiId = api.id;
 
-      final database = Container.create(
+      final database = structurizr_model.Container.create(
         name: 'Database',
         description: 'Database for the system',
         tags: ['Container', 'Database'],
@@ -64,8 +62,10 @@ void main() {
 
       // Now get the elements from the model to establish relationships
       final personFromModel = model.getElementById(personId) as Person;
-      final apiFromModel = model.getElementById(apiId) as Container;
-      final databaseFromModel = model.getElementById(databaseId) as Container;
+      final apiFromModel =
+          model.getElementById(apiId) as structurizr_model.Container;
+      final databaseFromModel =
+          model.getElementById(databaseId) as structurizr_model.Container;
 
       // Add relationships
       final personWithRel = personFromModel.addRelationship(
@@ -80,7 +80,8 @@ void main() {
 
       // Get the relationships IDs for use in the view
       final personToApiRelId = personWithRel.getRelationshipsTo(apiId).first.id;
-      final apiToDatabaseRelId = apiWithRel.getRelationshipsTo(databaseId).first.id;
+      final apiToDatabaseRelId =
+          apiWithRel.getRelationshipsTo(databaseId).first.id;
 
       // Update model with elements that have relationships
       final updatedModel = model.copyWith(
@@ -123,7 +124,8 @@ void main() {
       setupTestData();
     });
 
-    testWidgets('integrates ElementExplorer with StructurizrDiagram', (WidgetTester tester) async {
+    testWidgets('integrates ElementExplorer with StructurizrDiagram',
+        (WidgetTester tester) async {
       // Track selected element
       String? selectedElementId;
       String? diagramSelectedElementId;
@@ -229,7 +231,8 @@ void main() {
       expect(find.text('Database'), findsOneWidget);
     });
 
-    testWidgets('ElementExplorer shows correct element types with icons', (WidgetTester tester) async {
+    testWidgets('ElementExplorer shows correct element types with icons',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -254,15 +257,16 @@ void main() {
 
       // Verify person icon
       expect(find.byIcon(Icons.person), findsOneWidget);
-      
+
       // Verify system icon
       expect(find.byIcon(Icons.computer), findsOneWidget);
-      
+
       // Verify container icons
       expect(find.byIcon(Icons.apps), findsAtLeastNWidgets(2));
     });
 
-    testWidgets('ElementExplorer enables context menu when configured', (WidgetTester tester) async {
+    testWidgets('ElementExplorer enables context menu when configured',
+        (WidgetTester tester) async {
       bool menuItemSelected = false;
       String? selectedItemId;
       String? selectedMenuId;
@@ -273,7 +277,7 @@ void main() {
             body: ElementExplorer(
               workspace: workspace,
               selectedView: view,
-              config: ElementExplorerConfig(
+              config: const ElementExplorerConfig(
                 initiallyExpanded: true,
                 enableContextMenu: true,
                 contextMenuItems: [
@@ -303,19 +307,19 @@ void main() {
 
       // Can't directly test right-click menu in widget tests
       // But we can verify the presence of GestureDetector with right-click recognition
-      
+
       // Find the element we want to right-click
       final personElement = find.text('User').first;
-      
+
       // Check if the GestureDetector exists
       // Find ancestor GestureDetector of the text widget
       final gestureDetector = find.ancestor(
         of: personElement,
         matching: find.byType(GestureDetector),
       );
-      
+
       expect(gestureDetector, findsOneWidget);
-      
+
       // We can't actually trigger the context menu in widget tests,
       // so we verify the widget is configured correctly for context menus
       final detector = tester.widget<GestureDetector>(gestureDetector);

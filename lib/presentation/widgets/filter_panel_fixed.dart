@@ -1,10 +1,5 @@
 import 'package:flutter/material.dart' hide Container, Border, Element, View;
-import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/workspace.dart';
-import 'package:flutter_structurizr/domain/model/model.dart' hide Container, Element;
-import 'package:flutter_structurizr/domain/style/styles.dart' hide Border;
-import 'package:flutter/material.dart' as flutter;
-import 'package:flutter_structurizr/domain/model/model.dart' as structurizr_model;
 
 /// A panel for filtering diagram elements based on various criteria
 class FilterPanel extends StatefulWidget {
@@ -283,15 +278,13 @@ class _FilterPanelState extends State<FilterPanel> {
     
     // Add tags from all elements
     final model = widget.workspace.model;
-    if (model != null) {
-      final allElements = model.getAllElements();
-      for (final element in allElements) {
-        if (element.tags.isNotEmpty) {
-          allTags.addAll(element.tags);
-        }
+    final allElements = model.getAllElements();
+    for (final element in allElements) {
+      if (element.tags.isNotEmpty) {
+        allTags.addAll(element.tags);
       }
     }
-    
+      
     return allTags.toList()..sort();
   }
   
@@ -300,18 +293,16 @@ class _FilterPanelState extends State<FilterPanel> {
     
     // Add element types
     final model = widget.workspace.model;
-    if (model != null) {
-      final allElements = model.getAllElements();
-      for (final element in allElements) {
-        // Add the runtime type (without the package prefix)
-        String typeName = element.type;
-        if (typeName.contains('.')) {
-          typeName = typeName.split('.').last;
-        }
-        elementTypes.add(typeName);
+    final allElements = model.getAllElements();
+    for (final element in allElements) {
+      // Add the runtime type (without the package prefix)
+      String typeName = element.type;
+      if (typeName.contains('.')) {
+        typeName = typeName.split('.').last;
       }
+      elementTypes.add(typeName);
     }
-    
+      
     return elementTypes.toList()..sort();
   }
   

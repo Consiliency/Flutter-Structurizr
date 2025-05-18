@@ -8,13 +8,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('WorkspaceMapper', () {
-    late ErrorReporter errorReporter;
     late WorkspaceMapper mapper;
 
     setUp(() {
-      final source = '';
-      errorReporter = ErrorReporter(source);
-      mapper = WorkspaceMapper(source, errorReporter);
+      const source = '';
+      mapper = WorkspaceMapper(source);
     });
 
     test('maps an empty workspace', () {
@@ -62,7 +60,7 @@ void main() {
       // Assert
       expect(workspace, isNotNull);
       expect(workspace.model.elements, hasLength(1));
-      
+
       final person = workspace.model.elements.first as Person;
       expect(person.name, equals('User'));
       expect(person.description, equals('A user of the system'));
@@ -94,7 +92,7 @@ void main() {
       // Assert
       expect(workspace, isNotNull);
       expect(workspace.model.elements, hasLength(1));
-      
+
       final system = workspace.model.elements.first as SoftwareSystem;
       expect(system.name, equals('System'));
       expect(system.description, equals('A software system'));
@@ -136,10 +134,10 @@ void main() {
       // Assert
       expect(workspace, isNotNull);
       expect(workspace.model.elements, hasLength(2)); // System + Container
-      
+
       final system = workspace.model.elements.first as SoftwareSystem;
       expect(system.name, equals('System'));
-      
+
       final container = workspace.model.elements
           .whereType<Container>()
           .firstWhere((e) => e.identifier == 'container');
@@ -191,13 +189,14 @@ void main() {
 
       // Assert
       expect(workspace, isNotNull);
-      expect(workspace.model.elements, hasLength(3)); // System + Container + Component
-      
+      expect(workspace.model.elements,
+          hasLength(3)); // System + Container + Component
+
       final component = workspace.model.elements
           .whereType<Component>()
           .firstWhere((e) => e.identifier == 'component');
       expect(component.name, equals('Component'));
-      
+
       final container = workspace.model.elements
           .whereType<Container>()
           .firstWhere((e) => e.identifier == 'container');
@@ -247,7 +246,7 @@ void main() {
       // Assert
       expect(workspace, isNotNull);
       expect(workspace.model.relationships, hasLength(1));
-      
+
       final relationship = workspace.model.relationships.first;
       expect(relationship.source.identifier, equals('user'));
       expect(relationship.destination.identifier, equals('system'));
@@ -283,11 +282,8 @@ void main() {
       );
 
       // Act
-      mapper.mapWorkspace(workspaceNode);
-
-      // Assert
-      expect(errorReporter.hasErrors, isTrue);
-      expect(errorReporter.errors.first.message, contains('undefined'));
+      expect(
+          () => mapper.mapWorkspace(workspaceNode), throwsA(isA<ParseError>()));
     });
 
     test('reports error for relationship with undefined destination', () {
@@ -319,11 +315,8 @@ void main() {
       );
 
       // Act
-      mapper.mapWorkspace(workspaceNode);
-
-      // Assert
-      expect(errorReporter.hasErrors, isTrue);
-      expect(errorReporter.errors.first.message, contains('undefined'));
+      expect(
+          () => mapper.mapWorkspace(workspaceNode), throwsA(isA<ParseError>()));
     });
 
     test('maps properties on elements', () {
@@ -355,7 +348,7 @@ void main() {
 
       // Assert
       expect(workspace, isNotNull);
-      
+
       final person = workspace.model.elements.first as Person;
       expect(person.tags, contains('web'));
       expect(person.tags, contains('external'));
@@ -443,16 +436,17 @@ void main() {
       // Assert
       expect(workspace, isNotNull);
       expect(workspace.name, equals('Complex Workspace'));
-      
+
       // Check elements
       expect(workspace.model.elements.whereType<Person>().length, equals(1));
-      expect(workspace.model.elements.whereType<SoftwareSystem>().length, equals(1));
+      expect(workspace.model.elements.whereType<SoftwareSystem>().length,
+          equals(1));
       expect(workspace.model.elements.whereType<Container>().length, equals(1));
       expect(workspace.model.elements.whereType<Component>().length, equals(1));
-      
+
       // Check relationships
       expect(workspace.model.relationships.length, equals(3));
-      
+
       // Check parent-child relationships
       final component = workspace.model.elements
           .whereType<Component>()
@@ -463,7 +457,7 @@ void main() {
       final system = workspace.model.elements
           .whereType<SoftwareSystem>()
           .firstWhere((e) => e.identifier == 'system');
-      
+
       expect(component.parent, equals(container));
       expect(container.parent, equals(system));
     });

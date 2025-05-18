@@ -257,3 +257,7 @@ All planned priorities have been implemented:
   - Existing test files: `/test/presentation/widgets/documentation/`
   - Implementation files: `/lib/presentation/widgets/documentation/`
   - Model classes: `/lib/domain/documentation/`
+
+## Method Relationship Table Reference
+
+See the main implementation spec for the method relationship tables and build order. Documentation parsing and mapping methods are implemented in accordance with the modular parser/model structure.

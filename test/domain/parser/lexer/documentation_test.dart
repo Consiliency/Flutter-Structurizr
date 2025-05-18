@@ -1,9 +1,10 @@
-import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 import 'package:flutter_structurizr/domain/parser/lexer/lexer.dart';
 import 'package:flutter_structurizr/domain/parser/lexer/token.dart';
 import 'package:flutter_structurizr/domain/parser/parser.dart';
-import 'package:flutter_structurizr/domain/parser/ast/nodes/documentation/documentation_node.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:logging/logging.dart';
+
+final _logger = Logger('DocumentationLexerTest');
 
 void main() {
   group('Documentation Parser Tests', () {
@@ -27,30 +28,34 @@ void main() {
           }
         }
       ''';
-      
+
       // First test the lexer directly
       final lexer = Lexer(source);
       final tokens = lexer.scanTokens();
-      
+
+      // TODO: Replace with proper logging or remove for production
       // Print all tokens for better debugging
-      print('\n--- DEBUG TOKENS ---');
-      for (final token in tokens) {
-        print('Token: ${token.type} | Lexeme: "${token.lexeme}" | Line: ${token.line} | Column: ${token.column}');
-      }
-      print('--- END DEBUG TOKENS ---\n');
-      
+      // for (final token in tokens) {
+      //   print(
+      //       'Token: ${token.type} | Lexeme: "${token.lexeme}" | Line: ${token.line} | Column: ${token.column}');
+      // }
+      // print('--- END DEBUG TOKENS ---\n');
+
       // Verify documentation and decisions tokens are present
       expect(tokens.any((t) => t.type == TokenType.documentation), isTrue);
       expect(tokens.any((t) => t.type == TokenType.decisions), isTrue);
-      
+
       // Now test the parser
       final parser = Parser(source);
       final workspaceNode = parser.parse();
-      
+
+      // TODO: Replace with proper logging or remove for production
       // Print debugging info
-      print('Documentation test: workspaceNode has documentation: ${workspaceNode.documentation != null}');
-      print('Documentation test: workspaceNode has decisions: ${workspaceNode.decisions != null ? workspaceNode.decisions!.length : 0}');
-      
+      // print(
+      //     'Documentation test: workspaceNode has documentation: ${workspaceNode.documentation != null}');
+      // print(
+      //     'Documentation test: workspaceNode has decisions: ${workspaceNode.decisions != null ? workspaceNode.decisions!.length : 0}');
+
       // Verify the parser created the documentation and decisions nodes
       expect(workspaceNode.documentation, isNotNull);
       expect(workspaceNode.decisions, isNotNull);

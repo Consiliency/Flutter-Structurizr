@@ -10,7 +10,7 @@ void main() {
     
     // Build the SvgPreviewWidget
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: Scaffold(
           body: Center(
             child: SvgPreviewWidget(
@@ -29,7 +29,7 @@ void main() {
     
     // Build the TextPreviewWidget
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: Scaffold(
           body: Center(
             child: TextPreviewWidget(
@@ -49,9 +49,9 @@ void main() {
     
     // Build the CheckerboardBackground
     await tester.pumpWidget(
-      MaterialApp(
+      const MaterialApp(
         home: Scaffold(
-          body: const Center(
+          body: Center(
             child: SizedBox(
               width: 100,
               height: 100,

@@ -5,10 +5,10 @@ import 'package:flutter_structurizr/domain/documentation/documentation.dart';
 class DecisionList extends StatefulWidget {
   /// The list of architecture decisions.
   final List<Decision> decisions;
-  
+
   /// Called when a decision is selected.
   final Function(int) onDecisionSelected;
-  
+
   /// Whether to use dark mode.
   final bool isDarkMode;
 
@@ -29,24 +29,24 @@ class _DecisionListState extends State<DecisionList> {
   List<String> _selectedStatuses = [];
   String _searchQuery = '';
   bool _sortByDateAscending = false;
-  
+
   @override
   void initState() {
     super.initState();
     _sortedDecisions = List.from(widget.decisions);
     _sortDecisions();
   }
-  
+
   @override
   void didUpdateWidget(DecisionList oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
+
     if (oldWidget.decisions != widget.decisions) {
       _sortedDecisions = List.from(widget.decisions);
       _sortDecisions();
     }
   }
-  
+
   /// Sorts decisions by date based on the current sort direction.
   void _sortDecisions() {
     _sortedDecisions.sort((a, b) {
@@ -57,40 +57,38 @@ class _DecisionListState extends State<DecisionList> {
       }
     });
   }
-  
+
   /// Gets the filtered list of decisions.
   List<Decision> _getFilteredDecisions() {
     // Start with sorted decisions
     var filtered = List<Decision>.from(_sortedDecisions);
-    
+
     // Apply status filter
     if (_selectedStatuses.isNotEmpty) {
-      filtered = filtered.where((decision) => 
-        _selectedStatuses.contains(decision.status)
-      ).toList();
+      filtered = filtered
+          .where((decision) => _selectedStatuses.contains(decision.status))
+          .toList();
     }
-    
+
     // Apply search filter
     if (_searchQuery.isNotEmpty) {
       final query = _searchQuery.toLowerCase();
-      filtered = filtered.where((decision) =>
-        decision.id.toLowerCase().contains(query) ||
-        decision.title.toLowerCase().contains(query) ||
-        decision.content.toLowerCase().contains(query)
-      ).toList();
+      filtered = filtered
+          .where((decision) =>
+              decision.id.toLowerCase().contains(query) ||
+              decision.title.toLowerCase().contains(query) ||
+              decision.content.toLowerCase().contains(query))
+          .toList();
     }
-    
+
     return filtered;
   }
-  
+
   /// Gets all unique statuses from the decisions.
   List<String> _getUniqueStatuses() {
-    return widget.decisions
-        .map((d) => d.status)
-        .toSet()
-        .toList();
+    return widget.decisions.map((d) => d.status).toSet().toList();
   }
-  
+
   /// Gets the status color for a decision.
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
@@ -108,12 +106,12 @@ class _DecisionListState extends State<DecisionList> {
         return Colors.blue;
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final filteredDecisions = _getFilteredDecisions();
     final uniqueStatuses = _getUniqueStatuses();
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -121,10 +119,13 @@ class _DecisionListState extends State<DecisionList> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           decoration: BoxDecoration(
-            color: widget.isDarkMode ? Colors.grey.shade800 : Colors.grey.shade100,
+            color:
+                widget.isDarkMode ? Colors.grey.shade800 : Colors.grey.shade100,
             border: Border(
               bottom: BorderSide(
-                color: widget.isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300,
+                color: widget.isDarkMode
+                    ? Colors.grey.shade700
+                    : Colors.grey.shade300,
               ),
             ),
           ),
@@ -141,11 +142,13 @@ class _DecisionListState extends State<DecisionList> {
               // Sort button
               IconButton(
                 icon: Icon(
-                  _sortByDateAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                  _sortByDateAscending
+                      ? Icons.arrow_upward
+                      : Icons.arrow_downward,
                   size: 16,
                 ),
-                tooltip: _sortByDateAscending 
-                    ? 'Sort by date (oldest first)' 
+                tooltip: _sortByDateAscending
+                    ? 'Sort by date (oldest first)'
                     : 'Sort by date (newest first)',
                 color: widget.isDarkMode ? Colors.white : Colors.black87,
                 onPressed: () {
@@ -169,20 +172,20 @@ class _DecisionListState extends State<DecisionList> {
                     prefixIcon: Icon(
                       Icons.search,
                       size: 18,
-                      color: widget.isDarkMode ? Colors.white70 : Colors.black54,
+                      color:
+                          widget.isDarkMode ? Colors.white70 : Colors.black54,
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16.0),
                       borderSide: BorderSide(
-                        color: widget.isDarkMode 
-                            ? Colors.grey.shade700 
+                        color: widget.isDarkMode
+                            ? Colors.grey.shade700
                             : Colors.grey.shade300,
                       ),
                     ),
                     filled: true,
-                    fillColor: widget.isDarkMode 
-                        ? Colors.grey.shade700 
-                        : Colors.white,
+                    fillColor:
+                        widget.isDarkMode ? Colors.grey.shade700 : Colors.white,
                   ),
                   style: TextStyle(
                     fontSize: 14,
@@ -198,15 +201,18 @@ class _DecisionListState extends State<DecisionList> {
             ],
           ),
         ),
-        
+
         // Status filter
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           decoration: BoxDecoration(
-            color: widget.isDarkMode ? Colors.grey.shade900 : Colors.grey.shade50,
+            color:
+                widget.isDarkMode ? Colors.grey.shade900 : Colors.grey.shade50,
             border: Border(
               bottom: BorderSide(
-                color: widget.isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300,
+                color: widget.isDarkMode
+                    ? Colors.grey.shade700
+                    : Colors.grey.shade300,
               ),
             ),
           ),
@@ -234,11 +240,11 @@ class _DecisionListState extends State<DecisionList> {
                   ),
                 ),
                 selected: _selectedStatuses.isEmpty,
-                selectedColor: widget.isDarkMode 
-                    ? Colors.blue.shade800 
+                selectedColor: widget.isDarkMode
+                    ? Colors.blue.shade800
                     : Colors.blue.shade100,
-                backgroundColor: widget.isDarkMode 
-                    ? Colors.grey.shade800 
+                backgroundColor: widget.isDarkMode
+                    ? Colors.grey.shade800
                     : Colors.grey.shade100,
                 onSelected: (selected) {
                   setState(() {
@@ -250,7 +256,7 @@ class _DecisionListState extends State<DecisionList> {
               ...uniqueStatuses.map((status) {
                 final isSelected = _selectedStatuses.contains(status);
                 final statusColor = _getStatusColor(status);
-                
+
                 return FilterChip(
                   label: Text(
                     status,
@@ -258,15 +264,17 @@ class _DecisionListState extends State<DecisionList> {
                       fontSize: 12,
                       color: isSelected
                           ? (widget.isDarkMode ? Colors.white : Colors.black87)
-                          : (widget.isDarkMode ? statusColor.withOpacity(0.8) : statusColor),
+                          : (widget.isDarkMode
+                              ? statusColor.withValues(alpha: 0.8)
+                              : statusColor),
                     ),
                   ),
                   selected: isSelected,
-                  selectedColor: widget.isDarkMode 
-                      ? statusColor.withOpacity(0.3) 
-                      : statusColor.withOpacity(0.1),
-                  backgroundColor: widget.isDarkMode 
-                      ? Colors.grey.shade800 
+                  selectedColor: widget.isDarkMode
+                      ? statusColor.withValues(alpha: 0.3)
+                      : statusColor.withValues(alpha: 0.1),
+                  backgroundColor: widget.isDarkMode
+                      ? Colors.grey.shade800
                       : Colors.grey.shade100,
                   onSelected: (selected) {
                     setState(() {
@@ -282,7 +290,7 @@ class _DecisionListState extends State<DecisionList> {
             ],
           ),
         ),
-        
+
         // Decision list
         Expanded(
           child: filteredDecisions.isEmpty
@@ -290,7 +298,8 @@ class _DecisionListState extends State<DecisionList> {
                   child: Text(
                     'No decisions match the current filters',
                     style: TextStyle(
-                      color: widget.isDarkMode ? Colors.white70 : Colors.black54,
+                      color:
+                          widget.isDarkMode ? Colors.white70 : Colors.black54,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -300,10 +309,11 @@ class _DecisionListState extends State<DecisionList> {
                   itemBuilder: (context, index) {
                     final decision = filteredDecisions[index];
                     final statusColor = _getStatusColor(decision.status);
-                    
+
                     return InkWell(
                       onTap: () {
-                        final originalIndex = widget.decisions.indexOf(decision);
+                        final originalIndex =
+                            widget.decisions.indexOf(decision);
                         widget.onDecisionSelected(originalIndex);
                       },
                       child: Container(
@@ -311,8 +321,8 @@ class _DecisionListState extends State<DecisionList> {
                         decoration: BoxDecoration(
                           border: Border(
                             bottom: BorderSide(
-                              color: widget.isDarkMode 
-                                  ? Colors.grey.shade800 
+                              color: widget.isDarkMode
+                                  ? Colors.grey.shade800
                                   : Colors.grey.shade200,
                             ),
                           ),
@@ -324,13 +334,14 @@ class _DecisionListState extends State<DecisionList> {
                             Container(
                               width: 12,
                               height: 12,
-                              margin: const EdgeInsets.only(top: 4.0, right: 8.0),
+                              margin:
+                                  const EdgeInsets.only(top: 4.0, right: 8.0),
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: statusColor,
                               ),
                             ),
-                            
+
                             // Decision content
                             Expanded(
                               child: Column(
@@ -343,8 +354,8 @@ class _DecisionListState extends State<DecisionList> {
                                         decision.id,
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: widget.isDarkMode 
-                                              ? Colors.white 
+                                          color: widget.isDarkMode
+                                              ? Colors.white
                                               : Colors.black87,
                                         ),
                                       ),
@@ -353,29 +364,29 @@ class _DecisionListState extends State<DecisionList> {
                                         _formatDate(decision.date),
                                         style: TextStyle(
                                           fontSize: 12,
-                                          color: widget.isDarkMode 
-                                              ? Colors.grey.shade400 
+                                          color: widget.isDarkMode
+                                              ? Colors.grey.shade400
                                               : Colors.grey.shade600,
                                         ),
                                       ),
                                     ],
                                   ),
-                                  
+
                                   const SizedBox(height: 4),
-                                  
+
                                   // Title
                                   Text(
                                     decision.title,
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: widget.isDarkMode 
-                                          ? Colors.white 
+                                      color: widget.isDarkMode
+                                          ? Colors.white
                                           : Colors.black87,
                                     ),
                                   ),
-                                  
+
                                   const SizedBox(height: 8),
-                                  
+
                                   // Status and links
                                   Row(
                                     children: [
@@ -385,8 +396,10 @@ class _DecisionListState extends State<DecisionList> {
                                           vertical: 4.0,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: statusColor.withOpacity(0.2),
-                                          borderRadius: BorderRadius.circular(12.0),
+                                          color: statusColor.withValues(
+                                              alpha: 0.2),
+                                          borderRadius:
+                                              BorderRadius.circular(12.0),
                                         ),
                                         child: Text(
                                           decision.status,
@@ -397,22 +410,22 @@ class _DecisionListState extends State<DecisionList> {
                                           ),
                                         ),
                                       ),
-                                      
                                       if (decision.links.isNotEmpty) ...[
                                         const SizedBox(width: 8),
                                         Text(
                                           'Links:',
                                           style: TextStyle(
                                             fontSize: 12,
-                                            color: widget.isDarkMode 
-                                                ? Colors.grey.shade400 
+                                            color: widget.isDarkMode
+                                                ? Colors.grey.shade400
                                                 : Colors.grey.shade600,
                                           ),
                                         ),
                                         const SizedBox(width: 4),
                                         ...decision.links.take(3).map((linkId) {
                                           return Padding(
-                                            padding: const EdgeInsets.only(right: 4.0),
+                                            padding: const EdgeInsets.only(
+                                                right: 4.0),
                                             child: Chip(
                                               label: Text(
                                                 linkId,
@@ -423,14 +436,18 @@ class _DecisionListState extends State<DecisionList> {
                                                       : Colors.blue.shade700,
                                                 ),
                                               ),
-                                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                              materialTapTargetSize:
+                                                  MaterialTapTargetSize
+                                                      .shrinkWrap,
                                               padding: EdgeInsets.zero,
-                                              labelPadding: const EdgeInsets.symmetric(
+                                              labelPadding:
+                                                  const EdgeInsets.symmetric(
                                                 horizontal: 6.0,
                                                 vertical: 0.0,
                                               ),
                                               backgroundColor: widget.isDarkMode
-                                                  ? Colors.blue.shade900.withOpacity(0.3)
+                                                  ? Colors.blue.shade900
+                                                      .withValues(alpha: 0.3)
                                                   : Colors.blue.shade50,
                                             ),
                                           );
@@ -461,7 +478,7 @@ class _DecisionListState extends State<DecisionList> {
       ],
     );
   }
-  
+
   /// Formats a date for display.
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';

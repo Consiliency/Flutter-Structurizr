@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart' hide Element, Container, View, Border;
 import 'package:flutter_structurizr/domain/model/workspace.dart';
 import 'package:flutter_structurizr/domain/view/model_view.dart';
-import 'package:flutter_structurizr/domain/view/view.dart';
 import 'package:flutter_structurizr/infrastructure/export/diagram_exporter.dart';
 import 'package:flutter_structurizr/infrastructure/export/export_manager.dart';
 import 'package:flutter_structurizr/infrastructure/persistence/file_storage.dart';
@@ -74,16 +73,14 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
     super.initState();
     
     // By default, select all views
-    if (widget.workspace.views != null) {
-      _selectedViews.addAll(widget.workspace.views!.systemLandscapeViews);
-      _selectedViews.addAll(widget.workspace.views!.systemContextViews);
-      _selectedViews.addAll(widget.workspace.views!.containerViews);
-      _selectedViews.addAll(widget.workspace.views!.componentViews);
-      _selectedViews.addAll(widget.workspace.views!.deploymentViews);
-      _selectedViews.addAll(widget.workspace.views!.dynamicViews);
-      _selectedViews.addAll(widget.workspace.views!.filteredViews);
+    _selectedViews.addAll(widget.workspace.views.systemLandscapeViews);
+    _selectedViews.addAll(widget.workspace.views.systemContextViews);
+    _selectedViews.addAll(widget.workspace.views.containerViews);
+    _selectedViews.addAll(widget.workspace.views.componentViews);
+    _selectedViews.addAll(widget.workspace.views.deploymentViews);
+    _selectedViews.addAll(widget.workspace.views.dynamicViews);
+    _selectedViews.addAll(widget.workspace.views.filteredViews);
     }
-  }
   
   /// Exports the selected diagrams
   Future<void> _exportDiagrams() async {
@@ -219,31 +216,31 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
                     children: [
                       _buildViewsSection(
                         'System Landscape Views',
-                        widget.workspace.views?.systemLandscapeViews ?? [],
+                        widget.workspace.views.systemLandscapeViews ?? [],
                       ),
                       _buildViewsSection(
                         'System Context Views',
-                        widget.workspace.views?.systemContextViews ?? [],
+                        widget.workspace.views.systemContextViews ?? [],
                       ),
                       _buildViewsSection(
                         'Container Views',
-                        widget.workspace.views?.containerViews ?? [],
+                        widget.workspace.views.containerViews ?? [],
                       ),
                       _buildViewsSection(
                         'Component Views',
-                        widget.workspace.views?.componentViews ?? [],
+                        widget.workspace.views.componentViews ?? [],
                       ),
                       _buildViewsSection(
                         'Dynamic Views',
-                        widget.workspace.views?.dynamicViews ?? [],
+                        widget.workspace.views.dynamicViews ?? [],
                       ),
                       _buildViewsSection(
                         'Deployment Views',
-                        widget.workspace.views?.deploymentViews ?? [],
+                        widget.workspace.views.deploymentViews ?? [],
                       ),
                       _buildViewsSection(
                         'Filtered Views',
-                        widget.workspace.views?.filteredViews ?? [],
+                        widget.workspace.views.filteredViews ?? [],
                       ),
                     ],
                   ),

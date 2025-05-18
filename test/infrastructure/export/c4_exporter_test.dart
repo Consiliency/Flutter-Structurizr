@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/model.dart';
 import 'package:flutter_structurizr/domain/model/workspace.dart';
 import 'package:flutter_structurizr/domain/view/views.dart';
@@ -55,7 +54,7 @@ void main() {
       );
       
       // Create views
-      final views = Views();
+      const views = Views();
       
       // Create a SystemContextView
       systemContextViewKey = 'context';
@@ -89,7 +88,7 @@ void main() {
 
     test('Exports to JSON format', () async {
       // Arrange
-      final exporter = C4Exporter(
+      const exporter = C4Exporter(
         style: C4DiagramStyle.standard,
         format: C4OutputFormat.json,
         includeMetadata: true,
@@ -118,7 +117,7 @@ void main() {
 
     test('Exports to YAML format', () async {
       // Arrange
-      final exporter = C4Exporter(
+      const exporter = C4Exporter(
         style: C4DiagramStyle.standard,
         format: C4OutputFormat.yaml,
         includeMetadata: true,
@@ -147,7 +146,7 @@ void main() {
 
     test('Exports with enhanced styling', () async {
       // Arrange
-      final exporter = C4Exporter(
+      const exporter = C4Exporter(
         style: C4DiagramStyle.enhanced,
         format: C4OutputFormat.json,
         includeMetadata: true,
@@ -170,7 +169,7 @@ void main() {
 
     test('Respects metadata inclusion flag', () async {
       // Arrange
-      final exporter = C4Exporter(
+      const exporter = C4Exporter(
         style: C4DiagramStyle.standard,
         format: C4OutputFormat.json,
         includeMetadata: false,
@@ -195,7 +194,7 @@ void main() {
 
     test('Respects relationships inclusion flag', () async {
       // Arrange
-      final exporter = C4Exporter(
+      const exporter = C4Exporter(
         style: C4DiagramStyle.standard,
         format: C4OutputFormat.json,
         includeMetadata: true,
@@ -219,7 +218,7 @@ void main() {
 
     test('Respects styles inclusion flag', () async {
       // Arrange
-      final exporter = C4Exporter(
+      const exporter = C4Exporter(
         style: C4DiagramStyle.standard,
         format: C4OutputFormat.json,
         includeMetadata: true,

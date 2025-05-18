@@ -95,17 +95,18 @@ class JsonSerialization {
       final json = element.toJson();
       if (json.containsKey('containers') && json['containers'] is List) {
         final List<dynamic> containersList = json['containers'] as List;
-        final List<Map<String, dynamic>> containersJson = containersList
-            .map((container) {
-              if (container is Container) {
-                return container.toJson();
-              } else if (container is Map<String, dynamic>) {
-                return container;
-              } else {
-                return {'error': 'Invalid container type: ${container.runtimeType}'};
-              }
-            })
-            .toList();
+        final List<Map<String, dynamic>> containersJson =
+            containersList.map((container) {
+          if (container is Container) {
+            return container.toJson();
+          } else if (container is Map<String, dynamic>) {
+            return container;
+          } else {
+            return {
+              'error': 'Invalid container type: ${container.runtimeType}'
+            };
+          }
+        }).toList();
         json['containers'] = containersJson;
       }
       return jsonEncode(json);
@@ -114,17 +115,18 @@ class JsonSerialization {
       final json = element.toJson();
       if (json.containsKey('components') && json['components'] is List) {
         final List<dynamic> componentsList = json['components'] as List;
-        final List<Map<String, dynamic>> componentsJson = componentsList
-            .map((component) {
-              if (component is Component) {
-                return component.toJson();
-              } else if (component is Map<String, dynamic>) {
-                return component;
-              } else {
-                return {'error': 'Invalid component type: ${component.runtimeType}'};
-              }
-            })
-            .toList();
+        final List<Map<String, dynamic>> componentsJson =
+            componentsList.map((component) {
+          if (component is Component) {
+            return component.toJson();
+          } else if (component is Map<String, dynamic>) {
+            return component;
+          } else {
+            return {
+              'error': 'Invalid component type: ${component.runtimeType}'
+            };
+          }
+        }).toList();
         json['components'] = componentsJson;
       }
       return jsonEncode(json);
@@ -151,7 +153,8 @@ class JsonSerialization {
         'relationships': element.relationships.map((r) => r.toJson()).toList(),
       });
     } else {
-      throw UnimplementedError('toJson not implemented for element type: ${element.runtimeType}');
+      throw UnimplementedError(
+          'toJson not implemented for element type: ${element.runtimeType}');
     }
   }
 
@@ -181,11 +184,8 @@ class JsonSerialization {
   ) {
     final list = json[key] as List<dynamic>?;
     if (list == null) return [];
-    
-    return list
-        .cast<Map<String, dynamic>>()
-        .map((e) => fromJson(e))
-        .toList();
+
+    return list.cast<Map<String, dynamic>>().map((e) => fromJson(e)).toList();
   }
 
   /// Validates a JSON string against the Structurizr JSON schema.
@@ -219,11 +219,13 @@ class JsonSerialization {
           errors.add('Field model.people must be an array');
         }
 
-        if (model.containsKey('softwareSystems') && !(model['softwareSystems'] is List)) {
+        if (model.containsKey('softwareSystems') &&
+            !(model['softwareSystems'] is List)) {
           errors.add('Field model.softwareSystems must be an array');
         }
 
-        if (model.containsKey('deploymentNodes') && !(model['deploymentNodes'] is List)) {
+        if (model.containsKey('deploymentNodes') &&
+            !(model['deploymentNodes'] is List)) {
           errors.add('Field model.deploymentNodes must be an array');
         }
       }
@@ -232,27 +234,33 @@ class JsonSerialization {
       final views = json['views'] as Map<String, dynamic>?;
       if (views != null) {
         // Check for valid views structure
-        if (views.containsKey('systemLandscapeViews') && !(views['systemLandscapeViews'] is List)) {
+        if (views.containsKey('systemLandscapeViews') &&
+            !(views['systemLandscapeViews'] is List)) {
           errors.add('Field views.systemLandscapeViews must be an array');
         }
 
-        if (views.containsKey('systemContextViews') && !(views['systemContextViews'] is List)) {
+        if (views.containsKey('systemContextViews') &&
+            !(views['systemContextViews'] is List)) {
           errors.add('Field views.systemContextViews must be an array');
         }
 
-        if (views.containsKey('containerViews') && !(views['containerViews'] is List)) {
+        if (views.containsKey('containerViews') &&
+            !(views['containerViews'] is List)) {
           errors.add('Field views.containerViews must be an array');
         }
 
-        if (views.containsKey('componentViews') && !(views['componentViews'] is List)) {
+        if (views.containsKey('componentViews') &&
+            !(views['componentViews'] is List)) {
           errors.add('Field views.componentViews must be an array');
         }
 
-        if (views.containsKey('dynamicViews') && !(views['dynamicViews'] is List)) {
+        if (views.containsKey('dynamicViews') &&
+            !(views['dynamicViews'] is List)) {
           errors.add('Field views.dynamicViews must be an array');
         }
 
-        if (views.containsKey('deploymentViews') && !(views['deploymentViews'] is List)) {
+        if (views.containsKey('deploymentViews') &&
+            !(views['deploymentViews'] is List)) {
           errors.add('Field views.deploymentViews must be an array');
         }
       }
@@ -267,7 +275,6 @@ class JsonSerialization {
           errors.add('Error constructing workspace object: ${e.toString()}');
         }
       }
-
     } catch (e) {
       errors.add('Invalid JSON: ${e.toString()}');
     }
@@ -294,7 +301,7 @@ class JsonSerialization {
 
   /// Converts a workspace to a pretty-printed JSON string.
   static String workspaceToPrettyJson(Workspace workspace) {
-    final encoder = JsonEncoder.withIndent('  ');
+    const encoder = JsonEncoder.withIndent('  ');
     return encoder.convert(workspace.toJson());
   }
 
@@ -308,7 +315,7 @@ class JsonSerialization {
         jsonString,
       );
     }
-    
+
     // TypeError indicates JSON format doesn't match expected model
     if (error is TypeError) {
       throw JsonParsingException(
@@ -316,7 +323,7 @@ class JsonSerialization {
         jsonString,
       );
     }
-    
+
     // Generic error handling
     throw JsonParsingException(
       'Error parsing JSON: ${error.toString()}',
@@ -329,9 +336,9 @@ class JsonSerialization {
 class JsonParsingException implements Exception {
   final String message;
   final String jsonString;
-  
+
   JsonParsingException(this.message, this.jsonString);
-  
+
   @override
   String toString() => 'JsonParsingException: $message';
 }

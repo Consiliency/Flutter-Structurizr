@@ -1,19 +1,20 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart' hide Element, Container, View, Border;
+import 'package:flutter/material.dart' as flutter;
 import 'package:flutter_structurizr/application/workspace/workspace_manager_with_history.dart';
 
 /// A widget that displays the command history for a workspace and provides undo/redo controls.
 class WorkspaceHistoryPanel extends StatefulWidget {
   /// The workspace path
   final String workspacePath;
-  
+
   /// The workspace manager with history support
   final WorkspaceManagerWithHistory workspaceManager;
-  
+
   /// Whether to use a dark theme
   final bool isDarkMode;
-  
+
   /// Creates a new WorkspaceHistoryPanel widget.
   const WorkspaceHistoryPanel({
     Key? key,
@@ -28,11 +29,11 @@ class WorkspaceHistoryPanel extends StatefulWidget {
 
 class _WorkspaceHistoryPanelState extends State<WorkspaceHistoryPanel> {
   late final StreamSubscription<HistoryEvent> _subscription;
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     // Listen for history events related to this workspace
     _subscription = widget.workspaceManager.historyEvents.listen((event) {
       if (event.path == widget.workspacePath && mounted) {
@@ -40,40 +41,34 @@ class _WorkspaceHistoryPanelState extends State<WorkspaceHistoryPanel> {
       }
     });
   }
-  
+
   @override
   void dispose() {
     _subscription.cancel();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    
+
     // Theme-dependent colors
-    final backgroundColor = widget.isDarkMode 
-        ? const Color(0xFF2D2D2D) 
-        : const Color(0xFFF5F5F5);
-    final headerColor = widget.isDarkMode 
-        ? const Color(0xFF3D3D3D) 
-        : const Color(0xFFE5E5E5);
-    final textColor = widget.isDarkMode 
-        ? Colors.white 
-        : Colors.black87;
-    final disabledColor = widget.isDarkMode 
-        ? Colors.white38 
-        : Colors.black38;
-    final highlightColor = widget.isDarkMode 
-        ? Colors.blueAccent 
-        : Colors.blue;
-    
-    final undoDescriptions = widget.workspaceManager.undoDescriptions(widget.workspacePath);
-    final redoDescriptions = widget.workspaceManager.redoDescriptions(widget.workspacePath);
+    final backgroundColor =
+        widget.isDarkMode ? const Color(0xFF2D2D2D) : const Color(0xFFF5F5F5);
+    final headerColor =
+        widget.isDarkMode ? const Color(0xFF3D3D3D) : const Color(0xFFE5E5E5);
+    final textColor = widget.isDarkMode ? Colors.white : Colors.black87;
+    final disabledColor = widget.isDarkMode ? Colors.white38 : Colors.black38;
+    final highlightColor = widget.isDarkMode ? Colors.blueAccent : Colors.blue;
+
+    final undoDescriptions =
+        widget.workspaceManager.undoDescriptions(widget.workspacePath);
+    final redoDescriptions =
+        widget.workspaceManager.redoDescriptions(widget.workspacePath);
     final canUndo = widget.workspaceManager.canUndo(widget.workspacePath);
     final canRedo = widget.workspaceManager.canRedo(widget.workspacePath);
-    
+
     return Material(
       color: backgroundColor,
       elevation: 2,
@@ -81,7 +76,7 @@ class _WorkspaceHistoryPanelState extends State<WorkspaceHistoryPanel> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Header with title and undo/redo buttons
-          Container(
+          flutter.Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             color: headerColor,
             child: Row(
@@ -94,12 +89,12 @@ class _WorkspaceHistoryPanelState extends State<WorkspaceHistoryPanel> {
                 // Undo button
                 IconButton(
                   icon: const Icon(Icons.undo),
-                  tooltip: widget.workspaceManager.undoDescription(widget.workspacePath) != null
+                  tooltip: widget.workspaceManager
+                              .undoDescription(widget.workspacePath) !=
+                          null
                       ? 'Undo: ${widget.workspaceManager.undoDescription(widget.workspacePath)}'
                       : 'Undo',
-                  color: canUndo
-                      ? textColor
-                      : disabledColor,
+                  color: canUndo ? textColor : disabledColor,
                   onPressed: canUndo
                       ? () {
                           widget.workspaceManager.undo(widget.workspacePath);
@@ -109,12 +104,12 @@ class _WorkspaceHistoryPanelState extends State<WorkspaceHistoryPanel> {
                 // Redo button
                 IconButton(
                   icon: const Icon(Icons.redo),
-                  tooltip: widget.workspaceManager.redoDescription(widget.workspacePath) != null
+                  tooltip: widget.workspaceManager
+                              .redoDescription(widget.workspacePath) !=
+                          null
                       ? 'Redo: ${widget.workspaceManager.redoDescription(widget.workspacePath)}'
                       : 'Redo',
-                  color: canRedo
-                      ? textColor
-                      : disabledColor,
+                  color: canRedo ? textColor : disabledColor,
                   onPressed: canRedo
                       ? () {
                           widget.workspaceManager.redo(widget.workspacePath);
@@ -126,16 +121,17 @@ class _WorkspaceHistoryPanelState extends State<WorkspaceHistoryPanel> {
                   icon: const Icon(Icons.clear_all),
                   tooltip: 'Clear History',
                   color: textColor,
-                  onPressed: undoDescriptions.isNotEmpty || redoDescriptions.isNotEmpty
-                      ? () {
-                          _showClearHistoryDialog(context);
-                        }
-                      : null,
+                  onPressed:
+                      undoDescriptions.isNotEmpty || redoDescriptions.isNotEmpty
+                          ? () {
+                              _showClearHistoryDialog(context);
+                            }
+                          : null,
                 ),
               ],
             ),
           ),
-          
+
           // History list
           Expanded(
             child: ListView(
@@ -143,7 +139,8 @@ class _WorkspaceHistoryPanelState extends State<WorkspaceHistoryPanel> {
               children: [
                 // Undo stack section
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   child: Text(
                     'Undo Stack',
                     style: textTheme.titleSmall?.copyWith(color: textColor),
@@ -151,10 +148,12 @@ class _WorkspaceHistoryPanelState extends State<WorkspaceHistoryPanel> {
                 ),
                 if (undoDescriptions.isEmpty)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Text(
                       'No actions to undo',
-                      style: textTheme.bodyMedium?.copyWith(color: disabledColor),
+                      style:
+                          textTheme.bodyMedium?.copyWith(color: disabledColor),
                     ),
                   )
                 else
@@ -165,7 +164,8 @@ class _WorkspaceHistoryPanelState extends State<WorkspaceHistoryPanel> {
                       dense: true,
                       leading: CircleAvatar(
                         radius: 12,
-                        backgroundColor: index == 0 ? highlightColor : headerColor,
+                        backgroundColor:
+                            index == 0 ? highlightColor : headerColor,
                         child: Text(
                           (undoDescriptions.length - index).toString(),
                           style: TextStyle(
@@ -178,7 +178,8 @@ class _WorkspaceHistoryPanelState extends State<WorkspaceHistoryPanel> {
                         description,
                         style: textTheme.bodyMedium?.copyWith(
                           color: textColor,
-                          fontWeight: index == 0 ? FontWeight.bold : FontWeight.normal,
+                          fontWeight:
+                              index == 0 ? FontWeight.bold : FontWeight.normal,
                         ),
                       ),
                       onTap: () {
@@ -189,12 +190,13 @@ class _WorkspaceHistoryPanelState extends State<WorkspaceHistoryPanel> {
                       },
                     );
                   }),
-                
+
                 const Divider(),
-                
+
                 // Redo stack section
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   child: Text(
                     'Redo Stack',
                     style: textTheme.titleSmall?.copyWith(color: textColor),
@@ -202,10 +204,12 @@ class _WorkspaceHistoryPanelState extends State<WorkspaceHistoryPanel> {
                 ),
                 if (redoDescriptions.isEmpty)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Text(
                       'No actions to redo',
-                      style: textTheme.bodyMedium?.copyWith(color: disabledColor),
+                      style:
+                          textTheme.bodyMedium?.copyWith(color: disabledColor),
                     ),
                   )
                 else
@@ -216,7 +220,8 @@ class _WorkspaceHistoryPanelState extends State<WorkspaceHistoryPanel> {
                       dense: true,
                       leading: CircleAvatar(
                         radius: 12,
-                        backgroundColor: index == 0 ? highlightColor : headerColor,
+                        backgroundColor:
+                            index == 0 ? highlightColor : headerColor,
                         child: Text(
                           (index + 1).toString(),
                           style: TextStyle(
@@ -229,7 +234,8 @@ class _WorkspaceHistoryPanelState extends State<WorkspaceHistoryPanel> {
                         description,
                         style: textTheme.bodyMedium?.copyWith(
                           color: textColor,
-                          fontWeight: index == 0 ? FontWeight.bold : FontWeight.normal,
+                          fontWeight:
+                              index == 0 ? FontWeight.bold : FontWeight.normal,
                         ),
                       ),
                       onTap: () {
@@ -247,7 +253,7 @@ class _WorkspaceHistoryPanelState extends State<WorkspaceHistoryPanel> {
       ),
     );
   }
-  
+
   /// Shows a dialog to confirm clearing the history.
   void _showClearHistoryDialog(BuildContext context) {
     showDialog(

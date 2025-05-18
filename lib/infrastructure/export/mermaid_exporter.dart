@@ -5,12 +5,13 @@ import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/model.dart';
 import 'package:flutter_structurizr/domain/view/view.dart';
 import 'package:flutter_structurizr/infrastructure/export/diagram_exporter.dart';
+import 'package:logging/logging.dart';
 
 /// The style of Mermaid diagram to generate
 enum MermaidStyle {
   /// Standard Mermaid
   standard,
-  
+
   /// C4-style Mermaid
   c4,
 }
@@ -19,13 +20,13 @@ enum MermaidStyle {
 enum MermaidDirection {
   /// Top to bottom (default)
   topToBottom,
-  
+
   /// Bottom to top
   bottomToTop,
-  
+
   /// Left to right
   leftToRight,
-  
+
   /// Right to left
   rightToLeft,
 }
@@ -75,7 +76,7 @@ class MermaidExporter implements DiagramExporter<String> {
         results.add(result);
       } catch (e) {
         // Log error but continue with other diagrams
-        print('Error exporting diagram ${diagrams[i].viewKey}: $e');
+        _logger.severe('Error exporting diagram ${diagrams[i].viewKey}: $e');
       }
     }
 
@@ -96,7 +97,7 @@ class MermaidExporter implements DiagramExporter<String> {
       final workspace = diagram.workspace;
       final viewKey = diagram.viewKey;
       final view = _findViewByKey(workspace, viewKey);
-      
+
       if (view == null) {
         throw Exception('View not found with key: $viewKey');
       }
@@ -104,25 +105,29 @@ class MermaidExporter implements DiagramExporter<String> {
       // Gather all elements and relationships for the view
       final elements = _getElementsInView(view, workspace);
       final relationships = _getRelationshipsInView(view, workspace);
-      
+
       // Report data gathering progress
       onProgress?.call(0.3);
 
       // Generate Mermaid content based on view type
       String mermaidContent = '';
       if (view is SystemContextView) {
-        mermaidContent = _generateSystemContextDiagram(view, elements, relationships);
+        mermaidContent =
+            _generateSystemContextDiagram(view, elements, relationships);
       } else if (view is ContainerView) {
-        mermaidContent = _generateContainerDiagram(view, elements, relationships);
+        mermaidContent =
+            _generateContainerDiagram(view, elements, relationships);
       } else if (view is ComponentView) {
-        mermaidContent = _generateComponentDiagram(view, elements, relationships);
+        mermaidContent =
+            _generateComponentDiagram(view, elements, relationships);
       } else if (view is DeploymentView) {
-        mermaidContent = _generateDeploymentDiagram(view, elements, relationships);
+        mermaidContent =
+            _generateDeploymentDiagram(view, elements, relationships);
       } else {
         // Default generic diagram
         mermaidContent = _generateGenericDiagram(view, elements, relationships);
       }
-      
+
       // Report completion
       onProgress?.call(1.0);
 
@@ -140,42 +145,50 @@ class MermaidExporter implements DiagramExporter<String> {
     // Check system landscape views
     final systemLandscapeView = views.systemLandscapeViews.firstWhere(
       (view) => view.key == key,
-      orElse: () => SystemLandscapeView(key: ''), // Empty view if not found
+      orElse: () =>
+          const SystemLandscapeView(key: ''), // Empty view if not found
     );
     if (systemLandscapeView.key.isNotEmpty) return systemLandscapeView;
 
     // Check system context views
     final systemContextView = views.systemContextViews.firstWhere(
       (view) => view.key == key,
-      orElse: () => SystemContextView(key: '', softwareSystemId: ''), // Empty view if not found
+      orElse: () => const SystemContextView(
+          key: '', softwareSystemId: ''), // Empty view if not found
     );
     if (systemContextView.key.isNotEmpty) return systemContextView;
 
     // Check container views
     final containerView = views.containerViews.firstWhere(
       (view) => view.key == key,
-      orElse: () => ContainerView(key: '', softwareSystemId: ''), // Empty view if not found
+      orElse: () => const ContainerView(
+          key: '', softwareSystemId: ''), // Empty view if not found
     );
     if (containerView.key.isNotEmpty) return containerView;
 
     // Check component views
     final componentView = views.componentViews.firstWhere(
       (view) => view.key == key,
-      orElse: () => ComponentView(key: '', containerId: '', softwareSystemId: ''), // Empty view if not found
+      orElse: () => const ComponentView(
+          key: '',
+          containerId: '',
+          softwareSystemId: ''), // Empty view if not found
     );
     if (componentView.key.isNotEmpty) return componentView;
 
     // Check dynamic views
     final dynamicView = views.dynamicViews.firstWhere(
       (view) => view.key == key,
-      orElse: () => DynamicView(key: '', elementId: ''), // Empty view if not found
+      orElse: () =>
+          const DynamicView(key: '', elementId: ''), // Empty view if not found
     );
     if (dynamicView.key.isNotEmpty) return dynamicView;
 
     // Check deployment views
     final deploymentView = views.deploymentViews.firstWhere(
       (view) => view.key == key,
-      orElse: () => DeploymentView(key: '', environment: ''), // Empty view if not found
+      orElse: () => const DeploymentView(
+          key: '', environment: ''), // Empty view if not found
     );
     if (deploymentView.key.isNotEmpty) return deploymentView;
 
@@ -213,10 +226,8 @@ class MermaidExporter implements DiagramExporter<String> {
 
       // Check containers in all systems
       for (final system in model.softwareSystems) {
-        final container = system.containers.firstWhere(
-          (c) => c.id == id,
-          orElse: () => Container(id: '', name: '', parentId: '')
-        );
+        final container = system.containers.firstWhere((c) => c.id == id,
+            orElse: () => Container(id: '', name: '', parentId: ''));
         if (container.id.isNotEmpty) {
           result.add(container);
 
@@ -232,10 +243,8 @@ class MermaidExporter implements DiagramExporter<String> {
       for (final system in model.softwareSystems) {
         bool found = false;
         for (final container in system.containers) {
-          final component = container.components.firstWhere(
-            (c) => c.id == id,
-            orElse: () => Component(id: '', name: '', parentId: '')
-          );
+          final component = container.components.firstWhere((c) => c.id == id,
+              orElse: () => Component(id: '', name: '', parentId: ''));
           if (component.id.isNotEmpty) {
             result.add(component);
             found = true;
@@ -246,10 +255,8 @@ class MermaidExporter implements DiagramExporter<String> {
       }
 
       // Check in deployment nodes
-      final deploymentNode = model.deploymentNodes.firstWhere(
-        (n) => n.id == id,
-        orElse: () => DeploymentNode(id: '', name: '', environment: '')
-      );
+      final deploymentNode = model.deploymentNodes.firstWhere((n) => n.id == id,
+          orElse: () => DeploymentNode(id: '', name: '', environment: ''));
       if (deploymentNode.id.isNotEmpty) {
         result.add(deploymentNode);
         continue;
@@ -312,7 +319,8 @@ class MermaidExporter implements DiagramExporter<String> {
 
       // Function to check if both source and destination are in the view
       bool isRelationshipInView(Relationship rel) {
-        return elementIds.contains(rel.sourceId) && elementIds.contains(rel.destinationId);
+        return elementIds.contains(rel.sourceId) &&
+            elementIds.contains(rel.destinationId);
       }
 
       // Collect all relationships between elements in the view
@@ -395,67 +403,79 @@ class MermaidExporter implements DiagramExporter<String> {
     List<Relationship> relationships,
   ) {
     final buffer = StringBuffer();
-    
+
     // Start Mermaid diagram with diagram type and direction
     buffer.writeln('graph ${_getDirectionCode()}');
-    
+
     // Add title as comment
     buffer.writeln('%% ${view.title ?? view.key}');
     buffer.writeln();
-    
+
     // Add styling if requested
     if (includeTheme) {
       buffer.writeln('  %% Styling for diagram');
-      buffer.writeln('  classDef person fill:#08427B,stroke:#052E56,color:#FFFFFF');
-      buffer.writeln('  classDef system fill:#1168BD,stroke:#0B4884,color:#FFFFFF');
-      buffer.writeln('  classDef external fill:#999999,stroke:#6B6B6B,color:#FFFFFF');
+      buffer.writeln(
+          '  classDef person fill:#08427B,stroke:#052E56,color:#FFFFFF');
+      buffer.writeln(
+          '  classDef system fill:#1168BD,stroke:#0B4884,color:#FFFFFF');
+      buffer.writeln(
+          '  classDef external fill:#999999,stroke:#6B6B6B,color:#FFFFFF');
       buffer.writeln();
     }
-    
+
     // Define elements
     buffer.writeln('  %% Elements');
     for (final element in elements) {
       if (element is Person) {
-        buffer.writeln('  ${_sanitizeId(element.id)}["${_escapeMermaidText(element.name)}<br><i>Person</i>"]');
+        buffer.writeln(
+            '  ${_sanitizeId(element.id)}["${_escapeMermaidText(element.name)}<br><i>Person</i>"]');
         if (includeTheme) {
           buffer.writeln('  class ${_sanitizeId(element.id)} person');
         }
       } else if (element is SoftwareSystem) {
         // Check if this is the system being detailed or an external system
         final isExternal = element.id != view.softwareSystemId;
-        buffer.writeln('  ${_sanitizeId(element.id)}["${_escapeMermaidText(element.name)}<br><i>Software System</i>"]');
+        buffer.writeln(
+            '  ${_sanitizeId(element.id)}["${_escapeMermaidText(element.name)}<br><i>Software System</i>"]');
         if (includeTheme) {
-          buffer.writeln('  class ${_sanitizeId(element.id)} ${isExternal ? 'external' : 'system'}');
+          buffer.writeln(
+              '  class ${_sanitizeId(element.id)} ${isExternal ? 'external' : 'system'}');
         }
       }
-      
+
       // Add notes if requested
-      if (includeNotes && element.description != null && element.description!.isNotEmpty) {
-        buffer.writeln('  ${_sanitizeId(element.id)}_note["${_escapeMermaidText(element.description!)}"]');
-        buffer.writeln('  ${_sanitizeId(element.id)} --- ${_sanitizeId(element.id)}_note');
+      if (includeNotes &&
+          element.description != null &&
+          element.description!.isNotEmpty) {
+        buffer.writeln(
+            '  ${_sanitizeId(element.id)}_note["${_escapeMermaidText(element.description!)}"]');
+        buffer.writeln(
+            '  ${_sanitizeId(element.id)} --- ${_sanitizeId(element.id)}_note');
       }
     }
     buffer.writeln();
-    
+
     // Define relationships
     buffer.writeln('  %% Relationships');
     for (final relationship in relationships) {
       final sourceId = _sanitizeId(relationship.sourceId);
       final targetId = _sanitizeId(relationship.destinationId);
       final label = relationship.description ?? '';
-      
-      buffer.writeln('  ${sourceId} -->|"${_escapeMermaidText(label)}"| ${targetId}');
+
+      buffer.writeln(
+          '  ${sourceId} -->|"${_escapeMermaidText(label)}"| ${targetId}');
     }
     buffer.writeln();
-    
+
     // Add legend if in C4 style
     if (style == MermaidStyle.c4) {
       buffer.writeln('  %% Legend');
       buffer.writeln('  subgraph Legend');
-      buffer.writeln('    legend[System Context diagram for ${view.softwareSystemId}<br>Generated by Flutter Structurizr]');
+      buffer.writeln(
+          '    legend[System Context diagram for ${view.softwareSystemId}<br>Generated by Flutter Structurizr]');
       buffer.writeln('  end');
     }
-    
+
     return buffer.toString();
   }
 
@@ -466,30 +486,34 @@ class MermaidExporter implements DiagramExporter<String> {
     List<Relationship> relationships,
   ) {
     final buffer = StringBuffer();
-    
+
     // Start Mermaid diagram with diagram type and direction
     buffer.writeln('graph ${_getDirectionCode()}');
-    
+
     // Add title as comment
     buffer.writeln('%% ${view.title ?? view.key}');
     buffer.writeln();
-    
+
     // Add styling if requested
     if (includeTheme) {
       buffer.writeln('  %% Styling for diagram');
-      buffer.writeln('  classDef person fill:#08427B,stroke:#052E56,color:#FFFFFF');
-      buffer.writeln('  classDef system fill:#1168BD,stroke:#0B4884,color:#FFFFFF');
-      buffer.writeln('  classDef container fill:#438DD5,stroke:#2E6295,color:#FFFFFF');
-      buffer.writeln('  classDef external fill:#999999,stroke:#6B6B6B,color:#FFFFFF');
+      buffer.writeln(
+          '  classDef person fill:#08427B,stroke:#052E56,color:#FFFFFF');
+      buffer.writeln(
+          '  classDef system fill:#1168BD,stroke:#0B4884,color:#FFFFFF');
+      buffer.writeln(
+          '  classDef container fill:#438DD5,stroke:#2E6295,color:#FFFFFF');
+      buffer.writeln(
+          '  classDef external fill:#999999,stroke:#6B6B6B,color:#FFFFFF');
       buffer.writeln();
     }
-    
+
     // Find the system being detailed
     final softwareSystem = elements.firstWhere(
       (e) => e.id == view.softwareSystemId,
-      orElse: () => SoftwareSystem(id: '', name: ''),
+      orElse: () => const SoftwareSystem(id: '', name: ''),
     ) as SoftwareSystem;
-    
+
     // Define external elements
     buffer.writeln('  %% External elements');
     for (final element in elements) {
@@ -497,77 +521,93 @@ class MermaidExporter implements DiagramExporter<String> {
       if (element is Container && element.parentId == softwareSystem.id) {
         continue;
       }
-      
+
       if (element is Person) {
-        buffer.writeln('  ${_sanitizeId(element.id)}["${_escapeMermaidText(element.name)}<br><i>Person</i>"]');
+        buffer.writeln(
+            '  ${_sanitizeId(element.id)}["${_escapeMermaidText(element.name)}<br><i>Person</i>"]');
         if (includeTheme) {
           buffer.writeln('  class ${_sanitizeId(element.id)} person');
         }
       } else if (element is SoftwareSystem && element.id != softwareSystem.id) {
-        buffer.writeln('  ${_sanitizeId(element.id)}["${_escapeMermaidText(element.name)}<br><i>Software System</i>"]');
+        buffer.writeln(
+            '  ${_sanitizeId(element.id)}["${_escapeMermaidText(element.name)}<br><i>Software System</i>"]');
         if (includeTheme) {
           buffer.writeln('  class ${_sanitizeId(element.id)} external');
         }
       }
-      
+
       // Add notes if requested
-      if (includeNotes && element.description != null && element.description!.isNotEmpty 
-          && !(element is Container && element.parentId == softwareSystem.id)) {
-        buffer.writeln('  ${_sanitizeId(element.id)}_note["${_escapeMermaidText(element.description!)}"]');
-        buffer.writeln('  ${_sanitizeId(element.id)} --- ${_sanitizeId(element.id)}_note');
+      if (includeNotes &&
+          element.description != null &&
+          element.description!.isNotEmpty &&
+          !(element is Container && element.parentId == softwareSystem.id)) {
+        buffer.writeln(
+            '  ${_sanitizeId(element.id)}_note["${_escapeMermaidText(element.description!)}"]');
+        buffer.writeln(
+            '  ${_sanitizeId(element.id)} --- ${_sanitizeId(element.id)}_note');
       }
     }
     buffer.writeln();
-    
+
     // Now add the system and its containers as a subgraph
     buffer.writeln('  %% System and its containers');
-    buffer.writeln('  subgraph ${_sanitizeId(softwareSystem.id)}_system["${_escapeMermaidText(softwareSystem.name)}"]');
-    
+    buffer.writeln(
+        '  subgraph ${_sanitizeId(softwareSystem.id)}_system["${_escapeMermaidText(softwareSystem.name)}"]');
+
     // Add containers
-    final containers = elements.whereType<Container>()
+    final containers = elements
+        .whereType<Container>()
         .where((container) => container.parentId == softwareSystem.id)
         .toList();
-    
+
     for (final container in containers) {
-      final technologyInfo = container.technology != null && container.technology!.isNotEmpty
-          ? '<br>[${_escapeMermaidText(container.technology!)}]'
-          : '';
-      
-      buffer.writeln('    ${_sanitizeId(container.id)}["${_escapeMermaidText(container.name)}<br><i>Container</i>${technologyInfo}"]');
+      final technologyInfo =
+          container.technology != null && container.technology!.isNotEmpty
+              ? '<br>[${_escapeMermaidText(container.technology!)}]'
+              : '';
+
+      buffer.writeln(
+          '    ${_sanitizeId(container.id)}["${_escapeMermaidText(container.name)}<br><i>Container</i>${technologyInfo}"]');
       if (includeTheme) {
         buffer.writeln('    class ${_sanitizeId(container.id)} container');
       }
-      
+
       // Add notes if requested
-      if (includeNotes && container.description != null && container.description!.isNotEmpty) {
-        buffer.writeln('    ${_sanitizeId(container.id)}_note["${_escapeMermaidText(container.description!)}"]');
-        buffer.writeln('    ${_sanitizeId(container.id)} --- ${_sanitizeId(container.id)}_note');
+      if (includeNotes &&
+          container.description != null &&
+          container.description!.isNotEmpty) {
+        buffer.writeln(
+            '    ${_sanitizeId(container.id)}_note["${_escapeMermaidText(container.description!)}"]');
+        buffer.writeln(
+            '    ${_sanitizeId(container.id)} --- ${_sanitizeId(container.id)}_note');
       }
     }
-    
+
     buffer.writeln('  end');
     buffer.writeln('  class ${_sanitizeId(softwareSystem.id)}_system system');
     buffer.writeln();
-    
+
     // Define relationships
     buffer.writeln('  %% Relationships');
     for (final relationship in relationships) {
       final sourceId = _sanitizeId(relationship.sourceId);
       final targetId = _sanitizeId(relationship.destinationId);
       final label = relationship.description ?? '';
-      
-      buffer.writeln('  ${sourceId} -->|"${_escapeMermaidText(label)}"| ${targetId}');
+
+      buffer.writeln(
+          '  ${sourceId} -->|"${_escapeMermaidText(label)}"| ${targetId}');
     }
     buffer.writeln();
-    
+
     // Add legend if in C4 style
     if (style == MermaidStyle.c4) {
       buffer.writeln('  %% Legend');
       buffer.writeln('  subgraph Legend');
-      buffer.writeln('    legend[Container diagram for ${softwareSystem.name}<br>Generated by Flutter Structurizr]');
+      buffer.writeln(
+          '    legend[Container diagram for ${softwareSystem.name}<br>Generated by Flutter Structurizr]');
       buffer.writeln('  end');
     }
-    
+
     return buffer.toString();
   }
 
@@ -578,31 +618,36 @@ class MermaidExporter implements DiagramExporter<String> {
     List<Relationship> relationships,
   ) {
     final buffer = StringBuffer();
-    
+
     // Start Mermaid diagram with diagram type and direction
     buffer.writeln('graph ${_getDirectionCode()}');
-    
+
     // Add title as comment
     buffer.writeln('%% ${view.title ?? view.key}');
     buffer.writeln();
-    
+
     // Add styling if requested
     if (includeTheme) {
       buffer.writeln('  %% Styling for diagram');
-      buffer.writeln('  classDef person fill:#08427B,stroke:#052E56,color:#FFFFFF');
-      buffer.writeln('  classDef system fill:#1168BD,stroke:#0B4884,color:#FFFFFF');
-      buffer.writeln('  classDef container fill:#438DD5,stroke:#2E6295,color:#FFFFFF');
-      buffer.writeln('  classDef component fill:#85BBF0,stroke:#5C8AB8,color:#000000');
-      buffer.writeln('  classDef external fill:#999999,stroke:#6B6B6B,color:#FFFFFF');
+      buffer.writeln(
+          '  classDef person fill:#08427B,stroke:#052E56,color:#FFFFFF');
+      buffer.writeln(
+          '  classDef system fill:#1168BD,stroke:#0B4884,color:#FFFFFF');
+      buffer.writeln(
+          '  classDef container fill:#438DD5,stroke:#2E6295,color:#FFFFFF');
+      buffer.writeln(
+          '  classDef component fill:#85BBF0,stroke:#5C8AB8,color:#000000');
+      buffer.writeln(
+          '  classDef external fill:#999999,stroke:#6B6B6B,color:#FFFFFF');
       buffer.writeln();
     }
-    
+
     // Find the container being detailed
     final container = elements.firstWhere(
       (e) => e.id == view.containerId,
       orElse: () => Container(id: '', name: '', parentId: ''),
     ) as Container;
-    
+
     // Define external elements
     buffer.writeln('  %% External elements');
     for (final element in elements) {
@@ -610,90 +655,110 @@ class MermaidExporter implements DiagramExporter<String> {
       if (element is Component && element.parentId == container.id) {
         continue;
       }
-      
+
       if (element is Person) {
-        buffer.writeln('  ${_sanitizeId(element.id)}["${_escapeMermaidText(element.name)}<br><i>Person</i>"]');
+        buffer.writeln(
+            '  ${_sanitizeId(element.id)}["${_escapeMermaidText(element.name)}<br><i>Person</i>"]');
         if (includeTheme) {
           buffer.writeln('  class ${_sanitizeId(element.id)} person');
         }
       } else if (element is SoftwareSystem) {
-        buffer.writeln('  ${_sanitizeId(element.id)}["${_escapeMermaidText(element.name)}<br><i>Software System</i>"]');
+        buffer.writeln(
+            '  ${_sanitizeId(element.id)}["${_escapeMermaidText(element.name)}<br><i>Software System</i>"]');
         if (includeTheme) {
-          buffer.writeln('  class ${_sanitizeId(element.id)} ${element.id == view.softwareSystemId ? 'system' : 'external'}');
+          buffer.writeln(
+              '  class ${_sanitizeId(element.id)} ${element.id == view.softwareSystemId ? 'system' : 'external'}');
         }
       } else if (element is Container && element.id != container.id) {
-        final technologyInfo = element.technology != null && element.technology!.isNotEmpty
-            ? '<br>[${_escapeMermaidText(element.technology!)}]'
-            : '';
-        
-        buffer.writeln('  ${_sanitizeId(element.id)}["${_escapeMermaidText(element.name)}<br><i>Container</i>${technologyInfo}"]');
+        final technologyInfo =
+            element.technology != null && element.technology!.isNotEmpty
+                ? '<br>[${_escapeMermaidText(element.technology!)}]'
+                : '';
+
+        buffer.writeln(
+            '  ${_sanitizeId(element.id)}["${_escapeMermaidText(element.name)}<br><i>Container</i>${technologyInfo}"]');
         if (includeTheme) {
           buffer.writeln('  class ${_sanitizeId(element.id)} container');
         }
       }
-      
+
       // Add notes if requested
-      if (includeNotes && element.description != null && element.description!.isNotEmpty 
-          && !(element is Component && element.parentId == container.id)) {
-        buffer.writeln('  ${_sanitizeId(element.id)}_note["${_escapeMermaidText(element.description!)}"]');
-        buffer.writeln('  ${_sanitizeId(element.id)} --- ${_sanitizeId(element.id)}_note');
+      if (includeNotes &&
+          element.description != null &&
+          element.description!.isNotEmpty &&
+          !(element is Component && element.parentId == container.id)) {
+        buffer.writeln(
+            '  ${_sanitizeId(element.id)}_note["${_escapeMermaidText(element.description!)}"]');
+        buffer.writeln(
+            '  ${_sanitizeId(element.id)} --- ${_sanitizeId(element.id)}_note');
       }
     }
     buffer.writeln();
-    
+
     // Now add the container and its components as a subgraph
     buffer.writeln('  %% Container and its components');
-    final technologyInfo = container.technology != null && container.technology!.isNotEmpty
-        ? ' [${container.technology}]'
-        : '';
-    
-    buffer.writeln('  subgraph ${_sanitizeId(container.id)}_container["${_escapeMermaidText(container.name)}${_escapeMermaidText(technologyInfo)}"]');
-    
+    final technologyInfo =
+        container.technology != null && container.technology!.isNotEmpty
+            ? ' [${container.technology}]'
+            : '';
+
+    buffer.writeln(
+        '  subgraph ${_sanitizeId(container.id)}_container["${_escapeMermaidText(container.name)}${_escapeMermaidText(technologyInfo)}"]');
+
     // Add components
-    final components = elements.whereType<Component>()
+    final components = elements
+        .whereType<Component>()
         .where((component) => component.parentId == container.id)
         .toList();
-    
+
     for (final component in components) {
-      final componentTechInfo = component.technology != null && component.technology!.isNotEmpty
-          ? '<br>[${_escapeMermaidText(component.technology!)}]'
-          : '';
-      
-      buffer.writeln('    ${_sanitizeId(component.id)}["${_escapeMermaidText(component.name)}<br><i>Component</i>${componentTechInfo}"]');
+      final componentTechInfo =
+          component.technology != null && component.technology!.isNotEmpty
+              ? '<br>[${_escapeMermaidText(component.technology!)}]'
+              : '';
+
+      buffer.writeln(
+          '    ${_sanitizeId(component.id)}["${_escapeMermaidText(component.name)}<br><i>Component</i>${componentTechInfo}"]');
       if (includeTheme) {
         buffer.writeln('    class ${_sanitizeId(component.id)} component');
       }
-      
+
       // Add notes if requested
-      if (includeNotes && component.description != null && component.description!.isNotEmpty) {
-        buffer.writeln('    ${_sanitizeId(component.id)}_note["${_escapeMermaidText(component.description!)}"]');
-        buffer.writeln('    ${_sanitizeId(component.id)} --- ${_sanitizeId(component.id)}_note');
+      if (includeNotes &&
+          component.description != null &&
+          component.description!.isNotEmpty) {
+        buffer.writeln(
+            '    ${_sanitizeId(component.id)}_note["${_escapeMermaidText(component.description!)}"]');
+        buffer.writeln(
+            '    ${_sanitizeId(component.id)} --- ${_sanitizeId(component.id)}_note');
       }
     }
-    
+
     buffer.writeln('  end');
     buffer.writeln('  class ${_sanitizeId(container.id)}_container container');
     buffer.writeln();
-    
+
     // Define relationships
     buffer.writeln('  %% Relationships');
     for (final relationship in relationships) {
       final sourceId = _sanitizeId(relationship.sourceId);
       final targetId = _sanitizeId(relationship.destinationId);
       final label = relationship.description ?? '';
-      
-      buffer.writeln('  ${sourceId} -->|"${_escapeMermaidText(label)}"| ${targetId}');
+
+      buffer.writeln(
+          '  ${sourceId} -->|"${_escapeMermaidText(label)}"| ${targetId}');
     }
     buffer.writeln();
-    
+
     // Add legend if in C4 style
     if (style == MermaidStyle.c4) {
       buffer.writeln('  %% Legend');
       buffer.writeln('  subgraph Legend');
-      buffer.writeln('    legend[Component diagram for ${container.name}<br>Generated by Flutter Structurizr]');
+      buffer.writeln(
+          '    legend[Component diagram for ${container.name}<br>Generated by Flutter Structurizr]');
       buffer.writeln('  end');
     }
-    
+
     return buffer.toString();
   }
 
@@ -704,102 +769,114 @@ class MermaidExporter implements DiagramExporter<String> {
     List<Relationship> relationships,
   ) {
     final buffer = StringBuffer();
-    
+
     // Start Mermaid diagram with diagram type and direction
     buffer.writeln('graph ${_getDirectionCode()}');
-    
+
     // Add title as comment
     buffer.writeln('%% ${view.title ?? view.key} (${view.environment})');
     buffer.writeln();
-    
+
     // Add styling if requested
     if (includeTheme) {
       buffer.writeln('  %% Styling for diagram');
-      buffer.writeln('  classDef deploymentNode fill:#999999,stroke:#6B6B6B,color:#FFFFFF');
-      buffer.writeln('  classDef infrastructureNode fill:#85BBF0,stroke:#5C8AB8,color:#000000');
-      buffer.writeln('  classDef containerInstance fill:#438DD5,stroke:#2E6295,color:#FFFFFF');
-      buffer.writeln('  classDef systemInstance fill:#1168BD,stroke:#0B4884,color:#FFFFFF');
+      buffer.writeln(
+          '  classDef deploymentNode fill:#999999,stroke:#6B6B6B,color:#FFFFFF');
+      buffer.writeln(
+          '  classDef infrastructureNode fill:#85BBF0,stroke:#5C8AB8,color:#000000');
+      buffer.writeln(
+          '  classDef containerInstance fill:#438DD5,stroke:#2E6295,color:#FFFFFF');
+      buffer.writeln(
+          '  classDef systemInstance fill:#1168BD,stroke:#0B4884,color:#FFFFFF');
       buffer.writeln();
     }
-    
+
     // Process deployment nodes recursively
     _processDeploymentNodes(buffer, elements, view.environment, '  ');
-    
+
     // Define relationships
     buffer.writeln('  %% Relationships');
     for (final relationship in relationships) {
       final sourceId = _sanitizeId(relationship.sourceId);
       final targetId = _sanitizeId(relationship.destinationId);
       final label = relationship.description ?? '';
-      
-      buffer.writeln('  ${sourceId} -->|"${_escapeMermaidText(label)}"| ${targetId}');
+
+      buffer.writeln(
+          '  ${sourceId} -->|"${_escapeMermaidText(label)}"| ${targetId}');
     }
     buffer.writeln();
-    
+
     // Add legend if in C4 style
     if (style == MermaidStyle.c4) {
       buffer.writeln('  %% Legend');
       buffer.writeln('  subgraph Legend');
-      buffer.writeln('    legend[Deployment diagram for ${view.environment}<br>Generated by Flutter Structurizr]');
+      buffer.writeln(
+          '    legend[Deployment diagram for ${view.environment}<br>Generated by Flutter Structurizr]');
       buffer.writeln('  end');
     }
-    
+
     return buffer.toString();
   }
 
   /// Recursively processes deployment nodes for deployment diagram
-  void _processDeploymentNodes(
-    StringBuffer buffer,
-    List<Element> elements, 
-    String environment,
-    String indent
-  ) {
+  void _processDeploymentNodes(StringBuffer buffer, List<Element> elements,
+      String environment, String indent) {
     // Find top-level deployment nodes for this environment
-    final deploymentNodes = elements.whereType<DeploymentNode>()
+    final deploymentNodes = elements
+        .whereType<DeploymentNode>()
         .where((node) => node.environment == environment)
         .toList();
-    
+
     for (final node in deploymentNodes) {
-      final technologyInfo = node.technology != null && node.technology!.isNotEmpty
-          ? ' [${node.technology}]'
-          : '';
-      
+      final technologyInfo =
+          node.technology != null && node.technology!.isNotEmpty
+              ? ' [${node.technology}]'
+              : '';
+
       buffer.writeln('${indent}%% Deployment Node: ${node.name}');
-      buffer.writeln('${indent}subgraph ${_sanitizeId(node.id)}["${_escapeMermaidText(node.name)}${_escapeMermaidText(technologyInfo)}"]');
-      
+      buffer.writeln(
+          '${indent}subgraph ${_sanitizeId(node.id)}["${_escapeMermaidText(node.name)}${_escapeMermaidText(technologyInfo)}"]');
+
       // Add infrastructure nodes
       for (final infraNode in node.infrastructureNodes) {
-        final infraTechInfo = infraNode.technology != null && infraNode.technology!.isNotEmpty
-            ? '<br>[${_escapeMermaidText(infraNode.technology!)}]'
-            : '';
-        
-        buffer.writeln('${indent}  ${_sanitizeId(infraNode.id)}["${_escapeMermaidText(infraNode.name)}<br><i>Infrastructure</i>${infraTechInfo}"]');
+        final infraTechInfo =
+            infraNode.technology != null && infraNode.technology!.isNotEmpty
+                ? '<br>[${_escapeMermaidText(infraNode.technology!)}]'
+                : '';
+
+        buffer.writeln(
+            '${indent}  ${_sanitizeId(infraNode.id)}["${_escapeMermaidText(infraNode.name)}<br><i>Infrastructure</i>${infraTechInfo}"]');
         if (includeTheme) {
-          buffer.writeln('${indent}  class ${_sanitizeId(infraNode.id)} infrastructureNode');
+          buffer.writeln(
+              '${indent}  class ${_sanitizeId(infraNode.id)} infrastructureNode');
         }
       }
-      
+
       // Add container instances
       for (final containerInstance in node.containerInstances) {
-        buffer.writeln('${indent}  ${_sanitizeId(containerInstance.id)}["${_escapeMermaidText(containerInstance.name)}<br><i>Container Instance</i>"]');
+        buffer.writeln(
+            '${indent}  ${_sanitizeId(containerInstance.id)}["${_escapeMermaidText(containerInstance.name)}<br><i>Container Instance</i>"]');
         if (includeTheme) {
-          buffer.writeln('${indent}  class ${_sanitizeId(containerInstance.id)} containerInstance');
+          buffer.writeln(
+              '${indent}  class ${_sanitizeId(containerInstance.id)} containerInstance');
         }
       }
-      
+
       // Add software system instances
       for (final systemInstance in node.softwareSystemInstances) {
-        buffer.writeln('${indent}  ${_sanitizeId(systemInstance.id)}["${_escapeMermaidText(systemInstance.name)}<br><i>System Instance</i>"]');
+        buffer.writeln(
+            '${indent}  ${_sanitizeId(systemInstance.id)}["${_escapeMermaidText(systemInstance.name)}<br><i>System Instance</i>"]');
         if (includeTheme) {
-          buffer.writeln('${indent}  class ${_sanitizeId(systemInstance.id)} systemInstance');
+          buffer.writeln(
+              '${indent}  class ${_sanitizeId(systemInstance.id)} systemInstance');
         }
       }
-      
+
       // Process child nodes recursively
       for (final childNode in node.children) {
         _processChildDeploymentNode(buffer, childNode, '${indent}  ');
       }
-      
+
       buffer.writeln('${indent}end');
       if (includeTheme) {
         buffer.writeln('${indent}class ${_sanitizeId(node.id)} deploymentNode');
@@ -810,49 +887,55 @@ class MermaidExporter implements DiagramExporter<String> {
 
   /// Recursively processes a child deployment node
   void _processChildDeploymentNode(
-    StringBuffer buffer,
-    DeploymentNode node,
-    String indent
-  ) {
-    final technologyInfo = node.technology != null && node.technology!.isNotEmpty
-        ? ' [${node.technology}]'
-        : '';
-    
-    buffer.writeln('${indent}subgraph ${_sanitizeId(node.id)}["${_escapeMermaidText(node.name)}${_escapeMermaidText(technologyInfo)}"]');
-    
+      StringBuffer buffer, DeploymentNode node, String indent) {
+    final technologyInfo =
+        node.technology != null && node.technology!.isNotEmpty
+            ? ' [${node.technology}]'
+            : '';
+
+    buffer.writeln(
+        '${indent}subgraph ${_sanitizeId(node.id)}["${_escapeMermaidText(node.name)}${_escapeMermaidText(technologyInfo)}"]');
+
     // Add infrastructure nodes
     for (final infraNode in node.infrastructureNodes) {
-      final infraTechInfo = infraNode.technology != null && infraNode.technology!.isNotEmpty
-          ? '<br>[${_escapeMermaidText(infraNode.technology!)}]'
-          : '';
-      
-      buffer.writeln('${indent}  ${_sanitizeId(infraNode.id)}["${_escapeMermaidText(infraNode.name)}<br><i>Infrastructure</i>${infraTechInfo}"]');
+      final infraTechInfo =
+          infraNode.technology != null && infraNode.technology!.isNotEmpty
+              ? '<br>[${_escapeMermaidText(infraNode.technology!)}]'
+              : '';
+
+      buffer.writeln(
+          '${indent}  ${_sanitizeId(infraNode.id)}["${_escapeMermaidText(infraNode.name)}<br><i>Infrastructure</i>${infraTechInfo}"]');
       if (includeTheme) {
-        buffer.writeln('${indent}  class ${_sanitizeId(infraNode.id)} infrastructureNode');
+        buffer.writeln(
+            '${indent}  class ${_sanitizeId(infraNode.id)} infrastructureNode');
       }
     }
-    
+
     // Add container instances
     for (final containerInstance in node.containerInstances) {
-      buffer.writeln('${indent}  ${_sanitizeId(containerInstance.id)}["${_escapeMermaidText(containerInstance.name)}<br><i>Container Instance</i>"]');
+      buffer.writeln(
+          '${indent}  ${_sanitizeId(containerInstance.id)}["${_escapeMermaidText(containerInstance.name)}<br><i>Container Instance</i>"]');
       if (includeTheme) {
-        buffer.writeln('${indent}  class ${_sanitizeId(containerInstance.id)} containerInstance');
+        buffer.writeln(
+            '${indent}  class ${_sanitizeId(containerInstance.id)} containerInstance');
       }
     }
-    
+
     // Add software system instances
     for (final systemInstance in node.softwareSystemInstances) {
-      buffer.writeln('${indent}  ${_sanitizeId(systemInstance.id)}["${_escapeMermaidText(systemInstance.name)}<br><i>System Instance</i>"]');
+      buffer.writeln(
+          '${indent}  ${_sanitizeId(systemInstance.id)}["${_escapeMermaidText(systemInstance.name)}<br><i>System Instance</i>"]');
       if (includeTheme) {
-        buffer.writeln('${indent}  class ${_sanitizeId(systemInstance.id)} systemInstance');
+        buffer.writeln(
+            '${indent}  class ${_sanitizeId(systemInstance.id)} systemInstance');
       }
     }
-    
+
     // Process children recursively
     for (final childNode in node.children) {
       _processChildDeploymentNode(buffer, childNode, '${indent}  ');
     }
-    
+
     buffer.writeln('${indent}end');
     if (includeTheme) {
       buffer.writeln('${indent}class ${_sanitizeId(node.id)} deploymentNode');
@@ -866,85 +949,104 @@ class MermaidExporter implements DiagramExporter<String> {
     List<Relationship> relationships,
   ) {
     final buffer = StringBuffer();
-    
+
     // Start Mermaid diagram with diagram type and direction
     buffer.writeln('graph ${_getDirectionCode()}');
-    
+
     // Add title as comment
     buffer.writeln('%% ${view.title ?? view.key}');
     buffer.writeln();
-    
+
     // Add styling if requested
     if (includeTheme) {
       buffer.writeln('  %% Styling for diagram');
-      buffer.writeln('  classDef default fill:#FFFFFF,stroke:#000000,color:#000000');
-      buffer.writeln('  classDef person fill:#08427B,stroke:#052E56,color:#FFFFFF');
-      buffer.writeln('  classDef system fill:#1168BD,stroke:#0B4884,color:#FFFFFF');
-      buffer.writeln('  classDef container fill:#438DD5,stroke:#2E6295,color:#FFFFFF');
-      buffer.writeln('  classDef component fill:#85BBF0,stroke:#5C8AB8,color:#000000');
+      buffer.writeln(
+          '  classDef default fill:#FFFFFF,stroke:#000000,color:#000000');
+      buffer.writeln(
+          '  classDef person fill:#08427B,stroke:#052E56,color:#FFFFFF');
+      buffer.writeln(
+          '  classDef system fill:#1168BD,stroke:#0B4884,color:#FFFFFF');
+      buffer.writeln(
+          '  classDef container fill:#438DD5,stroke:#2E6295,color:#FFFFFF');
+      buffer.writeln(
+          '  classDef component fill:#85BBF0,stroke:#5C8AB8,color:#000000');
       buffer.writeln();
     }
-    
+
     // Define all elements
     buffer.writeln('  %% Elements');
     for (final element in elements) {
       if (element is Person) {
-        buffer.writeln('  ${_sanitizeId(element.id)}(["${_escapeMermaidText(element.name)}<br><i>Person</i>"])');
+        buffer.writeln(
+            '  ${_sanitizeId(element.id)}(["${_escapeMermaidText(element.name)}<br><i>Person</i>"])');
         if (includeTheme) {
           buffer.writeln('  class ${_sanitizeId(element.id)} person');
         }
       } else if (element is SoftwareSystem) {
-        buffer.writeln('  ${_sanitizeId(element.id)}["${_escapeMermaidText(element.name)}<br><i>Software System</i>"]');
+        buffer.writeln(
+            '  ${_sanitizeId(element.id)}["${_escapeMermaidText(element.name)}<br><i>Software System</i>"]');
         if (includeTheme) {
           buffer.writeln('  class ${_sanitizeId(element.id)} system');
         }
       } else if (element is Container) {
-        final technologyInfo = element.technology != null && element.technology!.isNotEmpty
-            ? '<br>[${_escapeMermaidText(element.technology!)}]'
-            : '';
-        
-        buffer.writeln('  ${_sanitizeId(element.id)}["${_escapeMermaidText(element.name)}<br><i>Container</i>${technologyInfo}"]');
+        final technologyInfo =
+            element.technology != null && element.technology!.isNotEmpty
+                ? '<br>[${_escapeMermaidText(element.technology!)}]'
+                : '';
+
+        buffer.writeln(
+            '  ${_sanitizeId(element.id)}["${_escapeMermaidText(element.name)}<br><i>Container</i>${technologyInfo}"]');
         if (includeTheme) {
           buffer.writeln('  class ${_sanitizeId(element.id)} container');
         }
       } else if (element is Component) {
-        final technologyInfo = element.technology != null && element.technology!.isNotEmpty
-            ? '<br>[${_escapeMermaidText(element.technology!)}]'
-            : '';
-        
-        buffer.writeln('  ${_sanitizeId(element.id)}["${_escapeMermaidText(element.name)}<br><i>Component</i>${technologyInfo}"]');
+        final technologyInfo =
+            element.technology != null && element.technology!.isNotEmpty
+                ? '<br>[${_escapeMermaidText(element.technology!)}]'
+                : '';
+
+        buffer.writeln(
+            '  ${_sanitizeId(element.id)}["${_escapeMermaidText(element.name)}<br><i>Component</i>${technologyInfo}"]');
         if (includeTheme) {
           buffer.writeln('  class ${_sanitizeId(element.id)} component');
         }
       } else if (element is DeploymentNode) {
-        final technologyInfo = element.technology != null && element.technology!.isNotEmpty
-            ? '<br>[${_escapeMermaidText(element.technology!)}]'
-            : '';
-        
-        buffer.writeln('  ${_sanitizeId(element.id)}[("${_escapeMermaidText(element.name)}<br><i>Deployment Node</i>${technologyInfo}")]');
+        final technologyInfo =
+            element.technology != null && element.technology!.isNotEmpty
+                ? '<br>[${_escapeMermaidText(element.technology!)}]'
+                : '';
+
+        buffer.writeln(
+            '  ${_sanitizeId(element.id)}[("${_escapeMermaidText(element.name)}<br><i>Deployment Node</i>${technologyInfo}")]');
       } else {
-        buffer.writeln('  ${_sanitizeId(element.id)}["${_escapeMermaidText(element.name)}"]');
+        buffer.writeln(
+            '  ${_sanitizeId(element.id)}["${_escapeMermaidText(element.name)}"]');
       }
-      
+
       // Add notes if requested
-      if (includeNotes && element.description != null && element.description!.isNotEmpty) {
-        buffer.writeln('  ${_sanitizeId(element.id)}_note["${_escapeMermaidText(element.description!)}"]');
-        buffer.writeln('  ${_sanitizeId(element.id)} --- ${_sanitizeId(element.id)}_note');
+      if (includeNotes &&
+          element.description != null &&
+          element.description!.isNotEmpty) {
+        buffer.writeln(
+            '  ${_sanitizeId(element.id)}_note["${_escapeMermaidText(element.description!)}"]');
+        buffer.writeln(
+            '  ${_sanitizeId(element.id)} --- ${_sanitizeId(element.id)}_note');
       }
     }
     buffer.writeln();
-    
+
     // Define relationships
     buffer.writeln('  %% Relationships');
     for (final relationship in relationships) {
       final sourceId = _sanitizeId(relationship.sourceId);
       final targetId = _sanitizeId(relationship.destinationId);
       final label = relationship.description ?? '';
-      
-      buffer.writeln('  ${sourceId} -->|"${_escapeMermaidText(label)}"| ${targetId}');
+
+      buffer.writeln(
+          '  ${sourceId} -->|"${_escapeMermaidText(label)}"| ${targetId}');
     }
     buffer.writeln();
-    
+
     return buffer.toString();
   }
 
@@ -977,3 +1079,5 @@ class MermaidExporter implements DiagramExporter<String> {
     return id.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_');
   }
 }
+
+final _logger = Logger('MermaidExporter');

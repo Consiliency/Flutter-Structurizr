@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
@@ -17,31 +16,31 @@ class MockCanvas implements Canvas {
   void drawRect(Rect rect, Paint paint) {
     drawnRects.add(rect);
   }
-  
+
   /// Records a drawn rounded rectangle
   @override
   void drawRRect(RRect rrect, Paint paint) {
     drawnRRects.add(rrect);
   }
-  
+
   /// Records a drawn path
   @override
   void drawPath(Path path, Paint paint) {
     drawnPaths.add(path);
   }
-  
+
   /// Records a drawn circle
   @override
   void drawCircle(Offset c, double radius, Paint paint) {
     drawnCircles.add(Circle(c, radius));
   }
-  
+
   /// Records a drawn line
   @override
   void drawLine(Offset p1, Offset p2, Paint paint) {
     drawnLines.add(Line(p1, p2));
   }
-  
+
   /// Clears all recorded drawing operations
   void clear() {
     drawnRects.clear();
@@ -52,31 +51,31 @@ class MockCanvas implements Canvas {
     drawnTexts.clear();
     drawnTextOffsets.clear();
   }
-  
+
   /// Records saving the canvas state
   @override
   void save() {}
-  
+
   /// Records restoring the canvas state
   @override
   void restore() {}
-  
+
   /// Records applying a translation transformation
   @override
   void translate(double dx, double dy) {}
-  
+
   /// Records applying a rotation transformation
   @override
   void rotate(double radians) {}
-  
+
   /// Records applying a scale transformation
   @override
   void scale(double sx, [double? sy]) {}
-  
+
   /// Records applying a transformation matrix
   @override
   void transform(Float64List matrix4) {}
-  
+
   /// Handles all other Canvas methods not explicitly implemented
   @override
   dynamic noSuchMethod(Invocation invocation) {
@@ -95,9 +94,9 @@ class MockCanvas implements Canvas {
 class Circle {
   final Offset center;
   final double radius;
-  
+
   Circle(this.center, this.radius);
-  
+
   @override
   String toString() => 'Circle(center: $center, radius: $radius)';
 }
@@ -106,9 +105,9 @@ class Circle {
 class Line {
   final Offset start;
   final Offset end;
-  
+
   Line(this.start, this.end);
-  
+
   @override
   String toString() => 'Line(start: $start, end: $end)';
 }

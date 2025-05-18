@@ -7,10 +7,11 @@ import 'package:flutter_structurizr/presentation/widgets/history/history_toolbar
 
 void main() {
   group('HistoryToolbar Widget Tests', () {
-    testWidgets('should render undo and redo buttons', (WidgetTester tester) async {
+    testWidgets('should render undo and redo buttons',
+        (WidgetTester tester) async {
       // Arrange
       final historyManager = HistoryManager();
-      
+
       // Act
       await tester.pumpWidget(
         MaterialApp(
@@ -21,18 +22,19 @@ void main() {
           ),
         ),
       );
-      
+
       // Assert
       expect(find.byIcon(Icons.undo), findsOneWidget);
       expect(find.byIcon(Icons.redo), findsOneWidget);
       expect(find.text('Undo'), findsNothing); // Labels are hidden by default
       expect(find.text('Redo'), findsNothing);
     });
-    
-    testWidgets('should show labels when showLabels is true', (WidgetTester tester) async {
+
+    testWidgets('should show labels when showLabels is true',
+        (WidgetTester tester) async {
       // Arrange
       final historyManager = HistoryManager();
-      
+
       // Act
       await tester.pumpWidget(
         MaterialApp(
@@ -44,16 +46,17 @@ void main() {
           ),
         ),
       );
-      
+
       // Assert
       expect(find.text('Undo'), findsOneWidget);
       expect(find.text('Redo'), findsOneWidget);
     });
-    
-    testWidgets('should disable undo button when canUndo is false', (WidgetTester tester) async {
+
+    testWidgets('should disable undo button when canUndo is false',
+        (WidgetTester tester) async {
       // Arrange
       final historyManager = HistoryManager();
-      
+
       // Act
       await tester.pumpWidget(
         MaterialApp(
@@ -65,18 +68,19 @@ void main() {
           ),
         ),
       );
-      
+
       // Assert
       final undoIcon = tester.widget<Icon>(find.byIcon(Icons.undo));
       expect(undoIcon.color, Colors.black38); // Disabled color
-      
+
       // Tap the button and verify it doesn't change the state
       await tester.tap(find.byIcon(Icons.undo));
       await tester.pump();
       expect(historyManager.canUndo, false);
     });
-    
-    testWidgets('should enable undo button when canUndo is true', (WidgetTester tester) async {
+
+    testWidgets('should enable undo button when canUndo is true',
+        (WidgetTester tester) async {
       // Arrange
       final historyManager = HistoryManager();
       historyManager.executeCommand(
@@ -86,7 +90,7 @@ void main() {
           description: 'Test Command',
         ),
       );
-      
+
       // Act
       await tester.pumpWidget(
         MaterialApp(
@@ -98,22 +102,23 @@ void main() {
           ),
         ),
       );
-      
+
       // Assert
       final undoIcon = tester.widget<Icon>(find.byIcon(Icons.undo));
       expect(undoIcon.color, Colors.black87); // Enabled color
-      
+
       // Tap the button and verify it triggers undo
       await tester.tap(find.byIcon(Icons.undo));
       await tester.pump();
       expect(historyManager.canUndo, false);
       expect(historyManager.canRedo, true);
     });
-    
-    testWidgets('should disable redo button when canRedo is false', (WidgetTester tester) async {
+
+    testWidgets('should disable redo button when canRedo is false',
+        (WidgetTester tester) async {
       // Arrange
       final historyManager = HistoryManager();
-      
+
       // Act
       await tester.pumpWidget(
         MaterialApp(
@@ -125,18 +130,19 @@ void main() {
           ),
         ),
       );
-      
+
       // Assert
       final redoIcon = tester.widget<Icon>(find.byIcon(Icons.redo));
       expect(redoIcon.color, Colors.black38); // Disabled color
-      
+
       // Tap the button and verify it doesn't change the state
       await tester.tap(find.byIcon(Icons.redo));
       await tester.pump();
       expect(historyManager.canRedo, false);
     });
-    
-    testWidgets('should enable redo button when canRedo is true', (WidgetTester tester) async {
+
+    testWidgets('should enable redo button when canRedo is true',
+        (WidgetTester tester) async {
       // Arrange
       final historyManager = HistoryManager();
       historyManager.executeCommand(
@@ -147,7 +153,7 @@ void main() {
         ),
       );
       historyManager.undo();
-      
+
       // Act
       await tester.pumpWidget(
         MaterialApp(
@@ -159,22 +165,23 @@ void main() {
           ),
         ),
       );
-      
+
       // Assert
       final redoIcon = tester.widget<Icon>(find.byIcon(Icons.redo));
       expect(redoIcon.color, Colors.black87); // Enabled color
-      
+
       // Tap the button and verify it triggers redo
       await tester.tap(find.byIcon(Icons.redo));
       await tester.pump();
       expect(historyManager.canUndo, true);
       expect(historyManager.canRedo, false);
     });
-    
-    testWidgets('should update when history changes', (WidgetTester tester) async {
+
+    testWidgets('should update when history changes',
+        (WidgetTester tester) async {
       // Arrange
       final historyManager = HistoryManager();
-      
+
       // Act - Initial state
       await tester.pumpWidget(
         MaterialApp(
@@ -186,13 +193,13 @@ void main() {
           ),
         ),
       );
-      
+
       // Assert - Both buttons should be disabled
       final undoIcon1 = tester.widget<Icon>(find.byIcon(Icons.undo));
       final redoIcon1 = tester.widget<Icon>(find.byIcon(Icons.redo));
       expect(undoIcon1.color, Colors.black38);
       expect(redoIcon1.color, Colors.black38);
-      
+
       // Act - Execute a command
       historyManager.executeCommand(
         TestCommand(
@@ -202,17 +209,17 @@ void main() {
         ),
       );
       await tester.pump();
-      
+
       // Assert - Undo should be enabled, redo should be disabled
       final undoIcon2 = tester.widget<Icon>(find.byIcon(Icons.undo));
       final redoIcon2 = tester.widget<Icon>(find.byIcon(Icons.redo));
       expect(undoIcon2.color, Colors.black87);
       expect(redoIcon2.color, Colors.black38);
-      
+
       // Act - Undo the command
       historyManager.undo();
       await tester.pump();
-      
+
       // Assert - Undo should be disabled, redo should be enabled
       final undoIcon3 = tester.widget<Icon>(find.byIcon(Icons.undo));
       final redoIcon3 = tester.widget<Icon>(find.byIcon(Icons.redo));
@@ -220,13 +227,13 @@ void main() {
       expect(redoIcon3.color, Colors.black87);
     });
   });
-  
+
   group('HistoryKeyboardShortcuts Widget Tests', () {
     testWidgets('should trigger undo on Ctrl+Z', (WidgetTester tester) async {
       // Arrange
       final historyManager = HistoryManager();
       bool undoTriggered = false;
-      
+
       historyManager.executeCommand(
         TestCommand(
           execute: () {},
@@ -236,7 +243,7 @@ void main() {
           description: 'Test Command',
         ),
       );
-      
+
       // Act
       await tester.pumpWidget(
         MaterialApp(
@@ -248,25 +255,25 @@ void main() {
           ),
         ),
       );
-      
+
       // Send Ctrl+Z key event
       await tester.sendKeyDownEvent(LogicalKeyboardKey.control);
       await tester.sendKeyDownEvent(LogicalKeyboardKey.keyZ);
       await tester.sendKeyUpEvent(LogicalKeyboardKey.keyZ);
       await tester.sendKeyUpEvent(LogicalKeyboardKey.control);
       await tester.pump();
-      
+
       // Assert
       expect(undoTriggered, true);
       expect(historyManager.canUndo, false);
       expect(historyManager.canRedo, true);
     });
-    
+
     testWidgets('should trigger redo on Ctrl+Y', (WidgetTester tester) async {
       // Arrange
       final historyManager = HistoryManager();
       bool redoTriggered = false;
-      
+
       historyManager.executeCommand(
         TestCommand(
           execute: () {
@@ -278,7 +285,7 @@ void main() {
       );
       historyManager.undo();
       redoTriggered = false; // Reset after initial execution
-      
+
       // Act
       await tester.pumpWidget(
         MaterialApp(
@@ -290,25 +297,26 @@ void main() {
           ),
         ),
       );
-      
+
       // Send Ctrl+Y key event
       await tester.sendKeyDownEvent(LogicalKeyboardKey.control);
       await tester.sendKeyDownEvent(LogicalKeyboardKey.keyY);
       await tester.sendKeyUpEvent(LogicalKeyboardKey.keyY);
       await tester.sendKeyUpEvent(LogicalKeyboardKey.control);
       await tester.pump();
-      
+
       // Assert
       expect(redoTriggered, true);
       expect(historyManager.canUndo, true);
       expect(historyManager.canRedo, false);
     });
-    
-    testWidgets('should trigger redo on Ctrl+Shift+Z', (WidgetTester tester) async {
+
+    testWidgets('should trigger redo on Ctrl+Shift+Z',
+        (WidgetTester tester) async {
       // Arrange
       final historyManager = HistoryManager();
       bool redoTriggered = false;
-      
+
       historyManager.executeCommand(
         TestCommand(
           execute: () {
@@ -320,7 +328,7 @@ void main() {
       );
       historyManager.undo();
       redoTriggered = false; // Reset after initial execution
-      
+
       // Act
       await tester.pumpWidget(
         MaterialApp(
@@ -332,7 +340,7 @@ void main() {
           ),
         ),
       );
-      
+
       // Send Ctrl+Shift+Z key event
       await tester.sendKeyDownEvent(LogicalKeyboardKey.control);
       await tester.sendKeyDownEvent(LogicalKeyboardKey.shift);
@@ -341,18 +349,19 @@ void main() {
       await tester.sendKeyUpEvent(LogicalKeyboardKey.shift);
       await tester.sendKeyUpEvent(LogicalKeyboardKey.control);
       await tester.pump();
-      
+
       // Assert
       expect(redoTriggered, true);
       expect(historyManager.canUndo, true);
       expect(historyManager.canRedo, false);
     });
-    
-    testWidgets('should not trigger undo when canUndo is false', (WidgetTester tester) async {
+
+    testWidgets('should not trigger undo when canUndo is false',
+        (WidgetTester tester) async {
       // Arrange
       final historyManager = HistoryManager();
       bool undoTriggered = false;
-      
+
       // Act
       await tester.pumpWidget(
         MaterialApp(
@@ -364,25 +373,26 @@ void main() {
           ),
         ),
       );
-      
+
       // Send Ctrl+Z key event
       await tester.sendKeyDownEvent(LogicalKeyboardKey.control);
       await tester.sendKeyDownEvent(LogicalKeyboardKey.keyZ);
       await tester.sendKeyUpEvent(LogicalKeyboardKey.keyZ);
       await tester.sendKeyUpEvent(LogicalKeyboardKey.control);
       await tester.pump();
-      
+
       // Assert
       expect(undoTriggered, false);
       expect(historyManager.canUndo, false);
       expect(historyManager.canRedo, false);
     });
-    
-    testWidgets('should not trigger redo when canRedo is false', (WidgetTester tester) async {
+
+    testWidgets('should not trigger redo when canRedo is false',
+        (WidgetTester tester) async {
       // Arrange
       final historyManager = HistoryManager();
       bool redoTriggered = false;
-      
+
       // Act
       await tester.pumpWidget(
         MaterialApp(
@@ -394,14 +404,14 @@ void main() {
           ),
         ),
       );
-      
+
       // Send Ctrl+Y key event
       await tester.sendKeyDownEvent(LogicalKeyboardKey.control);
       await tester.sendKeyDownEvent(LogicalKeyboardKey.keyY);
       await tester.sendKeyUpEvent(LogicalKeyboardKey.keyY);
       await tester.sendKeyUpEvent(LogicalKeyboardKey.control);
       await tester.pump();
-      
+
       // Assert
       expect(redoTriggered, false);
       expect(historyManager.canUndo, false);
@@ -412,22 +422,25 @@ void main() {
 
 /// A simple command for testing
 class TestCommand implements Command {
+  @override
   final Function() execute;
+  @override
   final Function() undo;
+  @override
   final String description;
-  
+
   TestCommand({
     required this.execute,
     required this.undo,
     required this.description,
   });
-  
+
   @override
   void execute() => this.execute();
-  
+
   @override
   void undo() => this.undo();
-  
+
   @override
   String get description => this.description;
 }

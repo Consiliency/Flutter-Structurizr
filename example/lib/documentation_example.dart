@@ -63,7 +63,7 @@ class DocumentationExampleScreen extends StatelessWidget {
     
     final documentation = Documentation(
       sections: [
-        DocumentationSection(
+        const DocumentationSection(
           title: 'Introduction',
           content: '''
 # Introduction
@@ -103,7 +103,7 @@ The following diagram shows the system context:
 ''',
           order: 1,
         ),
-        DocumentationSection(
+        const DocumentationSection(
           title: 'Architecture',
           content: '''
 # Architecture
@@ -134,7 +134,7 @@ The system implements multiple security layers:
 ''',
           order: 2,
         ),
-        DocumentationSection(
+        const DocumentationSection(
           title: 'API Documentation',
           content: '''
 # API Documentation

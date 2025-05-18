@@ -1,13 +1,9 @@
 import 'dart:async';
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart' hide Element, Container, View, Border;
-import 'package:flutter/rendering.dart';
-import 'package:flutter_structurizr/domain/style/styles.dart';
 import 'package:flutter_structurizr/infrastructure/export/diagram_exporter.dart' as diagram;
 import 'package:flutter_structurizr/infrastructure/export/rendering_pipeline.dart';
-import 'package:flutter_structurizr/presentation/widgets/diagram/structurizr_diagram.dart';
 import 'package:image/image.dart' as img;
 
 /// An exporter for PNG format images of diagrams

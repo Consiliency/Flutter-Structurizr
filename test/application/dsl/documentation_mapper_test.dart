@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_structurizr/application/dsl/documentation_mapper.dart';
-import 'package:flutter_structurizr/domain/documentation/documentation.dart' as domain;
 import 'package:flutter_structurizr/domain/parser/ast/nodes/documentation/documentation_node.dart';
 import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 

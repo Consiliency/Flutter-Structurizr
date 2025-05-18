@@ -13,10 +13,10 @@ void main() {
       );
 
       final elementViews = [
-        ElementView(id: 'element1'),
-        ElementView(id: 'element2'),
-        ElementView(id: 'element3'),
-        ElementView(id: 'element4'),
+        const ElementView(id: 'element1'),
+        const ElementView(id: 'element2'),
+        const ElementView(id: 'element3'),
+        const ElementView(id: 'element4'),
       ];
 
       final elementSizes = {
@@ -58,10 +58,13 @@ void main() {
       // Arrange
       final layout = GridLayout();
 
-      final initialPosition = Offset(200, 300);
+      const initialPosition = Offset(200, 300);
       final elementViews = [
-        ElementView(id: 'element1', x: initialPosition.dx.toInt(), y: initialPosition.dy.toInt()),
-        ElementView(id: 'element2'),
+        ElementView(
+            id: 'element1',
+            x: initialPosition.dx.toInt(),
+            y: initialPosition.dy.toInt()),
+        const ElementView(id: 'element2'),
       ];
 
       final elementSizes = {
@@ -89,16 +92,17 @@ void main() {
       expect(positions['element2'], isNot(equals(initialPosition)));
     });
 
-    test('should handle hierarchical layout with parent-child relationships', () {
+    test('should handle hierarchical layout with parent-child relationships',
+        () {
       // Arrange
       final layout = GridLayout(
         respectHierarchy: true,
       );
 
       final elementViews = [
-        ElementView(id: 'parent1', x: 100, y: 100), // Parent element
-        ElementView(id: 'child1', parentId: 'parent1'), // Child element 1
-        ElementView(id: 'child2', parentId: 'parent1'), // Child element 2
+        const ElementView(id: 'parent1', x: 100, y: 100), // Parent element
+        const ElementView(id: 'child1', parentId: 'parent1'), // Child element 1
+        const ElementView(id: 'child2', parentId: 'parent1'), // Child element 2
       ];
 
       final elementSizes = {
@@ -145,8 +149,8 @@ void main() {
       final layout = GridLayout();
 
       final elementViews = [
-        ElementView(id: 'element1', x: 100, y: 100),
-        ElementView(id: 'element2', x: 400, y: 300),
+        const ElementView(id: 'element1', x: 100, y: 100),
+        const ElementView(id: 'element2', x: 400, y: 300),
       ];
 
       final elementSizes = {

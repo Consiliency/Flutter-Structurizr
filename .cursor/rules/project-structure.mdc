@@ -3,7 +3,12 @@ description:
 globs: 
 alwaysApply: false
 ---
-- All specification, testing progress, and implementation plan markdown files must be kept in the `/specs/` directory.
-- Do **not** duplicate user-facing status or documentation in `CLAUDE.md`. Use `README.md` and `/specs` for those.
-- `CLAUDE.md` is for developer memory, best practices, and lessons learned only.
-- When in doubt, check the latest specs and implementation status for guidance.
+# Project Structure Guidelines
+
+- Follow the clean architecture approach: domain, application, infrastructure, presentation layers.
+- Keep all specs, implementation plans, and project status in the `specs/` directory.
+- Do not duplicate status or user documentation in developer memory files (e.g., CLAUDE.md).
+- Place all user-facing documentation in the README and specs.
+- Use example/ for focused example apps and demo_app/ for the main demo application.
+- Organize tests to mirror the lib/ structure for easy navigation and coverage.
+- Clean up unused files and helpers after refactors.

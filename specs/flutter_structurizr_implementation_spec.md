@@ -194,7 +194,7 @@ Reference files:
 
 ### 3.2 DSL Parser ✅
 
-The DSL parser is now fully implemented and converts Structurizr DSL to a workspace model, including documentation support:
+The DSL parser is now fully implemented and converts Structurizr DSL to a workspace model, including documentation support. The parser and builder are modularized into interface-driven components, with method relationships and dependencies as described in the refactored method relationship tables (see below for summary):
 
 #### 3.2.1 Parser Components ✅
 
@@ -222,6 +222,19 @@ The DSL parser is now fully implemented and converts Structurizr DSL to a worksp
 4. **Error Reporter**: ✅ Structured error reporting with context-sensitive messages
    - Fixed test files to properly verify error reporting
    - Enhanced error handling with contextual information
+
+#### 3.2.2 Method Relationship Tables (Summary)
+
+- **Token/ContextStack/Node Foundation**: ContextStack methods, error handling, submodule integration
+- **Model Node/Group/Enterprise/Element Foundation**: addGroup, addEnterprise, addElement, setProperty, setIdentifier, addImpliedRelationship, etc.
+- **IncludeParser Methods**: parse, _parseFileInclude, _parseViewInclude, _resolveRecursive, _resolveCircular, setType
+- **ElementParser Methods**: parsePerson, parseSoftwareSystem, _parseIdentifier, _parseParentChild
+- **RelationshipParser Methods**: parse, _parseExplicit, _parseImplicit, _parseGroup, _parseNested, setSource, setDestination
+- **ViewsParser Methods**: parse, _parseViewBlock, _parseViewProperty, _parseInheritance, _parseIncludeExclude, addView, setProperty
+- **ModelParser Methods**: parse, _parseGroup, _parseEnterprise, _parseNestedElement, _parseImpliedRelationship, addGroup, addEnterprise, addElement
+- **WorkspaceBuilderImpl & SystemContextViewParser Methods**: addSystemContextView, addDefaultElements, addImpliedRelationships, populateDefaults, setDefaultsFromJava, handleIncludeAll, handleIncludeExclude, setAdvancedFeatures, setIncludeRule, setExcludeRule, setInheritance, addElement, setProperty
+
+These relationships are reflected in the codebase and should be referenced for parallel development and understanding parser/model dependencies.
 
 #### 3.2.2 DSL Features ✅
 
@@ -816,6 +829,21 @@ test('Element creation and properties', () {
     id: 'user',
     name: 'User',
 ```
+
+## 2024-06 Update: Batch Fixes, Stabilization, and Modular Parser Refactor
+
+- Major batch fixes have resolved ambiguous imports, type mismatches, and widget layout errors in tests.
+- Parser, model, and widget tests are now stabilized and passing in most environments.
+- Modular parser refactor is in progress; all parser/model/view files now use explicit imports and type aliases to avoid conflicts with Flutter built-ins.
+- Widget layout errors in tests are resolved by removing top-level Expanded/Flexible or wrapping in SizedBox with explicit constraints.
+- All contributors should use flutter test for running tests.
+- See the Troubleshooting section in the README for common issues and solutions.
+
+### Next Steps
+- Continue modular parser refactor, following the audit and handoff tables.
+- Complete integration of documentation and ADR components.
+- Expand test coverage for new parser interfaces and UI components.
+- Monitor for any remaining ambiguous import/type issues as refactor progresses.
 
 ## Phase 9: Advanced Features
 

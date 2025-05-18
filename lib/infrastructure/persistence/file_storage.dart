@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:convert';
 import 'package:flutter_structurizr/application/workspace/workspace_repository.dart';
 import 'package:flutter_structurizr/domain/model/workspace.dart';

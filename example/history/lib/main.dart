@@ -36,49 +36,49 @@ class HistoryExamplePage extends StatefulWidget {
 class _HistoryExamplePageState extends State<HistoryExamplePage> {
   // Create a history manager
   final historyManager = HistoryManager(maxHistorySize: 50);
-  
+
   // Simple model for demonstration
   final List<ElementData> elements = [];
-  
+
   // Panel visibility
   bool _showHistoryPanel = true;
-  
+
   // Drag state
   ElementData? _draggedElement;
   Offset? _dragStartPosition;
-  
+
   // Selection state
   ElementData? _selectedElement;
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     // Add some initial elements
     _addInitialElements();
   }
-  
+
   void _addInitialElements() {
     // Add a few elements to demonstrate
     historyManager.beginTransaction();
-    
+
     final element1 = ElementData(
       id: 'element1',
       name: 'Person',
       type: ElementType.person,
       position: const Offset(100, 150),
     );
-    
+
     final element2 = ElementData(
       id: 'element2',
       name: 'System',
       type: ElementType.system,
       position: const Offset(350, 150),
     );
-    
+
     _addElementWithCommand(element1);
     _addElementWithCommand(element2);
-    
+
     _addRelationshipWithCommand(
       RelationshipData(
         id: 'rel1',
@@ -87,16 +87,16 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
         description: 'Uses',
       ),
     );
-    
+
     historyManager.commitTransaction('Add initial elements');
   }
-  
+
   @override
   void dispose() {
     historyManager.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,15 +105,17 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
         actions: [
           // Show/hide history panel
           IconButton(
-            icon: Icon(_showHistoryPanel ? Icons.visibility_off : Icons.visibility),
-            tooltip: _showHistoryPanel ? 'Hide History Panel' : 'Show History Panel',
+            icon: Icon(
+                _showHistoryPanel ? Icons.visibility_off : Icons.visibility),
+            tooltip:
+                _showHistoryPanel ? 'Hide History Panel' : 'Show History Panel',
             onPressed: () {
               setState(() {
                 _showHistoryPanel = !_showHistoryPanel;
               });
             },
           ),
-          
+
           // Undo/Redo toolbar
           HistoryToolbar(
             historyManager: historyManager,
@@ -133,7 +135,7 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
                   Container(
                     color: Colors.grey[100],
                   ),
-                  
+
                   // Draw relationships
                   CustomPaint(
                     painter: RelationshipPainter(
@@ -141,7 +143,7 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
                     ),
                     size: Size.infinite,
                   ),
-                  
+
                   // Draw elements
                   for (final element in elements)
                     Positioned(
@@ -152,7 +154,7 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
                 ],
               ),
             ),
-            
+
             // History panel
             if (_showHistoryPanel)
               SizedBox(
@@ -171,7 +173,6 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
           FloatingActionButton(
             heroTag: 'add_person',
             mini: true,
-            child: const Icon(Icons.person_add),
             tooltip: 'Add Person',
             onPressed: () {
               _addElementWithCommand(
@@ -186,14 +187,14 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
                 ),
               );
             },
+            child: const Icon(Icons.person_add),
           ),
           const SizedBox(height: 8),
-          
+
           // Add system
           FloatingActionButton(
             heroTag: 'add_system',
             mini: true,
-            child: const Icon(Icons.computer),
             tooltip: 'Add System',
             onPressed: () {
               _addElementWithCommand(
@@ -208,14 +209,14 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
                 ),
               );
             },
+            child: const Icon(Icons.computer),
           ),
           const SizedBox(height: 8),
-          
+
           // Add container
           FloatingActionButton(
             heroTag: 'add_container',
             mini: true,
-            child: const Icon(Icons.storage),
             tooltip: 'Add Container',
             onPressed: () {
               _addElementWithCommand(
@@ -230,14 +231,14 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
                 ),
               );
             },
+            child: const Icon(Icons.storage),
           ),
           const SizedBox(height: 8),
-          
+
           // Add relationship
           FloatingActionButton(
             heroTag: 'add_relationship',
             mini: true,
-            child: const Icon(Icons.arrow_forward),
             tooltip: 'Add Relationship',
             onPressed: _selectedElement != null && elements.length > 1
                 ? () {
@@ -245,7 +246,7 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
                     final targetElement = elements.firstWhere(
                       (e) => e.id != _selectedElement!.id,
                     );
-                    
+
                     _addRelationshipWithCommand(
                       RelationshipData(
                         id: 'rel${DateTime.now().millisecondsSinceEpoch}',
@@ -256,14 +257,14 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
                     );
                   }
                 : null,
+            child: const Icon(Icons.arrow_forward),
           ),
           const SizedBox(height: 8),
-          
+
           // Remove selected
           FloatingActionButton(
             heroTag: 'remove',
             mini: true,
-            child: const Icon(Icons.delete),
             tooltip: 'Remove Selected',
             onPressed: _selectedElement != null
                 ? () {
@@ -271,31 +272,32 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
                     _selectedElement = null;
                   }
                 : null,
+            child: const Icon(Icons.delete),
           ),
           const SizedBox(height: 8),
-          
+
           // Edit name
           FloatingActionButton(
             heroTag: 'edit',
             mini: true,
-            child: const Icon(Icons.edit),
             tooltip: 'Edit Name',
             onPressed: _selectedElement != null
                 ? () {
                     _showEditNameDialog(_selectedElement!);
                   }
                 : null,
+            child: const Icon(Icons.edit),
           ),
         ],
       ),
     );
   }
-  
+
   Widget _buildElement(ElementData element) {
     final isSelected = _selectedElement?.id == element.id;
-    
+
     Widget elementWidget;
-    
+
     switch (element.type) {
       case ElementType.person:
         elementWidget = _buildPersonElement(element, isSelected);
@@ -307,7 +309,7 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
         elementWidget = _buildContainerElement(element, isSelected);
         break;
     }
-    
+
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -345,7 +347,7 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
               });
             },
           );
-          
+
           _draggedElement = null;
           _dragStartPosition = null;
         }
@@ -353,7 +355,7 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
       child: elementWidget,
     );
   }
-  
+
   Widget _buildPersonElement(ElementData element, bool isSelected) {
     return SizedBox(
       width: 100,
@@ -389,7 +391,7 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
       ),
     );
   }
-  
+
   Widget _buildSystemElement(ElementData element, bool isSelected) {
     return SizedBox(
       width: 100,
@@ -425,7 +427,7 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
       ),
     );
   }
-  
+
   Widget _buildContainerElement(ElementData element, bool isSelected) {
     return SizedBox(
       width: 100,
@@ -461,10 +463,11 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
       ),
     );
   }
-  
+
   void _showEditNameDialog(ElementData element) {
-    final TextEditingController controller = TextEditingController(text: element.name);
-    
+    final TextEditingController controller =
+        TextEditingController(text: element.name);
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -488,7 +491,7 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
             onPressed: () {
               final oldName = element.name;
               final newName = controller.text;
-              
+
               if (oldName != newName) {
                 historyManager.updateProperty<String>(
                   element.id,
@@ -503,7 +506,7 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
                   },
                 );
               }
-              
+
               Navigator.of(context).pop();
             },
           ),
@@ -511,7 +514,7 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
       ),
     );
   }
-  
+
   void _addElementWithCommand(ElementData element) {
     // Add the element with an undoable command
     historyManager.addElement(
@@ -528,7 +531,7 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
       },
     );
   }
-  
+
   void _removeElementWithCommand(ElementData element) {
     // Create a copy for undo
     final elementCopy = ElementData(
@@ -537,7 +540,7 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
       type: element.type,
       position: element.position,
     );
-    
+
     // Remove the element with an undoable command
     historyManager.removeElement(
       element.id,
@@ -553,20 +556,22 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
       (id) {
         setState(() {
           elements.add(elementCopy);
-          
+
           // Restore relationships
           for (final rel in elementCopy.relationships) {
             // Find the source and target elements
             final source = elements.firstWhere(
               (e) => e.id == rel.sourceId,
-              orElse: () => throw Exception('Source element not found: ${rel.sourceId}'),
+              orElse: () =>
+                  throw Exception('Source element not found: ${rel.sourceId}'),
             );
-            
+
             final destination = elements.firstWhere(
               (e) => e.id == rel.destinationId,
-              orElse: () => throw Exception('Destination element not found: ${rel.destinationId}'),
+              orElse: () => throw Exception(
+                  'Destination element not found: ${rel.destinationId}'),
             );
-            
+
             // Recreate the relationship
             source.relationships.add(rel);
             destination.relationships.add(rel);
@@ -575,7 +580,7 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
       },
     );
   }
-  
+
   void _addRelationshipWithCommand(RelationshipData relationship) {
     // Add the relationship with an undoable command
     historyManager.addRelationship(
@@ -587,7 +592,7 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
           // Find the source and target elements
           final source = elements.firstWhere((e) => e.id == sourceId);
           final destination = elements.firstWhere((e) => e.id == destinationId);
-          
+
           // Add the relationship to both elements
           source.relationships.add(relationship);
           destination.relationships.add(relationship);
@@ -600,7 +605,7 @@ class _HistoryExamplePageState extends State<HistoryExamplePage> {
       },
     );
   }
-  
+
   void _removeRelationshipById(String id) {
     // Find elements with this relationship
     for (final element in elements) {
@@ -616,7 +621,7 @@ class ElementData {
   final ElementType type;
   Offset position;
   final List<RelationshipData> relationships = [];
-  
+
   ElementData({
     required this.id,
     required this.name,
@@ -638,7 +643,7 @@ class RelationshipData {
   final String sourceId;
   final String destinationId;
   String description;
-  
+
   RelationshipData({
     required this.id,
     required this.sourceId,
@@ -650,37 +655,39 @@ class RelationshipData {
 /// A custom painter for drawing relationships between elements
 class RelationshipPainter extends CustomPainter {
   final List<ElementData> elements;
-  
+
   RelationshipPainter({required this.elements});
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = Colors.grey[600]!
       ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
-    
+
     final arrowPaint = Paint()
       ..color = Colors.grey[600]!
       ..strokeWidth = 1
       ..style = PaintingStyle.fill;
-    
+
     // Draw a line for each relationship
     for (final element in elements) {
       for (final relationship in element.relationships) {
         // Only draw the relationship from the source to avoid duplicates
         if (relationship.sourceId == element.id) {
           // Find the source and target elements
-          final source = elements.firstWhere((e) => e.id == relationship.sourceId);
-          final destination = elements.firstWhere((e) => e.id == relationship.destinationId);
-          
+          final source =
+              elements.firstWhere((e) => e.id == relationship.sourceId);
+          final destination =
+              elements.firstWhere((e) => e.id == relationship.destinationId);
+
           // Draw the line
           canvas.drawLine(
             source.position,
             destination.position,
             paint,
           );
-          
+
           // Draw an arrow at the target end
           _drawArrow(
             canvas,
@@ -688,7 +695,7 @@ class RelationshipPainter extends CustomPainter {
             destination.position,
             arrowPaint,
           );
-          
+
           // Draw the relationship description
           _drawRelationshipText(
             canvas,
@@ -700,36 +707,37 @@ class RelationshipPainter extends CustomPainter {
       }
     }
   }
-  
+
   void _drawArrow(Canvas canvas, Offset start, Offset end, Paint paint) {
     // Calculate the arrow direction
     final direction = (end - start).normalize();
-    
+
     // Calculate perpendicular vectors for the arrow head
     final perpendicular = Offset(-direction.dy, direction.dx) * 5.0;
-    
+
     // Calculate the arrow head points
     final arrowTip = end - direction * 15.0;
     final arrowCorner1 = arrowTip - direction * 8.0 + perpendicular;
     final arrowCorner2 = arrowTip - direction * 8.0 - perpendicular;
-    
+
     // Draw the arrow head
     final path = Path()
       ..moveTo(end.dx, end.dy)
       ..lineTo(arrowCorner1.dx, arrowCorner1.dy)
       ..lineTo(arrowCorner2.dx, arrowCorner2.dy)
       ..close();
-    
+
     canvas.drawPath(path, paint);
   }
-  
-  void _drawRelationshipText(Canvas canvas, Offset start, Offset end, String text) {
+
+  void _drawRelationshipText(
+      Canvas canvas, Offset start, Offset end, String text) {
     // Calculate the midpoint of the line
     final midpoint = Offset(
       (start.dx + end.dx) / 2,
       (start.dy + end.dy) / 2,
     );
-    
+
     // Create a text painter
     final textSpan = TextSpan(
       text: text,
@@ -738,26 +746,26 @@ class RelationshipPainter extends CustomPainter {
         fontSize: 12,
       ),
     );
-    
+
     final textPainter = TextPainter(
       text: textSpan,
       textDirection: TextDirection.ltr,
     );
-    
+
     textPainter.layout();
-    
+
     // Draw a white background for the text
     final backgroundRect = Rect.fromCenter(
       center: midpoint,
       width: textPainter.width + 6,
       height: textPainter.height + 4,
     );
-    
+
     canvas.drawRect(
       backgroundRect,
-      Paint()..color = Colors.white.withOpacity(0.8),
+      Paint()..color = Colors.white.withValues(alpha: 0.8),
     );
-    
+
     // Draw the text
     textPainter.paint(
       canvas,
@@ -767,7 +775,7 @@ class RelationshipPainter extends CustomPainter {
       ),
     );
   }
-  
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return true; // Always repaint when the state changes

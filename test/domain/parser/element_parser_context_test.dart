@@ -1,8 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_structurizr/domain/parser/lexer/token.dart';
 import 'package:flutter_structurizr/domain/parser/lexer/lexer.dart';
-import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
-import 'package:flutter_structurizr/domain/parser/ast/ast_nodes.dart';
+import 'package:flutter_structurizr/domain/parser/error_reporter.dart' show ParseError;
 import 'package:flutter_structurizr/domain/parser/context_stack.dart';
 import 'package:flutter_structurizr/domain/parser/element_parser.dart';
 import 'package:flutter_structurizr/domain/parser/model_parser.dart';
@@ -68,18 +67,15 @@ class TrackedContextStack extends ContextStack {
 
 void main() {
   late ElementParser elementParser;
-  late ErrorReporter errorReporter;
   late TrackedContextStack trackedContextStack;
   late MockModelParser mockModelParser;
   late Lexer lexer;
 
   setUp(() {
-    errorReporter = ErrorReporter();
     trackedContextStack = TrackedContextStack();
     mockModelParser = MockModelParser();
     
     elementParser = ElementParser(
-      errorReporter,
       contextStack: trackedContextStack,
       modelParser: mockModelParser
     );
@@ -182,7 +178,6 @@ void main() {
       );
       
       final parserWithThrowingModel = ElementParser(
-        errorReporter,
         contextStack: trackedContextStack,
         modelParser: throwingModelParser
       );

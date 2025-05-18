@@ -34,7 +34,8 @@ class DecisionGraphExample extends StatefulWidget {
   State<DecisionGraphExample> createState() => _DecisionGraphExampleState();
 }
 
-class _DecisionGraphExampleState extends State<DecisionGraphExample> with SingleTickerProviderStateMixin {
+class _DecisionGraphExampleState extends State<DecisionGraphExample>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _showClusters = true;
   bool _showTooltips = true;
@@ -127,74 +128,74 @@ class _DecisionGraphExampleState extends State<DecisionGraphExample> with Single
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    
+
     // Define relationships with types
     _relationships = [
-      DecisionRelationship(
+      const DecisionRelationship(
         sourceId: 'ADR-001',
         targetId: 'ADR-002',
         type: DecisionRelationshipType.enables,
       ),
-      DecisionRelationship(
+      const DecisionRelationship(
         sourceId: 'ADR-002',
         targetId: 'ADR-005',
         type: DecisionRelationshipType.depends,
       ),
-      DecisionRelationship(
+      const DecisionRelationship(
         sourceId: 'ADR-002',
         targetId: 'ADR-006',
         type: DecisionRelationshipType.depends,
       ),
-      DecisionRelationship(
+      const DecisionRelationship(
         sourceId: 'ADR-001',
         targetId: 'ADR-003',
         type: DecisionRelationshipType.related,
       ),
-      DecisionRelationship(
+      const DecisionRelationship(
         sourceId: 'ADR-001',
         targetId: 'ADR-004',
         type: DecisionRelationshipType.conflicts,
       ),
-      DecisionRelationship(
+      const DecisionRelationship(
         sourceId: 'ADR-004',
         targetId: 'ADR-008',
         type: DecisionRelationshipType.supersededBy,
       ),
-      DecisionRelationship(
+      const DecisionRelationship(
         sourceId: 'ADR-007',
         targetId: 'ADR-009',
         type: DecisionRelationshipType.supersededBy,
       ),
-      DecisionRelationship(
+      const DecisionRelationship(
         sourceId: 'ADR-005',
         targetId: 'ADR-006',
         type: DecisionRelationshipType.related,
       ),
-      DecisionRelationship(
+      const DecisionRelationship(
         sourceId: 'ADR-003',
         targetId: 'ADR-007',
         type: DecisionRelationshipType.related,
       ),
     ];
-    
+
     // Define clusters
     _clusters = [
-      DecisionCluster(
+      const DecisionCluster(
         decisionIds: ['ADR-001', 'ADR-002', 'ADR-003', 'ADR-004'],
         label: 'Architecture',
         color: Colors.blue,
       ),
-      DecisionCluster(
+      const DecisionCluster(
         decisionIds: ['ADR-005', 'ADR-006'],
         label: 'Data Storage',
         color: Colors.green,
       ),
-      DecisionCluster(
+      const DecisionCluster(
         decisionIds: ['ADR-007', 'ADR-009'],
         label: 'Deployment',
         color: Colors.orange,
       ),
-      DecisionCluster(
+      const DecisionCluster(
         decisionIds: ['ADR-008'],
         label: 'API',
         color: Colors.purple,
@@ -210,8 +211,9 @@ class _DecisionGraphExampleState extends State<DecisionGraphExample> with Single
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark || _useDarkMode;
-    
+    final isDarkMode =
+        Theme.of(context).brightness == Brightness.dark || _useDarkMode;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Architecture Decision Graph'),
@@ -231,7 +233,8 @@ class _DecisionGraphExampleState extends State<DecisionGraphExample> with Single
                 _useDarkMode = !_useDarkMode;
               });
             },
-            tooltip: isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode',
+            tooltip:
+                isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode',
           ),
         ],
       ),
@@ -275,7 +278,8 @@ class _DecisionGraphExampleState extends State<DecisionGraphExample> with Single
                   onDecisionSelected: (index) {
                     setState(() {
                       _selectedDecisionIndex = index;
-                      _tabController.animateTo(2); // Switch to selected decision tab
+                      _tabController
+                          .animateTo(2); // Switch to selected decision tab
                     });
                   },
                   isDarkMode: isDarkMode,
@@ -286,7 +290,7 @@ class _DecisionGraphExampleState extends State<DecisionGraphExample> with Single
               ),
             ],
           ),
-          
+
           // Basic graph tab - for comparison
           Column(
             children: [
@@ -303,7 +307,8 @@ class _DecisionGraphExampleState extends State<DecisionGraphExample> with Single
                   onDecisionSelected: (index) {
                     setState(() {
                       _selectedDecisionIndex = index;
-                      _tabController.animateTo(2); // Switch to selected decision tab
+                      _tabController
+                          .animateTo(2); // Switch to selected decision tab
                     });
                   },
                   isDarkMode: isDarkMode,
@@ -311,11 +316,14 @@ class _DecisionGraphExampleState extends State<DecisionGraphExample> with Single
               ),
             ],
           ),
-          
+
           // Selected decision details tab
           _selectedDecisionIndex != null
-              ? _buildDecisionDetails(_decisions[_selectedDecisionIndex!], isDarkMode)
-              : const Center(child: Text('No decision selected. Tap on a decision in the graph.')),
+              ? _buildDecisionDetails(
+                  _decisions[_selectedDecisionIndex!], isDarkMode)
+              : const Center(
+                  child: Text(
+                      'No decision selected. Tap on a decision in the graph.')),
         ],
       ),
     );
@@ -324,7 +332,7 @@ class _DecisionGraphExampleState extends State<DecisionGraphExample> with Single
   Widget _buildDecisionDetails(Decision decision, bool isDarkMode) {
     // Find related decisions based on relationships
     final relatedDecisions = <MapEntry<String, DecisionRelationshipType>>[];
-    
+
     for (final relationship in _relationships) {
       if (relationship.sourceId == decision.id) {
         relatedDecisions.add(MapEntry(
@@ -350,18 +358,18 @@ class _DecisionGraphExampleState extends State<DecisionGraphExample> with Single
           default:
             inverseType = relationship.type;
         }
-        
+
         relatedDecisions.add(MapEntry(
           relationship.sourceId,
           inverseType,
         ));
       }
     }
-    
+
     // Find which cluster this decision belongs to
     String? clusterLabel;
     Color? clusterColor;
-    
+
     if (_showClusters) {
       for (final cluster in _clusters) {
         if (cluster.decisionIds.contains(decision.id)) {
@@ -420,13 +428,15 @@ class _DecisionGraphExampleState extends State<DecisionGraphExample> with Single
                 decision.id,
                 style: TextStyle(
                   fontSize: 16,
-                  color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700,
+                  color:
+                      isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700,
                 ),
               ),
               if (clusterLabel != null) ...[
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: clusterColor,
                     borderRadius: BorderRadius.circular(4),
@@ -445,7 +455,8 @@ class _DecisionGraphExampleState extends State<DecisionGraphExample> with Single
                 _formatDate(decision.date),
                 style: TextStyle(
                   fontSize: 14,
-                  color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700,
+                  color:
+                      isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700,
                 ),
               ),
             ],
@@ -476,7 +487,7 @@ class _DecisionGraphExampleState extends State<DecisionGraphExample> with Single
             ...relatedDecisions.map((entry) {
               final relatedId = entry.key;
               final relationType = entry.value;
-              
+
               // Find the related decision
               final relatedDecision = _decisions.firstWhere(
                 (d) => d.id == relatedId,
@@ -488,16 +499,16 @@ class _DecisionGraphExampleState extends State<DecisionGraphExample> with Single
                   content: '',
                 ),
               );
-              
+
               final relationship = DecisionRelationship(
                 sourceId: '',
                 targetId: '',
                 type: relationType,
               );
-              
+
               // Find relationship color
               final relationshipColor = relationship.getColor(isDarkMode);
-              
+
               return ListTile(
                 leading: Icon(
                   _getRelationshipIcon(relationType),
@@ -522,11 +533,11 @@ class _DecisionGraphExampleState extends State<DecisionGraphExample> with Single
       ),
     );
   }
-  
+
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
-  
+
   IconData _getRelationshipIcon(DecisionRelationshipType type) {
     switch (type) {
       case DecisionRelationshipType.related:
@@ -551,10 +562,10 @@ class _DecisionGraphExampleState extends State<DecisionGraphExample> with Single
 class DecisionGraph extends StatefulWidget {
   /// The list of decisions.
   final List<Decision> decisions;
-  
+
   /// Called when a decision is selected.
   final Function(int) onDecisionSelected;
-  
+
   /// Whether to use dark mode.
   final bool isDarkMode;
 
@@ -570,12 +581,13 @@ class DecisionGraph extends StatefulWidget {
   State<DecisionGraph> createState() => _DecisionGraphState();
 }
 
-class _DecisionGraphState extends State<DecisionGraph> with SingleTickerProviderStateMixin {
+class _DecisionGraphState extends State<DecisionGraph>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  
+
   // Force simulation parameters
   final Map<String, Offset> _positions = {};
-  
+
   @override
   void initState() {
     super.initState();
@@ -583,34 +595,34 @@ class _DecisionGraphState extends State<DecisionGraph> with SingleTickerProvider
       vsync: this,
       duration: const Duration(milliseconds: 10000),
     );
-    
+
     _initializePositions();
     _controller.forward();
   }
-  
+
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
-  
+
   void _initializePositions() {
     // Initialize positions in a circle
-    final centerX = 0.0;
-    final centerY = 0.0;
-    final radius = 200.0;
-    
+    const centerX = 0.0;
+    const centerY = 0.0;
+    const radius = 200.0;
+
     for (var i = 0; i < widget.decisions.length; i++) {
       final decision = widget.decisions[i];
       final angle = 2 * 3.14159 * i / widget.decisions.length;
-      
+
       _positions[decision.id] = Offset(
         centerX + radius * math.cos(angle),
         centerY + radius * math.sin(angle),
       );
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -636,10 +648,10 @@ class _DecisionGraphState extends State<DecisionGraph> with SingleTickerProvider
               if (!_positions.containsKey(decision.id)) {
                 return const SizedBox();
               }
-              
+
               // Calculate position
               final pos = _positions[decision.id]!;
-              
+
               // Map status to color
               Color statusColor;
               switch (decision.status.toLowerCase()) {
@@ -661,7 +673,7 @@ class _DecisionGraphState extends State<DecisionGraph> with SingleTickerProvider
                 default:
                   statusColor = Colors.blue;
               }
-              
+
               return Positioned(
                 left: pos.dx - 75, // Center the 150px wide box
                 top: pos.dy - 40, // Center the box vertically
@@ -674,12 +686,12 @@ class _DecisionGraphState extends State<DecisionGraph> with SingleTickerProvider
                     width: 150,
                     padding: const EdgeInsets.all(8.0),
                     decoration: BoxDecoration(
-                      color: widget.isDarkMode 
-                          ? Colors.grey.shade800 
+                      color: widget.isDarkMode
+                          ? Colors.grey.shade800
                           : Colors.white,
                       borderRadius: BorderRadius.circular(8.0),
                       border: Border.all(
-                        color: statusColor.withOpacity(0.7),
+                        color: statusColor.withValues(alpha: 0.7),
                         width: 2.0,
                       ),
                       boxShadow: [
@@ -753,7 +765,7 @@ class _DecisionGraphState extends State<DecisionGraph> with SingleTickerProvider
       ),
     );
   }
-  
+
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
@@ -764,81 +776,81 @@ class _BasicDecisionGraphPainter extends CustomPainter {
   final List<Decision> decisions;
   final Map<String, Offset> positions;
   final bool isDarkMode;
-  
+
   _BasicDecisionGraphPainter({
     required this.decisions,
     required this.positions,
     this.isDarkMode = false,
   });
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300
       ..strokeWidth = 1.0
       ..style = PaintingStyle.stroke;
-    
+
     // Draw edges
     for (final decision in decisions) {
       // Skip if position isn't calculated yet
       if (!positions.containsKey(decision.id)) continue;
-      
+
       // Calculate start position
       final startPos = positions[decision.id]!;
-      
+
       // Draw connections to linked decisions
       for (final linkedId in decision.links) {
         // Skip if the linked decision doesn't exist
         if (!positions.containsKey(linkedId)) continue;
-        
+
         // Calculate end position
         final endPos = positions[linkedId]!;
-        
+
         // Draw the line
         canvas.drawLine(startPos, endPos, paint);
-        
+
         // Draw arrow
         _drawArrow(canvas, startPos, endPos, isDarkMode);
       }
     }
   }
-  
+
   void _drawArrow(Canvas canvas, Offset start, Offset end, bool isDarkMode) {
     final paint = Paint()
       ..color = isDarkMode ? Colors.grey.shade500 : Colors.grey.shade600
       ..strokeWidth = 1.0
       ..style = PaintingStyle.fill;
-    
+
     // Calculate arrow direction
     final delta = end - start;
     final direction = delta / delta.distance;
-    
+
     // Calculate arrow position (80% along the line)
     final arrowPos = start + direction * (delta.distance * 0.8);
-    
+
     // Calculate perpendicular direction
     final perpendicular = Offset(-direction.dy, direction.dx);
-    
+
     // Calculate arrow points
     final point1 = arrowPos;
     final point2 = arrowPos - direction * 10.0 + perpendicular * 5.0;
     final point3 = arrowPos - direction * 10.0 - perpendicular * 5.0;
-    
+
     // Draw arrow
     final path = Path()
       ..moveTo(point1.dx, point1.dy)
       ..lineTo(point2.dx, point2.dy)
       ..lineTo(point3.dx, point3.dy)
       ..close();
-    
+
     canvas.drawPath(path, paint);
   }
-  
+
   @override
   bool shouldRepaint(_BasicDecisionGraphPainter oldDelegate) {
-    return oldDelegate.positions != positions || 
-           oldDelegate.decisions != decisions ||
-           oldDelegate.isDarkMode != isDarkMode;
+    return oldDelegate.positions != positions ||
+        oldDelegate.decisions != decisions ||
+        oldDelegate.isDarkMode != isDarkMode;
   }
 }
 
@@ -847,7 +859,7 @@ class math {
   static double sin(double x) {
     return Math.sin(x);
   }
-  
+
   static double cos(double x) {
     return Math.cos(x);
   }
@@ -857,7 +869,7 @@ class Math {
   static double sin(double x) {
     return math.sin(x);
   }
-  
+
   static double cos(double x) {
     return math.cos(x);
   }

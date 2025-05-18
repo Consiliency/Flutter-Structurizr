@@ -1,9 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 import 'package:flutter_structurizr/domain/parser/parser.dart';
-import 'package:flutter_structurizr/domain/parser/ast/ast.dart';
-import 'package:flutter_structurizr/domain/parser/lexer/token.dart';
-import 'package:flutter_structurizr/domain/parser/lexer/lexer.dart';
 
 /// This test file focuses on edge cases and boundary conditions for the ModelParser methods
 /// as defined in Table 7 of the refactored_method_relationship.md file.
@@ -11,7 +7,7 @@ void main() {
   group('ModelParser Edge Cases', () {
     test('should handle extremely deeply nested elements', () {
       // Create a model with deep nesting to test parser limits
-      final deeplyNestedDsl = '''
+      const deeplyNestedDsl = '''
         workspace {
           model {
             system1 = softwareSystem "System 1" {
@@ -46,7 +42,7 @@ void main() {
     
     test('should handle models with extensive relationships', () {
       // Create a model with many relationships to test parser limits
-      final manyRelationshipsDsl = '''
+      const manyRelationshipsDsl = '''
         workspace {
           model {
             user = person "User"
@@ -79,7 +75,7 @@ void main() {
     });
     
     test('should handle models with circular relationships', () {
-      final circularDsl = '''
+      const circularDsl = '''
         workspace {
           model {
             system1 = softwareSystem "System 1"
@@ -127,7 +123,7 @@ void main() {
     });
     
     test('should handle models with special characters in names', () {
-      final specialCharsDsl = '''
+      const specialCharsDsl = '''
         workspace {
           model {
             person "User with @special# \$characters&"
@@ -148,7 +144,7 @@ void main() {
     });
     
     test('should handle models with Unicode characters', () {
-      final unicodeDsl = '''
+      const unicodeDsl = '''
         workspace {
           model {
             person "国际用户" "International User"
@@ -169,7 +165,7 @@ void main() {
     });
     
     test('should handle models with same-named elements in different scopes', () {
-      final sameNamesDsl = '''
+      const sameNamesDsl = '''
         workspace {
           model {
             // Same name in different contexts
@@ -200,7 +196,7 @@ void main() {
     });
     
     test('should handle models with identifiers that are keywords', () {
-      final keywordIdsDsl = '''
+      const keywordIdsDsl = '''
         workspace {
           model {
             // Using DSL keywords as identifiers
@@ -226,7 +222,7 @@ void main() {
     });
     
     test('should handle models with complex whitespace and formatting', () {
-      final complexFormatDsl = '''
+      const complexFormatDsl = '''
         workspace {
           model 
           
@@ -256,7 +252,7 @@ void main() {
     });
     
     test('should handle models with multiple nested groups', () {
-      final nestedGroupsDsl = '''
+      const nestedGroupsDsl = '''
         workspace {
           model {
             group "Outer Group" {
@@ -286,7 +282,7 @@ void main() {
     });
     
     test('should handle models with enterprise and groups at same level', () {
-      final enterpriseAndGroupDsl = '''
+      const enterpriseAndGroupDsl = '''
         workspace {
           model {
             // Enterprise at top level
@@ -316,7 +312,7 @@ void main() {
     });
     
     test('should handle implied relationships with complex source/destination references', () {
-      final complexRefsDsl = '''
+      const complexRefsDsl = '''
         workspace {
           model {
             user = person "User"
@@ -348,7 +344,7 @@ void main() {
     });
     
     test('should recover from errors and continue parsing when possible', () {
-      final errorRecoveryDsl = '''
+      const errorRecoveryDsl = '''
         workspace {
           model {
             // Valid element

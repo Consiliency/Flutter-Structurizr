@@ -3,7 +3,6 @@ import 'dart:collection';
 import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/model.dart';
 import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
-import 'package:flutter_structurizr/domain/parser/ast/ast.dart';
 
 /// A general purpose reference resolver for the Structurizr DSL.
 ///
@@ -34,7 +33,7 @@ class ReferenceResolver {
 
   /// The current context element ID (for "this" references).
   String? _currentContextId;
-  
+
   /// The model being built, if available.
   Model? _model;
 
@@ -111,7 +110,7 @@ class ReferenceResolver {
   }) {
     // Check for circular references
     if (_resolutionStack.contains(referenceId)) {
-      final referenceChain = [..._resolutionStack, referenceId].join(" → ");
+      final referenceChain = [..._resolutionStack, referenceId].join(' → ');
       _errorReporter.reportStandardError(
         'Circular reference detected: $referenceChain',
         sourcePosition?.offset ?? 0,
@@ -141,15 +140,18 @@ class ReferenceResolver {
         final elementId = _aliasesToId[referenceId];
         if (elementId != null && _elementsById.containsKey(elementId)) {
           result = _elementsById[elementId];
-          return _validateType(result, expectedType, referenceId, sourcePosition);
+          return _validateType(
+              result, expectedType, referenceId, sourcePosition);
         }
       }
 
       // Step 4: Composite path resolution (if it contains dots)
       if (referenceId.contains('.')) {
-        result = _resolveCompositePath(referenceId, sourcePosition: sourcePosition);
+        result =
+            _resolveCompositePath(referenceId, sourcePosition: sourcePosition);
         if (result != null) {
-          return _validateType(result, expectedType, referenceId, sourcePosition);
+          return _validateType(
+              result, expectedType, referenceId, sourcePosition);
         }
       }
 
@@ -170,7 +172,8 @@ class ReferenceResolver {
       for (final entry in _elementNameToId.entries) {
         if (entry.key.toLowerCase() == lowerCaseRef) {
           result = _elementsById[entry.value];
-          return _validateType(result, expectedType, referenceId, sourcePosition);
+          return _validateType(
+              result, expectedType, referenceId, sourcePosition);
         }
       }
 
@@ -204,7 +207,7 @@ class ReferenceResolver {
     // but for now, we'll just check runtime type name
     final typeName = expectedType.toString();
     final elementTypeName = element.runtimeType.toString();
-    
+
     if (!elementTypeName.contains(typeName)) {
       if (sourcePosition != null) {
         _errorReporter.reportStandardError(
@@ -219,7 +222,8 @@ class ReferenceResolver {
   }
 
   /// Resolves special references like "this" and "parent".
-  Element? _resolveSpecialReference(String referenceId, SourcePosition? sourcePosition) {
+  Element? _resolveSpecialReference(
+      String referenceId, SourcePosition? sourcePosition) {
     // Handle "this" keyword which refers to the current context element
     if (referenceId == 'this' && _currentContextId != null) {
       return _elementsById[_currentContextId];
@@ -245,7 +249,8 @@ class ReferenceResolver {
   }
 
   /// Resolves a composite reference path like "System.Container.Component".
-  Element? _resolveCompositePath(String path, {SourcePosition? sourcePosition}) {
+  Element? _resolveCompositePath(String path,
+      {SourcePosition? sourcePosition}) {
     final parts = path.split('.');
     if (parts.isEmpty) {
       return null;
@@ -296,7 +301,8 @@ class ReferenceResolver {
       for (final childId in childIds) {
         final child = _elementsById[childId];
         if (child != null &&
-            (child.name == part || child.name.toLowerCase() == part.toLowerCase())) {
+            (child.name == part ||
+                child.name.toLowerCase() == part.toLowerCase())) {
           current = child;
           found = true;
           break;
@@ -307,7 +313,8 @@ class ReferenceResolver {
       if (!found) {
         for (final element in _elementsById.values) {
           if (element.parentId == current?.id &&
-              (element.name == part || element.name.toLowerCase() == part.toLowerCase())) {
+              (element.name == part ||
+                  element.name.toLowerCase() == part.toLowerCase())) {
             current = element;
             found = true;
             break;
@@ -386,12 +393,12 @@ class ReferenceResolver {
   Map<String, Element> getAllElements() {
     return Map.unmodifiable(_elementsById);
   }
-  
+
   /// Sets the current model for this reference resolver.
   void setModel(Model model) {
     _model = model;
   }
-  
+
   /// Gets the current model for this reference resolver.
   Model? getModel() {
     return _model;

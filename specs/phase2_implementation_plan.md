@@ -394,3 +394,7 @@ Phase 2 is now complete. The following was accomplished:
 - Original Structurizr rendering code: `/ui/src/js/structurizr-diagram.js`
 - Flutter Canvas documentation
 - Force-directed layout algorithms research
+
+## Method Relationship Table Reference
+
+See the main implementation spec for the method relationship tables and build order. All rendering and layout methods are implemented in accordance with the modular parser/model structure.

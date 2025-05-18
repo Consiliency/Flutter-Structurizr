@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:flutter_structurizr/domain/model/element.dart';
+import 'package:flutter_structurizr/domain/model/element.dart'
+    show Element, Relationship, ElementListConverter;
 import 'package:flutter_structurizr/domain/model/group.dart';
 import 'package:uuid/uuid.dart';
 
@@ -20,11 +21,13 @@ class Enterprise with _$Enterprise implements Element {
     @Default([]) List<String> tags,
     @Default({}) Map<String, String> properties,
     @Default([]) List<Relationship> relationships,
+    String? parentId,
     @Default([]) List<Group> groups,
   }) = _Enterprise;
 
   /// Creates an enterprise from a JSON object.
-  factory Enterprise.fromJson(Map<String, dynamic> json) => _$EnterpriseFromJson(json);
+  factory Enterprise.fromJson(Map<String, dynamic> json) =>
+      _Enterprise.fromJson(json);
 
   /// Creates a new enterprise with a generated ID.
   factory Enterprise.create({
@@ -94,7 +97,9 @@ class Enterprise with _$Enterprise implements Element {
 
   @override
   List<Relationship> getRelationshipsTo(String destinationId) {
-    return relationships.where((r) => r.destinationId == destinationId).toList();
+    return relationships
+        .where((r) => r.destinationId == destinationId)
+        .toList();
   }
 
   /// Adds a group to this enterprise.
@@ -115,4 +120,31 @@ class Enterprise with _$Enterprise implements Element {
 
   @override
   String? get parentId => null;
+
+  @override
+  Enterprise addChild(Element childNode) {
+    if (childNode is Group) {
+      return copyWith(groups: [...groups, childNode]);
+    }
+    throw ArgumentError('Enterprise can only have Group children');
+  }
+
+  @override
+  Enterprise setIdentifier(String identifier) {
+    return copyWith(id: identifier);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'type': type,
+      'tags': tags,
+      'properties': properties,
+      'relationships': relationships.map((r) => r.toJson()).toList(),
+      'groups': groups.map((g) => g.toJson()).toList(),
+    };
+  }
 }

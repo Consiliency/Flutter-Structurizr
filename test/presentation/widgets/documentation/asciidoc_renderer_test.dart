@@ -4,8 +4,6 @@ import 'package:flutter_structurizr/domain/model/model.dart';
 import 'package:flutter_structurizr/presentation/widgets/documentation/asciidoc_renderer.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
-import 'dart:async';
 import 'mock_webview.dart';
 
 void main() {
@@ -23,7 +21,8 @@ void main() {
       }
     });
 
-    testWidgets('creates a WebView to render AsciiDoc content', (WidgetTester tester) async {
+    testWidgets('creates a WebView to render AsciiDoc content',
+        (WidgetTester tester) async {
       // Arrange
       const content = '''
 = Document Title
@@ -36,8 +35,9 @@ This is a simple AsciiDoc document.
 
 [source,dart]
 ----
+// TODO: Replace with proper logging or remove for production
 void main() {
-  print('Hello, AsciiDoc!');
+  // TODO: Replace with proper logging or remove for production
 }
 ----
 
@@ -57,17 +57,17 @@ Here's a diagram: embed:system-context[System Context Diagram]
           ),
         ),
       );
-      
+
       // Allow for the WebView to initialize
       await tester.pumpAndSettle();
 
       // Assert
       expect(find.byType(WebViewWidget), findsOneWidget);
-      // Since the WebView content is not directly accessible in tests, 
+      // Since the WebView content is not directly accessible in tests,
       // we're primarily checking that the widget builds correctly.
     });
 
-    testWidgets('shows loading indicator while WebView is initializing', 
+    testWidgets('shows loading indicator while WebView is initializing',
         (WidgetTester tester) async {
       // Arrange
       const content = '= Sample Title\n\nSome content';
@@ -86,22 +86,22 @@ Here's a diagram: embed:system-context[System Context Diagram]
 
       // Assert - initially shows loading indicator
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      
+
       // Simulate WebView finishing loading
       await tester.pumpAndSettle();
-      
+
       // Loading indicator should disappear after WebView loads
       // Note: In real test environment, the loading indicator might still be visible
       // since the mock WebView platform doesn't actually load content.
     });
 
-    testWidgets('passes workspace and diagram selection callback to renderer', 
+    testWidgets('passes workspace and diagram selection callback to renderer',
         (WidgetTester tester) async {
       // Arrange
       const content = 'Test content';
       String? selectedDiagram;
-      
-      final workspace = Workspace(
+
+      const workspace = Workspace(
         id: 1, // Use numeric ID
         name: 'Test Workspace',
         description: 'Test workspace for unit tests',
@@ -123,17 +123,18 @@ Here's a diagram: embed:system-context[System Context Diagram]
           ),
         ),
       );
-      
+
       await tester.pumpAndSettle();
 
       // Assert
       expect(find.byType(WebViewWidget), findsOneWidget);
-      
+
       // We can't directly test the callback from WebView in this testing environment,
       // but we can verify the widget builds with the correct parameters.
     });
 
-    testWidgets('applies dark mode styles when specified', (WidgetTester tester) async {
+    testWidgets('applies dark mode styles when specified',
+        (WidgetTester tester) async {
       // Arrange
       const content = 'Test content';
 
@@ -149,7 +150,7 @@ Here's a diagram: embed:system-context[System Context Diagram]
           ),
         ),
       );
-      
+
       await tester.pumpAndSettle();
 
       // Assert
@@ -157,11 +158,13 @@ Here's a diagram: embed:system-context[System Context Diagram]
       // Again, we can't directly test the styles applied to the WebView content,
       // but we can verify the widget builds with the correct parameters.
     });
-    
-    testWidgets('shows progress indicators for large documents', (WidgetTester tester) async {
+
+    testWidgets('shows progress indicators for large documents',
+        (WidgetTester tester) async {
       // Generate a large string
-      final largeContent = '= Large Document\n\n' + ('Lorem ipsum dolor sit amet. ' * 10000);
-      
+      final largeContent =
+          '= Large Document\n\n' + ('Lorem ipsum dolor sit amet. ' * 10000);
+
       // Act - create with smaller chunk size to trigger chunking
       await tester.pumpWidget(
         MaterialApp(
@@ -174,36 +177,38 @@ Here's a diagram: embed:system-context[System Context Diagram]
           ),
         ),
       );
-      
+
       // Assert - check for loading indicators
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      
+
       // Let it render for a moment
       await tester.pump(const Duration(milliseconds: 100));
-      
+
       // Get the controller to manipulate it for testing
-      final mockController = mockPlatform.lastCreatedController as MockPlatformWebViewController;
-          
+      final mockController =
+          mockPlatform.lastCreatedController as MockPlatformWebViewController;
+
       // Simulate progress updates
       mockController.simulateRendererReady();
       await tester.pump();
-      
+
       // Verify the progress indicator is still showing (for chunk processing)
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      
+
       // Trigger chunk processing simulation by running JavaScript that triggers it
       await mockController.runJavaScript('processNextChunk()');
       await tester.pump();
-      
+
       // After all chunks processed, loading indicator should be gone
       await tester.pump(const Duration(milliseconds: 150));
     });
-    
-    testWidgets('uses content caching for previously rendered content', (WidgetTester tester) async {
+
+    testWidgets('uses content caching for previously rendered content',
+        (WidgetTester tester) async {
       // Setup content and hash
       const content = '= Cached Document\n\nThis content should be cached.';
       const contentHash = 'test-hash-123';
-      
+
       // Build the renderer
       await tester.pumpWidget(
         const MaterialApp(
@@ -216,17 +221,18 @@ Here's a diagram: embed:system-context[System Context Diagram]
           ),
         ),
       );
-      
+
       // Get the controller to manipulate it for testing
-      final mockController = mockPlatform.lastCreatedController as MockPlatformWebViewController;
-      
+      final mockController =
+          mockPlatform.lastCreatedController as MockPlatformWebViewController;
+
       // Simulate the renderer being ready
       mockController.simulateRendererReady();
       await tester.pump();
-      
+
       // Simulate adding content to cache
       mockController.addToCache(contentHash, '<div>Rendered HTML</div>');
-      
+
       // Rebuild with same content to test caching
       await tester.pumpWidget(
         const MaterialApp(
@@ -239,18 +245,22 @@ Here's a diagram: embed:system-context[System Context Diagram]
           ),
         ),
       );
-      
+
       // Verify renderer initialized
       mockController.simulateRendererReady();
       await tester.pump();
-      
+
       // Can't directly verify cache usage since the WebView is mocked, but we've exercised the code path
     });
-    
-    testWidgets('handles errors with retry functionality', (WidgetTester tester) async {
+
+    testWidgets('handles errors with retry functionality',
+        (WidgetTester tester) async {
       const content = '= Error Test Document\n\nTest content';
       // Create the mock platform controller and wrap it in a TestWebViewController
-      final mockPlatformController = mockPlatform.createPlatformWebViewController(const PlatformWebViewControllerCreationParams()) as MockPlatformWebViewController;
+      final mockPlatformController =
+          mockPlatform.createPlatformWebViewController(
+                  const PlatformWebViewControllerCreationParams())
+              as MockPlatformWebViewController;
       final testController = TestWebViewController(mockPlatformController);
       // Build the renderer with the test controller
       await tester.pumpWidget(
@@ -270,10 +280,10 @@ Here's a diagram: embed:system-context[System Context Diagram]
       // Error state should show retry button
       expect(find.text('Error rendering AsciiDoc'), findsOneWidget);
       expect(find.text('Retry'), findsOneWidget);
-      print('[Test] Tapping retry button');
+      // TODO: Replace with proper logging or remove for production
       await tester.tap(find.text('Retry'));
       await tester.pump();
-      print('[Test] Retry button tapped, pumped');
+      // TODO: Replace with proper logging or remove for production
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       testController.mock.simulateRendererReady();
       await tester.pump();

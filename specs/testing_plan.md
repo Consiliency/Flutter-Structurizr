@@ -339,3 +339,27 @@ Common issues and solutions:
    ModelContainer instead of Container
    ModelView instead of View
    ```
+
+## Modular Parser and Model Testing
+
+Testing is organized around the method relationship tables (see implementation spec for details):
+
+- Token/ContextStack/Node Foundation: Test context stack operations, error handling, and submodule integration.
+- Model Node/Group/Enterprise/Element Foundation: Test all add/set methods, property/identifier handling, and implied relationships.
+- IncludeParser Methods: Test include parsing, file/view includes, recursive/circular resolution, and type setting.
+- ElementParser Methods: Test person/software system parsing, identifier/parent-child parsing, and property setting.
+- RelationshipParser Methods: Test explicit/implicit/group/nested relationships, setSource/setDestination.
+- ViewsParser Methods: Test view parsing, view blocks/properties/inheritance/include-exclude, addView/setProperty.
+- ModelParser Methods: Test model/group/enterprise/nested element/implied relationship parsing and add methods.
+- WorkspaceBuilderImpl & SystemContextViewParser Methods: Test system context view addition, default elements, implied relationships, defaults, advanced features, include/exclude/inheritance rules.
+
+Test coverage is maintained for each table, and tests are updated as method signatures or dependencies change.
+
+## 2024-06 Update: Test Stabilization and Best Practices
+
+- Parser, model, and widget tests are now stabilized after major batch fixes for ambiguous imports, type mismatches, and widget layout errors.
+- All widget tests should use bounded constraints (e.g., wrap in SizedBox) to avoid RenderBox layout errors.
+- Use explicit import prefixes or show/hide directives for types like Element, Container, View, Border, etc.
+- Test mocks must match the interface exactly (e.g., Model addElement returns Model, not void).
+- Always use flutter test for running widget and integration tests.
+- See the Troubleshooting section in the README for common issues and solutions.

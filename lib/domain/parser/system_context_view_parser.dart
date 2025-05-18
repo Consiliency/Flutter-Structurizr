@@ -1,12 +1,12 @@
-import 'package:flutter_structurizr/domain/model/element.dart';
-import 'package:flutter_structurizr/domain/model/model.dart';
-import 'package:flutter_structurizr/domain/model/relationship.dart';
-import 'package:flutter_structurizr/domain/model/software_system.dart';
-import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
-import 'package:flutter_structurizr/domain/parser/reference_resolver.dart';
-import 'package:flutter_structurizr/domain/parser/ast/ast.dart';
-import 'package:flutter_structurizr/domain/view/view.dart';
-import 'package:flutter_structurizr/application/dsl/workspace_builder.dart';
+// Remove legacy AST imports and node type references
+// import 'package:flutter_structurizr/domain/model/element.dart';
+// import 'package:flutter_structurizr/domain/model/model.dart';
+// import 'package:flutter_structurizr/domain/model/relationship.dart';
+// import 'package:flutter_structurizr/domain/model/software_system.dart';
+// import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
+// import 'package:flutter_structurizr/domain/parser/reference_resolver.dart';
+// import 'package:flutter_structurizr/domain/view/view.dart';
+// import 'package:flutter_structurizr/application/dsl/workspace_builder.dart';
 
 /// Parser for system context views in the Structurizr DSL.
 ///

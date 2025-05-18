@@ -14,13 +14,13 @@ void main() {
       );
 
       final elementViews = [
-        ElementView(id: 'element1'),
-        ElementView(id: 'element2'),
-        ElementView(id: 'element3'),
+        const ElementView(id: 'element1'),
+        const ElementView(id: 'element2'),
+        const ElementView(id: 'element3'),
       ];
 
       final relationshipViews = [
-        RelationshipView(
+        const RelationshipView(
           id: 'relationship1',
           sourceId: 'element1',
           destinationId: 'element2',
@@ -53,7 +53,7 @@ void main() {
 
       // Check that all positions are within a reasonable distance from center
       const maxDistance = 1000.0;
-      final center = Offset(400, 300);  // center of 800x600 canvas
+      const center = Offset(400, 300);  // center of 800x600 canvas
 
       expect((positions['element1']! - center).distance, lessThan(maxDistance));
       expect((positions['element2']! - center).distance, lessThan(maxDistance));
@@ -66,10 +66,10 @@ void main() {
         maxIterations: 50, // Reduce iterations for test performance
       );
 
-      final initialPosition = Offset(200, 300);
+      const initialPosition = Offset(200, 300);
       final elementViews = [
         ElementView(id: 'element1', x: initialPosition.dx.toInt(), y: initialPosition.dy.toInt()),
-        ElementView(id: 'element2'),
+        const ElementView(id: 'element2'),
       ];
 
       final relationshipViews = <RelationshipView>[];
@@ -112,8 +112,8 @@ void main() {
       );
 
       final elementViews = [
-        ElementView(id: 'boundary1', x: 100, y: 100), // Parent element
-        ElementView(id: 'child1', parentId: 'boundary1'), // Child element
+        const ElementView(id: 'boundary1', x: 100, y: 100), // Parent element
+        const ElementView(id: 'child1', parentId: 'boundary1'), // Child element
       ];
 
       final elementSizes = {
@@ -142,8 +142,8 @@ void main() {
       );
 
       final elementViews = [
-        ElementView(id: 'element1', x: 100, y: 100),
-        ElementView(id: 'element2', x: 300, y: 400),
+        const ElementView(id: 'element1', x: 100, y: 100),
+        const ElementView(id: 'element2', x: 300, y: 400),
       ];
 
       final elementSizes = {
@@ -176,12 +176,12 @@ void main() {
       final layout = ForceDirectedLayout();
 
       final elementViews = [
-        ElementView(id: 'element1'),
-        ElementView(id: 'element2'),
+        const ElementView(id: 'element1'),
+        const ElementView(id: 'element2'),
       ];
 
       final relationshipViews = [
-        RelationshipView(
+        const RelationshipView(
           id: 'relationship1',
           sourceId: 'element1',
           destinationId: 'element2',

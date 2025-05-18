@@ -5,20 +5,8 @@ This command helps Claude understand the overall context of the project.
 
 ## Process
 1. READ README.md to understand the project's purpose and structure
-2. READ_CLAUDE.md
-3. READ specs/flutter_structurizr_implementation_spec.md
-4. READ specs/flutter_structurizr_implementation_spec_updated.md
-5. Run git ls-files to get a complete listing of project files
-6. Analyze the context to provide better assistance with $ARGUMENTS
-
-## Usage
-```
-/project:context_prime [optional specific focus]
-```
-
-## Examples
-```
-/project:context_prime
-/project:context_prime architecture
-/project:context_prime file structure
-```
+2. READ CLAUDE.md for persistent developer memory, best practices, and recent lessons learned
+3. READ all relevant files in specs/ (especially implementation_status.md and recent updates)
+4. Run git ls-files to get a complete listing of project files
+5. Run flutter analyze and flutter test to assess current code health and test status
+6. Analyze the context, summarize the current state, highlight any recent major changes or ongoing refactors, and provide better assistance with $ARGUMENTS

@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_structurizr/domain/parser/lexer/token.dart';
 import 'package:flutter_structurizr/domain/parser/lexer/lexer.dart';
 import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
-import 'package:flutter_structurizr/domain/parser/ast/ast_nodes.dart';
 
 // This would be the actual implementation files we're testing
 import 'package:flutter_structurizr/domain/parser/element_parser.dart';
@@ -33,8 +32,8 @@ void main() {
       expect(result, isA<PersonNode>());
       expect(result.name, equals('User'));
       expect(result.description, equals('A standard user of the system'));
-      expect(result.tags?.values, contains('external'));
-      expect(result.tags?.values, contains('user'));
+      expect(result.tags.values, contains('external'));
+      expect(result.tags.values, contains('user'));
       expect(errorReporter.hasErrors, isFalse);
     });
 
@@ -52,8 +51,8 @@ void main() {
       expect(result, isA<SoftwareSystemNode>());
       expect(result.name, equals('Payment System'));
       expect(result.description, equals('Handles all payment processing'));
-      expect(result.tags?.values, contains('external'));
-      expect(result.tags?.values, contains('payment'));
+      expect(result.tags.values, contains('external'));
+      expect(result.tags.values, contains('payment'));
       expect(errorReporter.hasErrors, isFalse);
     });
 
@@ -77,9 +76,9 @@ void main() {
       expect(result, isA<PersonNode>());
       expect(result.name, equals('Admin'));
       expect(result.description, equals('System administrator'));
-      expect(result.tags?.values, contains('internal'));
-      expect(result.tags?.values, contains('admin'));
-      expect(result.tags?.values, contains('user'));
+      expect(result.tags.values, contains('internal'));
+      expect(result.tags.values, contains('admin'));
+      expect(result.tags.values, contains('user'));
       // In the real implementation, URL would be stored in properties
       expect(errorReporter.hasErrors, isFalse);
     });

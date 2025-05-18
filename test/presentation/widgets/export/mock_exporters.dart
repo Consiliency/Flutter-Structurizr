@@ -1,38 +1,33 @@
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_structurizr/infrastructure/export/diagram_exporter.dart';
 import 'package:flutter_structurizr/infrastructure/export/export_manager.dart';
-import 'package:flutter_structurizr/infrastructure/export/mermaid_exporter.dart';
-import 'package:flutter_structurizr/infrastructure/export/plantuml_exporter.dart';
 import 'package:flutter_structurizr/infrastructure/export/png_exporter.dart';
 import 'package:flutter_structurizr/infrastructure/export/svg_exporter.dart';
-import 'package:flutter_structurizr/infrastructure/export/dot_exporter.dart';
-import 'package:flutter_structurizr/infrastructure/export/dsl_exporter.dart';
 
 /// A mock export manager for testing
 class MockExportManager extends ExportManager {
   /// Future to complete when export is called
   final Completer<dynamic> _exportCompleter = Completer();
-  
+
   /// Options passed in last export call
   ExportOptions? lastExportOptions;
-  
+
   /// Log of progress updates received
   List<double> progressUpdates = [];
-  
+
   /// Whether to simulate an error during export
   final bool simulateError;
-  
+
   /// Number of milliseconds to delay the export
   final int delayMilliseconds;
-  
+
   /// Creates a new mock export manager
   MockExportManager({
     this.simulateError = false,
     this.delayMilliseconds = 100,
   });
-  
+
   @override
   Future<dynamic> exportDiagram({
     required Workspace workspace,
@@ -41,7 +36,7 @@ class MockExportManager extends ExportManager {
     String? title,
   }) async {
     lastExportOptions = options;
-    
+
     // Call progress handler if provided
     if (options.onProgress != null) {
       for (var i = 0; i <= 10; i++) {
@@ -51,15 +46,15 @@ class MockExportManager extends ExportManager {
         await Future.delayed(Duration(milliseconds: delayMilliseconds ~/ 10));
       }
     }
-    
+
     // Simulate delay
     await Future.delayed(Duration(milliseconds: delayMilliseconds));
-    
+
     // Simulate error if requested
     if (simulateError) {
       throw Exception('Simulated export error');
     }
-    
+
     // Return result based on format
     switch (options.format) {
       case ExportFormat.png:
@@ -80,7 +75,7 @@ class MockExportManager extends ExportManager {
         return 'Mock export result';
     }
   }
-  
+
   /// Generates a mock SVG string
   String _generateMockSvg() {
     return '''
@@ -105,7 +100,7 @@ class MockExportManager extends ExportManager {
 class MockPngExporter extends PngExporter {
   /// Whether to simulate an error during export
   final bool simulateError;
-  
+
   /// Creates a new mock PNG exporter
   MockPngExporter({
     super.renderParameters,
@@ -114,7 +109,7 @@ class MockPngExporter extends PngExporter {
     super.onProgress,
     this.simulateError = false,
   });
-  
+
   @override
   Future<Uint8List> export(DiagramReference diagramRef) async {
     // Call progress handler if provided
@@ -124,15 +119,15 @@ class MockPngExporter extends PngExporter {
         await Future.delayed(const Duration(milliseconds: 10));
       }
     }
-    
+
     // Simulate delay
     await Future.delayed(const Duration(milliseconds: 100));
-    
+
     // Simulate error if requested
     if (simulateError) {
       throw Exception('Simulated PNG export error');
     }
-    
+
     // Return mock PNG data
     return Uint8List.fromList(List.generate(100, (i) => i % 256));
   }
@@ -142,7 +137,7 @@ class MockPngExporter extends PngExporter {
 class MockSvgExporter extends SvgExporter {
   /// Whether to simulate an error during export
   final bool simulateError;
-  
+
   /// Creates a new mock SVG exporter
   MockSvgExporter({
     super.renderParameters,
@@ -151,7 +146,7 @@ class MockSvgExporter extends SvgExporter {
     super.onProgress,
     this.simulateError = false,
   });
-  
+
   @override
   Future<String> export(DiagramReference diagramRef) async {
     // Call progress handler if provided
@@ -161,15 +156,15 @@ class MockSvgExporter extends SvgExporter {
         await Future.delayed(const Duration(milliseconds: 10));
       }
     }
-    
+
     // Simulate delay
     await Future.delayed(const Duration(milliseconds: 100));
-    
+
     // Simulate error if requested
     if (simulateError) {
       throw Exception('Simulated SVG export error');
     }
-    
+
     // Return mock SVG data
     return '''
 <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
@@ -193,28 +188,28 @@ class MockSvgExporter extends SvgExporter {
 class Completer<T> {
   /// The future to complete
   final Future<T> future;
-  
+
   /// Creates a new completer
   Completer() : future = Future<T>.value(null as T);
-  
+
   /// Completes the future with the given value
-  void complete([T? value]) { }
-  
+  void complete([T? value]) {}
+
   /// Completes the future with the given error
-  void completeError(Object error, [StackTrace? stackTrace]) { }
+  void completeError(Object error, [StackTrace? stackTrace]) {}
 }
 
 /// A mock workspace class for testing
 class Workspace {
   /// The workspace name
   final String name;
-  
+
   /// The workspace description
   final String? description;
-  
+
   /// The workspace views
   final WorkspaceViews? views;
-  
+
   /// Creates a new workspace
   const Workspace({
     required this.name,
@@ -227,25 +222,25 @@ class Workspace {
 class WorkspaceViews {
   /// System landscape views
   final List<ModelView> systemLandscapeViews;
-  
+
   /// System context views
   final List<ModelView> systemContextViews;
-  
+
   /// Container views
   final List<ModelView> containerViews;
-  
+
   /// Component views
   final List<ModelView> componentViews;
-  
+
   /// Deployment views
   final List<ModelView> deploymentViews;
-  
+
   /// Dynamic views
   final List<ModelView> dynamicViews;
-  
+
   /// Filtered views
   final List<ModelView> filteredViews;
-  
+
   /// Creates new workspace views
   const WorkspaceViews({
     this.systemLandscapeViews = const [],
@@ -262,10 +257,10 @@ class WorkspaceViews {
 class ModelView {
   /// The view key
   final String key;
-  
+
   /// The view title
   final String? title;
-  
+
   /// Creates a new model view
   const ModelView({
     required this.key,
@@ -277,10 +272,10 @@ class ModelView {
 class DiagramReference {
   /// The workspace
   final Workspace workspace;
-  
+
   /// The view key
   final String viewKey;
-  
+
   /// Creates a new diagram reference
   const DiagramReference({
     required this.workspace,

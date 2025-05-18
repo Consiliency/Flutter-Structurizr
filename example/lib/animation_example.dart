@@ -20,13 +20,13 @@ class AnimationExample extends StatefulWidget {
 class _AnimationExampleState extends State<AnimationExample> {
   /// The current animation step
   int _currentAnimationStep = 0;
-  
+
   /// An example workspace with a dynamic view for demonstration
   late final Workspace _workspace;
-  
+
   /// The dynamic view for demonstration
   late final DynamicView _dynamicView;
-  
+
   /// Text rendering options
   bool _showElementNames = true;
   bool _showElementDescriptions = true;
@@ -35,93 +35,93 @@ class _AnimationExampleState extends State<AnimationExample> {
   @override
   void initState() {
     super.initState();
-    
+
     // Load the workspace and dynamic view
     _initWorkspaceAndView();
   }
-  
+
   /// Initialize an example workspace with a dynamic view
   void _initWorkspaceAndView() {
     // Create a simple example workspace for demonstration
-    final workspace = Workspace(
+    const workspace = Workspace(
       name: 'Animation Example',
       description: 'Example workspace showing animation of dynamic views',
     );
-    
+
     // Add some example elements to the model
     final user = workspace.model.addPerson(
       id: 'user',
       name: 'User',
       description: 'A user of the system',
     );
-    
+
     final webApp = workspace.model.addSoftwareSystem(
       id: 'webApp',
       name: 'Web Application',
       description: 'The web application',
     );
-    
+
     final apiGateway = workspace.model.addSoftwareSystem(
       id: 'apiGateway',
       name: 'API Gateway',
       description: 'API Gateway',
     );
-    
+
     final database = workspace.model.addSoftwareSystem(
       id: 'database',
       name: 'Database',
       description: 'The database',
     );
-    
+
     // Add relationships between elements
     user.uses(
       destination: webApp,
       description: 'Uses',
       technology: 'HTTPS',
     );
-    
+
     webApp.uses(
       destination: apiGateway,
       description: 'Calls API',
       technology: 'HTTPS',
     );
-    
+
     apiGateway.uses(
       destination: database,
       description: 'Reads/writes data',
       technology: 'SQL/TCP',
     );
-    
+
     // Create a dynamic view
-    final dynamicView = DynamicView(
+    const dynamicView = DynamicView(
       key: 'dynamic',
       title: 'User Request Flow',
       description: 'Shows the flow of a user request through the system',
       autoAnimationInterval: true,
     );
-    
+
     // Add elements to the view (without relationships yet)
     dynamicView.addElement(ElementView(id: user.id));
     dynamicView.addElement(ElementView(id: webApp.id));
     dynamicView.addElement(ElementView(id: apiGateway.id));
     dynamicView.addElement(ElementView(id: database.id));
-    
+
     // Add the relationship views (these will be shown in order in the animation)
     final rel1 = dynamicView.addRelationship(RelationshipView(
       id: user.getRelationships()[0].id,
       order: '1',
     ));
-    
+
     final rel2 = rel1.addRelationship(RelationshipView(
       id: webApp.getRelationships()[0].id,
       order: '2',
     ));
-    
+
     final rel3 = rel2.addRelationship(RelationshipView(
       id: apiGateway.getRelationships()[0].id,
       order: '3',
     ));
-    
+
     // Define animation steps
     final animations = [
       // Step 1: Show user and web app, with the first relationship
@@ -130,7 +130,7 @@ class _AnimationExampleState extends State<AnimationExample> {
         elements: [user.id, webApp.id],
         relationships: [user.getRelationships()[0].id],
       ),
-      
+
       // Step 2: Add API gateway and the next relationship
       AnimationStep(
         order: 2,
@@ -140,7 +140,7 @@ class _AnimationExampleState extends State<AnimationExample> {
           webApp.getRelationships()[0].id,
         ],
       ),
-      
+
       // Step 3: Add database and the final relationship
       AnimationStep(
         order: 3,
@@ -152,18 +152,18 @@ class _AnimationExampleState extends State<AnimationExample> {
         ],
       ),
     ];
-    
+
     // Set the animation steps on the view
     final finalView = rel3.copyWith(animations: animations);
-    
+
     // Add the view to the workspace
     workspace.views.add(finalView);
-    
+
     // Set the workspace and view for the example
     _workspace = workspace;
     _dynamicView = finalView;
   }
-  
+
   /// Handle animation step changes
   void _onAnimationStepChanged(int step) {
     setState(() {
@@ -207,7 +207,7 @@ class _AnimationExampleState extends State<AnimationExample> {
               ),
             ),
           ),
-          
+
           // Control panel for text rendering options
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -217,7 +217,7 @@ class _AnimationExampleState extends State<AnimationExample> {
       ),
     );
   }
-  
+
   // Build a control panel for toggling text rendering options
   Widget _buildControlPanel() {
     return Card(
@@ -227,9 +227,10 @@ class _AnimationExampleState extends State<AnimationExample> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Text Rendering Options', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Text Rendering Options',
+                style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            
+
             // Toggle for element names
             SwitchListTile(
               title: const Text('Show Element Names'),
@@ -242,7 +243,7 @@ class _AnimationExampleState extends State<AnimationExample> {
               dense: true,
               contentPadding: EdgeInsets.zero,
             ),
-            
+
             // Toggle for element descriptions
             SwitchListTile(
               title: const Text('Show Element Descriptions'),
@@ -255,7 +256,7 @@ class _AnimationExampleState extends State<AnimationExample> {
               dense: true,
               contentPadding: EdgeInsets.zero,
             ),
-            
+
             // Toggle for relationship descriptions
             SwitchListTile(
               title: const Text('Show Relationship Descriptions'),

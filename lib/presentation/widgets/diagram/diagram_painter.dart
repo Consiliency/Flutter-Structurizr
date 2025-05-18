@@ -1,12 +1,10 @@
 import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:flutter/material.dart' hide Container, Border, Element, View;
 import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/workspace.dart';
 import 'package:flutter_structurizr/domain/style/styles.dart' hide Border;
 import 'package:flutter_structurizr/domain/view/view.dart' as structurizr_view;
-import 'package:flutter_structurizr/domain/model/model.dart' hide Container, Element;
 import 'package:flutter_structurizr/presentation/layout/force_directed_layout.dart';
 import 'package:flutter_structurizr/presentation/layout/layout_strategy.dart';
 import 'package:flutter_structurizr/presentation/rendering/base_renderer.dart';
@@ -16,8 +14,6 @@ import 'package:flutter_structurizr/presentation/rendering/elements/component_re
 import 'package:flutter_structurizr/presentation/rendering/elements/container_renderer.dart';
 import 'package:flutter_structurizr/presentation/rendering/elements/person_renderer.dart';
 import 'package:flutter_structurizr/presentation/rendering/relationships/relationship_renderer.dart';
-import 'package:flutter/material.dart' as flutter;
-import 'package:flutter_structurizr/domain/model/model.dart' as structurizr_model;
 import 'package:flutter_structurizr/domain/view/model_view.dart';
 
 /// A custom painter that renders Structurizr diagrams.
@@ -81,7 +77,7 @@ class DiagramPainter extends CustomPainter {
   Map<String, Rect> _elementRects = {};
   
   /// Map of relationship paths for hit testing
-  Map<String, List<Offset>> _relationshipPaths = {};
+  final Map<String, List<Offset>> _relationshipPaths = {};
   
   /// The bounding box for all elements
   Rect _boundingBox = Rect.zero;
@@ -228,7 +224,7 @@ class DiagramPainter extends CustomPainter {
     for (final entry in _elementPositions.entries) {
       final id = entry.key;
       final position = entry.value;
-      final size = elementSizes[id] ?? Size(100, 100);
+      final size = elementSizes[id] ?? const Size(100, 100);
       
       minX = math.min(minX, position.dx);
       minY = math.min(minY, position.dy);
@@ -246,7 +242,7 @@ class DiagramPainter extends CustomPainter {
     for (final entry in _elementPositions.entries) {
       final id = entry.key;
       final position = entry.value;
-      final size = elementSizes[id] ?? Size(100, 100);
+      final size = elementSizes[id] ?? const Size(100, 100);
       
       _elementRects[id] = Rect.fromLTWH(
         position.dx,
@@ -357,7 +353,7 @@ class DiagramPainter extends CustomPainter {
       // Find the animation step
       final step = view.animations.firstWhere(
         (a) => a.order == animationStep,
-        orElse: () => ModelAnimationStep(order: -1, elements: const [], relationships: const []),
+        orElse: () => const ModelAnimationStep(order: -1, elements: [], relationships: []),
       );
       
       // Check if element is included in this step
@@ -412,7 +408,7 @@ class DiagramPainter extends CustomPainter {
       // Find the animation step
       final step = view.animations.firstWhere(
         (a) => a.order == animationStep,
-        orElse: () => ModelAnimationStep(order: -1, elements: const [], relationships: const []),
+        orElse: () => const ModelAnimationStep(order: -1, elements: [], relationships: []),
       );
       
       // Check if relationship is included in this step
@@ -486,13 +482,11 @@ class DiagramPainter extends CustomPainter {
   /// Get the style for an element
   ElementStyle _getElementStyle(Element element) {
     // Try to get style from the workspace styles
-    if (workspace.styles != null) {
-      final foundStyle = workspace.styles.findElementStyle(element);
-      if (foundStyle != null) {
-        return foundStyle;
-      }
+    final foundStyle = workspace.styles.findElementStyle(element);
+    if (foundStyle != null) {
+      return foundStyle;
     }
-    
+      
     // Default style if none found
     return const ElementStyle();
   }
@@ -506,13 +500,11 @@ class DiagramPainter extends CustomPainter {
   /// Get the style for a relationship
   RelationshipStyle _getRelationshipStyle(Relationship relationship) {
     // Try to get style from the workspace styles
-    if (workspace.styles != null) {
-      final foundStyle = workspace.styles.findRelationshipStyle(relationship);
-      if (foundStyle != null) {
-        return foundStyle;
-      }
+    final foundStyle = workspace.styles.findRelationshipStyle(relationship);
+    if (foundStyle != null) {
+      return foundStyle;
     }
-    
+      
     // Default style if none found
     return const RelationshipStyle();
   }
@@ -536,6 +528,7 @@ class DiagramPainter extends CustomPainter {
   }
   
   /// Hit test to determine which element or relationship was clicked
+  @override
   bool? hitTest(Offset position) {
     // Delegate to our custom hit test implementation
     final result = _hitTest(position);

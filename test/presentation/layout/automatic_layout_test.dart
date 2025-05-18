@@ -14,8 +14,8 @@ void main() {
       final autoLayout = LayoutAutomatic(debug: true);
 
       final elementViews = [
-        ElementView(id: 'element1'),
-        ElementView(id: 'element2'),
+        const ElementView(id: 'element1'),
+        const ElementView(id: 'element2'),
       ];
 
       final elementSizes = {
@@ -48,11 +48,11 @@ void main() {
       // We need a parent relationship, so we need to add parentId to
       // the ElementView class in domain/view/view.dart or use a different approach
       final elementViews = [
-        ElementView(id: 'parent1', x: 100, y: 100), // Parent element
-        ElementView(id: 'child1', parentId: 'parent1'), // Child element with parent
-        ElementView(id: 'element1'), // Another element
-        ElementView(id: 'element2'), // Another element
-        ElementView(id: 'element3'), // Another element
+        const ElementView(id: 'parent1', x: 100, y: 100), // Parent element
+        const ElementView(id: 'child1', parentId: 'parent1'), // Child element with parent
+        const ElementView(id: 'element1'), // Another element
+        const ElementView(id: 'element2'), // Another element
+        const ElementView(id: 'element3'), // Another element
       ];
 
       final elementSizes = {
@@ -91,28 +91,28 @@ void main() {
       final autoLayout = LayoutAutomatic(debug: true);
 
       final elementViews = [
-        ElementView(id: 'element1'),
-        ElementView(id: 'element2'),
-        ElementView(id: 'element3'),
-        ElementView(id: 'element4'),
-        ElementView(id: 'element5'),
+        const ElementView(id: 'element1'),
+        const ElementView(id: 'element2'),
+        const ElementView(id: 'element3'),
+        const ElementView(id: 'element4'),
+        const ElementView(id: 'element5'),
       ];
 
       // Create dynamic diagram by setting order values on relationships
       final relationshipViews = [
-        RelationshipView(
+        const RelationshipView(
           id: 'relationship1',
           order: '1',
           sourceId: 'element1',
           destinationId: 'element2',
         ),
-        RelationshipView(
+        const RelationshipView(
           id: 'relationship2',
           order: '2',
           sourceId: 'element2',
           destinationId: 'element3',
         ),
-        RelationshipView(
+        const RelationshipView(
           id: 'relationship3',
           order: '3',
           sourceId: 'element3',
@@ -149,8 +149,8 @@ void main() {
       final autoLayout = LayoutAutomatic();
 
       final elementViews = [
-        ElementView(id: 'element1', x: 100, y: 100),
-        ElementView(id: 'element2', x: 500, y: 400),
+        const ElementView(id: 'element1', x: 100, y: 100),
+        const ElementView(id: 'element2', x: 500, y: 400),
       ];
 
       final elementSizes = {
@@ -199,12 +199,12 @@ void main() {
       );
 
       final elementViews = [
-        ElementView(id: 'element1'),
-        ElementView(id: 'element2'),
+        const ElementView(id: 'element1'),
+        const ElementView(id: 'element2'),
       ];
 
       final relationshipViews = [
-        RelationshipView(
+        const RelationshipView(
           id: 'relationship1',
           sourceId: 'element1',
           destinationId: 'element2',

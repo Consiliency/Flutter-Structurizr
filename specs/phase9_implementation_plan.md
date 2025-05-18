@@ -345,3 +345,7 @@ The level-of-detail rendering will be implemented with these key components:
   - [MathJax Documentation](https://docs.mathjax.org/)
   - [KaTeX Documentation](https://katex.org/docs/api.html)
   - [LaTeX Math Syntax](https://en.wikibooks.org/wiki/LaTeX/Mathematics)
+
+## Method Relationship Table Reference
+
+See the main implementation spec for the method relationship tables and build order. Advanced features are implemented in accordance with the modular parser/model structure.

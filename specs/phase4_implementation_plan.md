@@ -753,3 +753,7 @@ While the DSL parser and builder are functionally complete and all planned featu
 - Improve maintainability, extensibility, and testability
 
 Developers should reference the audit and method handoff tables in `specs/dart_structurizr_java_audit.md` and `specs/refactored_method_relationship.md` for up-to-date interfaces, dependencies, and build order. This work does not affect end-user features but is critical for the long-term health of the codebase.
+
+## Method Relationship Table Reference
+
+See the main implementation spec for the method relationship tables and build order. All parser methods are implemented as per Tables 1, 3, 4, 5, 6, and 7.

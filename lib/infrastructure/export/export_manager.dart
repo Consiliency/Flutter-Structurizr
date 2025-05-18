@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart' hide Element, Container, View;
 import 'package:flutter_structurizr/domain/model/workspace.dart';
 import 'package:flutter_structurizr/infrastructure/export/rendering_pipeline.dart';
@@ -10,7 +8,8 @@ import 'package:flutter_structurizr/infrastructure/export/mermaid_exporter.dart'
 import 'package:flutter_structurizr/infrastructure/export/dot_exporter.dart';
 import 'package:flutter_structurizr/infrastructure/export/dsl_exporter.dart';
 import 'package:flutter_structurizr/infrastructure/export/c4_exporter.dart';
-import 'package:flutter_structurizr/infrastructure/export/diagram_exporter.dart' show DiagramReference;
+import 'package:flutter_structurizr/infrastructure/export/diagram_exporter.dart'
+    show DiagramReference;
 
 /// Format for diagram export
 enum ExportFormat {
@@ -37,10 +36,10 @@ enum ExportFormat {
 
   /// Structurizr DSL format
   dsl,
-  
+
   /// C4 model JSON format
   c4json,
-  
+
   /// C4 model YAML format
   c4yaml,
 }
@@ -96,10 +95,10 @@ class ExportOptions {
 class ExportProgressEvent {
   /// Percentage complete (0.0 to 1.0)
   final double percentage;
-  
+
   /// Optional message about the current phase
   final String? message;
-  
+
   /// Creates a new progress event
   const ExportProgressEvent({
     required this.percentage,
@@ -211,7 +210,7 @@ class ExportManager {
           onProgress: options.onProgress,
         );
         return await exporter.export(diagram);
-        
+
       case ExportFormat.c4json:
         final exporter = C4Exporter(
           style: C4DiagramStyle.standard,
@@ -222,7 +221,7 @@ class ExportManager {
           onProgress: options.onProgress,
         );
         return await exporter.export(diagram);
-        
+
       case ExportFormat.c4yaml:
         final exporter = C4Exporter(
           style: C4DiagramStyle.standard,
@@ -235,7 +234,7 @@ class ExportManager {
         return await exporter.export(diagram);
     }
   }
-  
+
   /// Exports multiple diagrams in a batch operation
   ///
   /// [diagrams] List of DiagramReference objects to export
@@ -269,7 +268,8 @@ class ExportManager {
           onProgress: options.onProgress,
           useMemoryEfficientRendering: options.useMemoryEfficientRendering,
         );
-        return await exporter.exportBatch(diagrams, onProgress: options.onProgress);
+        return await exporter.exportBatch(diagrams,
+            onProgress: options.onProgress);
 
       case ExportFormat.svg:
         final exporter = SvgExporter(
@@ -278,7 +278,8 @@ class ExportManager {
           interactive: false,
           onProgress: options.onProgress,
         );
-        return await exporter.exportBatch(diagrams, onProgress: options.onProgress);
+        return await exporter.exportBatch(diagrams,
+            onProgress: options.onProgress);
 
       case ExportFormat.plantuml:
         final exporter = PlantUmlExporter(
@@ -286,7 +287,8 @@ class ExportManager {
           includeLegend: options.includeLegend,
           onProgress: options.onProgress,
         );
-        return await exporter.exportBatch(diagrams, onProgress: options.onProgress);
+        return await exporter.exportBatch(diagrams,
+            onProgress: options.onProgress);
 
       case ExportFormat.c4plantuml:
         final exporter = PlantUmlExporter(
@@ -294,7 +296,8 @@ class ExportManager {
           includeLegend: options.includeLegend,
           onProgress: options.onProgress,
         );
-        return await exporter.exportBatch(diagrams, onProgress: options.onProgress);
+        return await exporter.exportBatch(diagrams,
+            onProgress: options.onProgress);
 
       case ExportFormat.mermaid:
         final exporter = MermaidExporter(
@@ -302,7 +305,8 @@ class ExportManager {
           includeTheme: true,
           onProgress: options.onProgress,
         );
-        return await exporter.exportBatch(diagrams, onProgress: options.onProgress);
+        return await exporter.exportBatch(diagrams,
+            onProgress: options.onProgress);
 
       case ExportFormat.c4mermaid:
         final exporter = MermaidExporter(
@@ -310,7 +314,8 @@ class ExportManager {
           includeTheme: true,
           onProgress: options.onProgress,
         );
-        return await exporter.exportBatch(diagrams, onProgress: options.onProgress);
+        return await exporter.exportBatch(diagrams,
+            onProgress: options.onProgress);
 
       case ExportFormat.dot:
         final exporter = DotExporter(
@@ -318,7 +323,8 @@ class ExportManager {
           includeCustomStyling: true,
           onProgress: options.onProgress,
         );
-        return await exporter.exportBatch(diagrams, onProgress: options.onProgress);
+        return await exporter.exportBatch(diagrams,
+            onProgress: options.onProgress);
 
       case ExportFormat.dsl:
         final exporter = DslExporter(
@@ -327,8 +333,9 @@ class ExportManager {
           includeViews: true,
           onProgress: options.onProgress,
         );
-        return await exporter.exportBatch(diagrams, onProgress: options.onProgress);
-        
+        return await exporter.exportBatch(diagrams,
+            onProgress: options.onProgress);
+
       case ExportFormat.c4json:
         final exporter = C4Exporter(
           style: C4DiagramStyle.standard,
@@ -338,8 +345,9 @@ class ExportManager {
           includeStyles: true,
           onProgress: options.onProgress,
         );
-        return await exporter.exportBatch(diagrams, onProgress: options.onProgress);
-        
+        return await exporter.exportBatch(diagrams,
+            onProgress: options.onProgress);
+
       case ExportFormat.c4yaml:
         final exporter = C4Exporter(
           style: C4DiagramStyle.standard,
@@ -349,10 +357,11 @@ class ExportManager {
           includeStyles: true,
           onProgress: options.onProgress,
         );
-        return await exporter.exportBatch(diagrams, onProgress: options.onProgress);
+        return await exporter.exportBatch(diagrams,
+            onProgress: options.onProgress);
     }
   }
-  
+
   /// Returns the appropriate file extension for a given export format
   static String getFileExtension(ExportFormat format) {
     switch (format) {

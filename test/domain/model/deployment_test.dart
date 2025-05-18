@@ -5,12 +5,12 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('DeploymentNode tests', () {
     late DeploymentNode deploymentNode;
-    final nodeId = 'node-1';
-    final nodeName = 'Amazon Web Services';
-    final nodeDescription = 'AWS us-east-1';
-    final nodeTechnology = 'Amazon Web Services';
-    final nodeEnvironment = 'Production';
-    
+    const nodeId = 'node-1';
+    const nodeName = 'Amazon Web Services';
+    const nodeDescription = 'AWS us-east-1';
+    const nodeTechnology = 'Amazon Web Services';
+    const nodeEnvironment = 'Production';
+
     setUp(() {
       deploymentNode = DeploymentNode(
         id: nodeId,
@@ -21,7 +21,7 @@ void main() {
         instances: 1,
       );
     });
-    
+
     test('DeploymentNode creation with ID', () {
       expect(deploymentNode.id, equals(nodeId));
       expect(deploymentNode.name, equals(nodeName));
@@ -38,7 +38,7 @@ void main() {
       expect(deploymentNode.softwareSystemInstances, isEmpty);
       expect(deploymentNode.infrastructureNodes, isEmpty);
     });
-    
+
     test('DeploymentNode.create() factory generates UUID', () {
       final createdNode = DeploymentNode.create(
         name: nodeName,
@@ -47,7 +47,7 @@ void main() {
         technology: nodeTechnology,
         instances: 1,
       );
-      
+
       expect(createdNode.id, isNotNull);
       expect(createdNode.id.length, greaterThan(0));
       expect(createdNode.name, equals(nodeName));
@@ -55,9 +55,10 @@ void main() {
       expect(createdNode.technology, equals(nodeTechnology));
       expect(createdNode.environment, equals(nodeEnvironment));
       expect(createdNode.instances, equals(1));
-      expect(createdNode.tags, contains('DeploymentNode')); // Default tag is added
+      expect(
+          createdNode.tags, contains('DeploymentNode')); // Default tag is added
     });
-    
+
     test('addChildNode() adds a child deployment node', () {
       final childNode = DeploymentNode(
         id: 'child-node-1',
@@ -66,18 +67,18 @@ void main() {
         technology: 'Amazon EC2',
         parentId: nodeId,
       );
-      
+
       final updatedNode = deploymentNode.addChildNode(childNode);
-      
+
       expect(updatedNode.children.length, equals(1));
       expect(updatedNode.children.first.id, equals(childNode.id));
       expect(updatedNode.children.first.name, equals(childNode.name));
       expect(updatedNode.children.first.parentId, equals(nodeId));
-      
+
       // Original node should be unchanged (immutability test)
       expect(deploymentNode.children.length, equals(0));
     });
-    
+
     test('addContainerInstance() adds a container instance', () {
       final containerInstance = ContainerInstance(
         id: 'container-instance-1',
@@ -85,17 +86,20 @@ void main() {
         parentId: nodeId,
         instanceId: 1,
       );
-      
-      final updatedNode = deploymentNode.addContainerInstance(containerInstance);
-      
+
+      final updatedNode =
+          deploymentNode.addContainerInstance(containerInstance);
+
       expect(updatedNode.containerInstances.length, equals(1));
-      expect(updatedNode.containerInstances.first.id, equals(containerInstance.id));
-      expect(updatedNode.containerInstances.first.containerId, equals('container-1'));
-      
+      expect(updatedNode.containerInstances.first.id,
+          equals(containerInstance.id));
+      expect(updatedNode.containerInstances.first.containerId,
+          equals('container-1'));
+
       // Original node should be unchanged (immutability test)
       expect(deploymentNode.containerInstances.length, equals(0));
     });
-    
+
     test('addSoftwareSystemInstance() adds a software system instance', () {
       final systemInstance = SoftwareSystemInstance(
         id: 'system-instance-1',
@@ -103,14 +107,17 @@ void main() {
         parentId: nodeId,
         instanceId: 1,
       );
-      
-      final updatedNode = deploymentNode.addSoftwareSystemInstance(systemInstance);
-      
+
+      final updatedNode =
+          deploymentNode.addSoftwareSystemInstance(systemInstance);
+
       expect(updatedNode.softwareSystemInstances.length, equals(1));
-      expect(updatedNode.softwareSystemInstances.first.id, equals(systemInstance.id));
-      expect(updatedNode.softwareSystemInstances.first.softwareSystemId, equals('system-1'));
+      expect(updatedNode.softwareSystemInstances.first.id,
+          equals(systemInstance.id));
+      expect(updatedNode.softwareSystemInstances.first.softwareSystemId,
+          equals('system-1'));
     });
-    
+
     test('addInfrastructureNode() adds an infrastructure node', () {
       final infraNode = InfrastructureNode(
         id: 'infra-1',
@@ -118,14 +125,15 @@ void main() {
         technology: 'Amazon ELB',
         parentId: nodeId,
       );
-      
+
       final updatedNode = deploymentNode.addInfrastructureNode(infraNode);
-      
+
       expect(updatedNode.infrastructureNodes.length, equals(1));
       expect(updatedNode.infrastructureNodes.first.id, equals(infraNode.id));
-      expect(updatedNode.infrastructureNodes.first.name, equals(infraNode.name));
+      expect(
+          updatedNode.infrastructureNodes.first.name, equals(infraNode.name));
     });
-    
+
     test('Nested child nodes are handled properly', () {
       final childNode1 = DeploymentNode(
         id: 'child-1',
@@ -133,40 +141,40 @@ void main() {
         environment: nodeEnvironment,
         parentId: nodeId,
       );
-      
+
       final childNode2 = DeploymentNode(
         id: 'child-2',
         name: 'Subnet',
         environment: nodeEnvironment,
         parentId: 'child-1',
       );
-      
+
       // Add first level child
       final nodeWithChild = deploymentNode.addChildNode(childNode1);
-      
+
       // Add second level child to first child
       final childWithGrandchild = childNode1.addChildNode(childNode2);
-      
+
       // Update first level child with its updated version
-      final nodeWithGrandchild = nodeWithChild.copyWith(
-        children: [childWithGrandchild]
-      );
-      
+      final nodeWithGrandchild =
+          nodeWithChild.copyWith(children: [childWithGrandchild]);
+
       // Check hierarchy
       expect(nodeWithGrandchild.children.length, equals(1));
       expect(nodeWithGrandchild.children.first.children.length, equals(1));
-      expect(nodeWithGrandchild.children.first.children.first.id, equals('child-2'));
+      expect(nodeWithGrandchild.children.first.children.first.id,
+          equals('child-2'));
     });
   });
-  
+
   group('InfrastructureNode tests', () {
     late InfrastructureNode infraNode;
-    final nodeId = 'infra-1';
-    final nodeName = 'Load Balancer';
-    final nodeDescription = 'Handles load balancing';
-    final nodeTechnology = 'Amazon ELB';
-    final parentId = 'node-1';
-    
+    const nodeId = 'infra-1';
+    const nodeName = 'Load Balancer';
+    const nodeDescription = 'Handles load balancing';
+    const nodeTechnology = 'Amazon ELB';
+    const parentId = 'node-1';
+
     setUp(() {
       infraNode = InfrastructureNode(
         id: nodeId,
@@ -176,7 +184,7 @@ void main() {
         parentId: parentId,
       );
     });
-    
+
     test('InfrastructureNode creation with ID', () {
       expect(infraNode.id, equals(nodeId));
       expect(infraNode.name, equals(nodeName));
@@ -188,7 +196,7 @@ void main() {
       expect(infraNode.properties, isEmpty);
       expect(infraNode.relationships, isEmpty);
     });
-    
+
     test('InfrastructureNode.create() factory generates UUID', () {
       final createdNode = InfrastructureNode.create(
         name: nodeName,
@@ -196,39 +204,43 @@ void main() {
         description: nodeDescription,
         technology: nodeTechnology,
       );
-      
+
       expect(createdNode.id, isNotNull);
       expect(createdNode.id.length, greaterThan(0));
       expect(createdNode.name, equals(nodeName));
       expect(createdNode.description, equals(nodeDescription));
       expect(createdNode.technology, equals(nodeTechnology));
       expect(createdNode.parentId, equals(parentId));
-      expect(createdNode.tags, contains('InfrastructureNode')); // Default tag is added
+      expect(createdNode.tags,
+          contains('InfrastructureNode')); // Default tag is added
     });
-    
-    test('addRelationship() adds a relationship from the infrastructure node', () {
+
+    test('addRelationship() adds a relationship from the infrastructure node',
+        () {
       final updatedNode = infraNode.addRelationship(
         destinationId: 'container-instance-1',
         description: 'Forwards requests to',
         technology: 'HTTPS',
       );
-      
+
       expect(updatedNode.relationships.length, equals(1));
       expect(updatedNode.relationships.first.sourceId, equals(nodeId));
-      expect(updatedNode.relationships.first.destinationId, equals('container-instance-1'));
-      expect(updatedNode.relationships.first.description, equals('Forwards requests to'));
+      expect(updatedNode.relationships.first.destinationId,
+          equals('container-instance-1'));
+      expect(updatedNode.relationships.first.description,
+          equals('Forwards requests to'));
       expect(updatedNode.relationships.first.technology, equals('HTTPS'));
     });
   });
-  
+
   group('ContainerInstance tests', () {
     late ContainerInstance containerInstance;
-    final instanceId = 'instance-1';
-    final containerId = 'container-1';
-    final parentId = 'node-1';
-    final instanceNumber = 1;
-    final healthEndpoint = '/health';
-    
+    const instanceId = 'instance-1';
+    const containerId = 'container-1';
+    const parentId = 'node-1';
+    const instanceNumber = 1;
+    const healthEndpoint = '/health';
+
     setUp(() {
       containerInstance = ContainerInstance(
         id: instanceId,
@@ -238,7 +250,7 @@ void main() {
         healthEndpoint: healthEndpoint,
       );
     });
-    
+
     test('ContainerInstance creation with ID', () {
       expect(containerInstance.id, equals(instanceId));
       expect(containerInstance.containerId, equals(containerId));
@@ -249,12 +261,12 @@ void main() {
       expect(containerInstance.tags, isEmpty);
       expect(containerInstance.properties, isEmpty);
       expect(containerInstance.relationships, isEmpty);
-      
+
       // ContainerInstance has default name/description getters
       expect(containerInstance.name, equals('Container Instance'));
       expect(containerInstance.description, isNull);
     });
-    
+
     test('ContainerInstance.create() factory generates UUID', () {
       final createdInstance = ContainerInstance.create(
         containerId: containerId,
@@ -262,39 +274,43 @@ void main() {
         instanceId: instanceNumber,
         healthEndpoint: healthEndpoint,
       );
-      
+
       expect(createdInstance.id, isNotNull);
       expect(createdInstance.id.length, greaterThan(0));
       expect(createdInstance.containerId, equals(containerId));
       expect(createdInstance.parentId, equals(parentId));
       expect(createdInstance.instanceId, equals(instanceNumber));
       expect(createdInstance.healthEndpoint, equals(healthEndpoint));
-      expect(createdInstance.tags, contains('ContainerInstance')); // Default tag is added
+      expect(createdInstance.tags,
+          contains('ContainerInstance')); // Default tag is added
     });
-    
-    test('addRelationship() adds a relationship from the container instance', () {
+
+    test('addRelationship() adds a relationship from the container instance',
+        () {
       final updatedInstance = containerInstance.addRelationship(
         destinationId: 'database-1',
         description: 'Reads from and writes to',
         technology: 'JDBC',
       );
-      
+
       expect(updatedInstance.relationships.length, equals(1));
       expect(updatedInstance.relationships.first.sourceId, equals(instanceId));
-      expect(updatedInstance.relationships.first.destinationId, equals('database-1'));
-      expect(updatedInstance.relationships.first.description, equals('Reads from and writes to'));
+      expect(updatedInstance.relationships.first.destinationId,
+          equals('database-1'));
+      expect(updatedInstance.relationships.first.description,
+          equals('Reads from and writes to'));
       expect(updatedInstance.relationships.first.technology, equals('JDBC'));
     });
   });
-  
+
   group('SoftwareSystemInstance tests', () {
     late SoftwareSystemInstance systemInstance;
-    final instanceId = 'instance-1';
-    final systemId = 'system-1';
-    final parentId = 'node-1';
-    final instanceNumber = 1;
-    final healthEndpoint = '/health';
-    
+    const instanceId = 'instance-1';
+    const systemId = 'system-1';
+    const parentId = 'node-1';
+    const instanceNumber = 1;
+    const healthEndpoint = '/health';
+
     setUp(() {
       systemInstance = SoftwareSystemInstance(
         id: instanceId,
@@ -304,7 +320,7 @@ void main() {
         healthEndpoint: healthEndpoint,
       );
     });
-    
+
     test('SoftwareSystemInstance creation with ID', () {
       expect(systemInstance.id, equals(instanceId));
       expect(systemInstance.softwareSystemId, equals(systemId));
@@ -315,12 +331,12 @@ void main() {
       expect(systemInstance.tags, isEmpty);
       expect(systemInstance.properties, isEmpty);
       expect(systemInstance.relationships, isEmpty);
-      
+
       // SoftwareSystemInstance has default name/description getters
       expect(systemInstance.name, equals('Software System Instance'));
       expect(systemInstance.description, isNull);
     });
-    
+
     test('SoftwareSystemInstance.create() factory generates UUID', () {
       final createdInstance = SoftwareSystemInstance.create(
         softwareSystemId: systemId,
@@ -328,28 +344,34 @@ void main() {
         instanceId: instanceNumber,
         healthEndpoint: healthEndpoint,
       );
-      
+
       expect(createdInstance.id, isNotNull);
       expect(createdInstance.id.length, greaterThan(0));
       expect(createdInstance.softwareSystemId, equals(systemId));
       expect(createdInstance.parentId, equals(parentId));
       expect(createdInstance.instanceId, equals(instanceNumber));
       expect(createdInstance.healthEndpoint, equals(healthEndpoint));
-      expect(createdInstance.tags, contains('SoftwareSystemInstance')); // Default tag is added
+      expect(createdInstance.tags,
+          contains('SoftwareSystemInstance')); // Default tag is added
     });
-    
-    test('addRelationship() adds a relationship from the software system instance', () {
+
+    test(
+        'addRelationship() adds a relationship from the software system instance',
+        () {
       final updatedInstance = systemInstance.addRelationship(
         destinationId: 'other-system-1',
         description: 'Sends data to',
         technology: 'HTTP/JSON',
       );
-      
+
       expect(updatedInstance.relationships.length, equals(1));
       expect(updatedInstance.relationships.first.sourceId, equals(instanceId));
-      expect(updatedInstance.relationships.first.destinationId, equals('other-system-1'));
-      expect(updatedInstance.relationships.first.description, equals('Sends data to'));
-      expect(updatedInstance.relationships.first.technology, equals('HTTP/JSON'));
+      expect(updatedInstance.relationships.first.destinationId,
+          equals('other-system-1'));
+      expect(updatedInstance.relationships.first.description,
+          equals('Sends data to'));
+      expect(
+          updatedInstance.relationships.first.technology, equals('HTTP/JSON'));
     });
   });
 }

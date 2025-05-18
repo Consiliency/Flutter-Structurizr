@@ -11,7 +11,7 @@ import 'package:flutter_structurizr/presentation/widgets/diagram/structurizr_dia
 enum WorkspaceTab {
   /// Diagrams view showing the diagram editor and controls
   diagrams,
-  
+
   /// Documentation view showing documentation and ADRs
   documentation
 }
@@ -44,7 +44,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
   @override
   void initState() {
     super.initState();
-    
+
     // Set initial view if available
     if (widget.workspace.views.systemContextViews.isNotEmpty) {
       _selectedViewKey = widget.workspace.views.systemContextViews.first.key;
@@ -67,7 +67,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
-    
+
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -78,9 +78,11 @@ class _WorkspacePageState extends State<WorkspacePage> {
             IconButton(
               icon: const Icon(Icons.download),
               tooltip: 'Export',
-              onPressed: _selectedViewKey != null ? () {
-                _showExportDialog();
-              } : null,
+              onPressed: _selectedViewKey != null
+                  ? () {
+                      _showExportDialog();
+                    }
+                  : null,
             ),
 
             // Batch export button
@@ -91,7 +93,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                 _showBatchExportDialog();
               },
             ),
-            
+
             // Settings button
             IconButton(
               icon: const Icon(Icons.settings),
@@ -108,15 +110,15 @@ class _WorkspacePageState extends State<WorkspacePage> {
               });
             },
             tabs: [
-              Tab(
-                icon: const Icon(Icons.account_tree),
+              const Tab(
+                icon: Icon(Icons.account_tree),
                 text: 'Diagrams',
-                iconMargin: const EdgeInsets.only(bottom: 4),
+                iconMargin: EdgeInsets.only(bottom: 4),
               ),
-              Tab(
-                icon: const Icon(Icons.description),
+              const Tab(
+                icon: Icon(Icons.description),
                 text: 'Documentation',
-                iconMargin: const EdgeInsets.only(bottom: 4),
+                iconMargin: EdgeInsets.only(bottom: 4),
               ),
             ],
           ),
@@ -142,19 +144,19 @@ class _WorkspacePageState extends State<WorkspacePage> {
           width: 280,
           child: ElementExplorer(
             workspace: widget.workspace,
-            selectedView: _selectedViewKey != null 
+            selectedView: _selectedViewKey != null
                 ? widget.workspace.views.getViewByKey(_selectedViewKey!)
                 : null,
           ),
         ),
-        
+
         // Divider
         VerticalDivider(
           width: 1,
           thickness: 1,
           color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300,
         ),
-        
+
         // Main diagram area
         Expanded(
           child: Column(
@@ -175,7 +177,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
                 },
                 // Custom config can be added here
               ),
-              
+
               // Diagram canvas
               Expanded(
                 child: StructurizrDiagram(

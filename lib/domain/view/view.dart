@@ -1,5 +1,4 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:flutter_structurizr/domain/model/element.dart';
 
 part 'view.freezed.dart';
 part 'view.g.dart';

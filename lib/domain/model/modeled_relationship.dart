@@ -19,22 +19,23 @@ class ModeledRelationship extends Relationship {
     String? technology,
     List<String> tags = const [],
     Map<String, String> properties = const {},
-    String interactionStyle = "Synchronous",
+    String interactionStyle = 'Synchronous',
     required Model model,
-  }) : _model = model,
-       super(
-         id: id,
-         sourceId: sourceId,
-         destinationId: destinationId,
-         description: description,
-         technology: technology,
-         tags: tags,
-         properties: properties,
-         interactionStyle: interactionStyle,
-       );
-  
+  })  : _model = model,
+        super(
+          id: id,
+          sourceId: sourceId,
+          destinationId: destinationId,
+          description: description,
+          technology: technology,
+          tags: tags,
+          properties: properties,
+          interactionStyle: interactionStyle,
+        );
+
   /// Creates a ModeledRelationship from a basic Relationship and a Model.
-  factory ModeledRelationship.fromRelationship(Relationship relationship, Model model) {
+  factory ModeledRelationship.fromRelationship(
+      Relationship relationship, Model model) {
     return ModeledRelationship(
       id: relationship.id,
       sourceId: relationship.sourceId,

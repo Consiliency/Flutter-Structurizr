@@ -1,21 +1,15 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart' hide Element, Container, View;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_structurizr/domain/model/workspace.dart';
 import 'package:flutter_structurizr/domain/view/model_view.dart';
-import 'package:flutter_structurizr/domain/view/view.dart';
 import 'package:flutter_structurizr/infrastructure/export/rendering_pipeline.dart';
 import 'package:flutter_structurizr/infrastructure/export/export_manager.dart';
-import 'package:flutter_structurizr/infrastructure/export/mermaid_exporter.dart';
-import 'package:flutter_structurizr/infrastructure/export/plantuml_exporter.dart';
 import 'package:flutter_structurizr/infrastructure/export/png_exporter.dart';
 import 'package:flutter_structurizr/infrastructure/export/svg_exporter.dart';
-import 'package:flutter_structurizr/infrastructure/export/dot_exporter.dart';
-import 'package:flutter_structurizr/infrastructure/export/dsl_exporter.dart';
 import 'package:flutter/material.dart' as flutter;
 import 'package:flutter_structurizr/infrastructure/export/diagram_exporter.dart' show DiagramReference;
 
@@ -309,16 +303,14 @@ class _ExportDialogState extends State<ExportDialog> {
     final views = <ModelView>[];
     
     // Collect all views from the workspace
-    if (widget.workspace.views != null) {
-      views.addAll(widget.workspace.views!.systemLandscapeViews);
-      views.addAll(widget.workspace.views!.systemContextViews);
-      views.addAll(widget.workspace.views!.containerViews);
-      views.addAll(widget.workspace.views!.componentViews);
-      views.addAll(widget.workspace.views!.deploymentViews);
-      views.addAll(widget.workspace.views!.dynamicViews);
-      views.addAll(widget.workspace.views!.filteredViews);
-    }
-    
+    views.addAll(widget.workspace.views.systemLandscapeViews);
+    views.addAll(widget.workspace.views.systemContextViews);
+    views.addAll(widget.workspace.views.containerViews);
+    views.addAll(widget.workspace.views.componentViews);
+    views.addAll(widget.workspace.views.deploymentViews);
+    views.addAll(widget.workspace.views.dynamicViews);
+    views.addAll(widget.workspace.views.filteredViews);
+      
     return Row(
       children: [
         const Text('View:'),

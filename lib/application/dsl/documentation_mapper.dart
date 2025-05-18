@@ -1,7 +1,6 @@
 import 'package:flutter_structurizr/domain/documentation/documentation.dart' as domain;
 import 'package:flutter_structurizr/domain/parser/ast/default_visitor.dart';
 import 'package:flutter_structurizr/domain/parser/ast/nodes/documentation/documentation_node.dart';
-import 'package:flutter_structurizr/domain/parser/ast/ast_base.dart';
 import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 
 /// Mapper for converting documentation AST nodes to domain model objects.

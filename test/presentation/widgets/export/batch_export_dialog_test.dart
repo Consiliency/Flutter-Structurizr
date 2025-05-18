@@ -12,7 +12,7 @@ void main() {
     final workspace = Workspace(
       name: 'Test Workspace',
       description: 'Workspace for testing',
-      model: Model(
+      model: const Model(
         people: [],
         softwareSystems: [],
       ),
@@ -44,7 +44,8 @@ void main() {
       ),
     );
 
-    testWidgets('BatchExportDialog displays all views for selection', (WidgetTester tester) async {
+    testWidgets('BatchExportDialog displays all views for selection',
+        (WidgetTester tester) async {
       // Build the widget
       await tester.pumpWidget(
         MaterialApp(
@@ -101,7 +102,8 @@ void main() {
       expect(find.text('Export'), findsOneWidget);
     });
 
-    testWidgets('BatchExportDialog select/deselect all functionality', (WidgetTester tester) async {
+    testWidgets('BatchExportDialog select/deselect all functionality',
+        (WidgetTester tester) async {
       // Build the widget
       await tester.pumpWidget(
         MaterialApp(
@@ -150,8 +152,9 @@ void main() {
       // Verify destination folder button is shown
       expect(find.text('Select Destination Folder'), findsOneWidget);
     });
-    
-    testWidgets('BatchExportDialog format selection changes options', (WidgetTester tester) async {
+
+    testWidgets('BatchExportDialog format selection changes options',
+        (WidgetTester tester) async {
       // Build the widget
       await tester.pumpWidget(
         MaterialApp(
@@ -180,34 +183,35 @@ void main() {
       // Tap the button to show the dialog
       await tester.tap(find.text('Show Batch Export Dialog'));
       await tester.pumpAndSettle();
-      
+
       // Find the format dropdown
       final formatDropdown = find.byType(DropdownButton<ExportFormat>);
       expect(formatDropdown, findsOneWidget);
-      
+
       // Open the dropdown
       await tester.tap(formatDropdown);
       await tester.pumpAndSettle();
-      
+
       // Select a different format
       await tester.tap(find.text('SVG').last);
       await tester.pumpAndSettle();
-      
+
       // Check that format-specific options are shown
       expect(find.text('Include CSS'), findsOneWidget);
-      
+
       // Select another format
       await tester.tap(formatDropdown);
       await tester.pumpAndSettle();
-      
+
       await tester.tap(find.text('PlantUML').last);
       await tester.pumpAndSettle();
-      
+
       // Check that format changed and options updated
       expect(find.text('Include CSS'), findsNothing);
     });
-    
-    testWidgets('BatchExportDialog handles category expansion/collapse', (WidgetTester tester) async {
+
+    testWidgets('BatchExportDialog handles category expansion/collapse',
+        (WidgetTester tester) async {
       // Build the widget
       await tester.pumpWidget(
         MaterialApp(
@@ -236,32 +240,33 @@ void main() {
       // Tap the button to show the dialog
       await tester.tap(find.text('Show Batch Export Dialog'));
       await tester.pumpAndSettle();
-      
+
       // Check that all categories are initially expanded
       expect(find.text('Test Context View'), findsOneWidget);
       expect(find.text('Test Container View'), findsOneWidget);
       expect(find.text('Test Component View'), findsOneWidget);
-      
+
       // Find expansion panels
       final expansionPanels = find.byType(ExpansionPanel).evaluate().toList();
       expect(expansionPanels.isNotEmpty, isTrue);
-      
+
       // Collapse the first category by tapping its header
       await tester.tap(find.text('System Context Views'));
       await tester.pumpAndSettle();
-      
+
       // Check that the view is now hidden
       expect(find.text('Test Context View'), findsNothing);
-      
+
       // Expand it again
       await tester.tap(find.text('System Context Views'));
       await tester.pumpAndSettle();
-      
+
       // Check that the view is visible again
       expect(find.text('Test Context View'), findsOneWidget);
     });
-    
-    testWidgets('BatchExportDialog handles export options change', (WidgetTester tester) async {
+
+    testWidgets('BatchExportDialog handles export options change',
+        (WidgetTester tester) async {
       // Build the widget
       await tester.pumpWidget(
         MaterialApp(
@@ -290,18 +295,18 @@ void main() {
       // Tap the button to show the dialog
       await tester.tap(find.text('Show Batch Export Dialog'));
       await tester.pumpAndSettle();
-      
+
       // Find and toggle common options
       final includeTitleCheckbox = find.text('Include Title');
       expect(includeTitleCheckbox, findsOneWidget);
       await tester.tap(includeTitleCheckbox);
       await tester.pumpAndSettle();
-      
+
       final includeLegendCheckbox = find.text('Include Legend');
       expect(includeLegendCheckbox, findsOneWidget);
       await tester.tap(includeLegendCheckbox);
       await tester.pumpAndSettle();
-      
+
       // Find size setting widgets if they exist
       final sizeControls = find.text('Diagram Size');
       if (sizeControls.evaluate().isNotEmpty) {
@@ -310,17 +315,17 @@ void main() {
           of: find.text('Width'),
           matching: find.byType(TextField),
         );
-        
+
         if (widthField.evaluate().isNotEmpty) {
           await tester.enterText(widthField, '2000');
           await tester.pump();
         }
-        
+
         final heightField = find.ancestor(
           of: find.text('Height'),
           matching: find.byType(TextField),
         );
-        
+
         if (heightField.evaluate().isNotEmpty) {
           await tester.enterText(heightField, '1500');
           await tester.pump();

@@ -1,91 +1,93 @@
-import 'package:flutter/material.dart' hide Container, Element, View;
+import 'package:flutter/material.dart' as flutter hide Element, View;
 import 'package:flutter_structurizr/domain/model/software_system.dart';
-import 'package:flutter_structurizr/domain/model/container.dart';
+import 'package:flutter_structurizr/domain/model/container.dart'
+    as model_container;
 import 'package:flutter_structurizr/domain/model/component.dart';
 import 'package:flutter_structurizr/domain/model/person.dart';
 import 'package:flutter_structurizr/domain/model/relationship.dart';
-import 'package:flutter_structurizr/domain/model/enterprise.dart';
 import 'package:flutter_structurizr/domain/model/workspace.dart';
 import 'package:flutter_structurizr/domain/view/model_view.dart';
-import 'package:flutter_structurizr/domain/view/view.dart';
-import 'package:flutter_structurizr/domain/style/styles.dart';
+import 'package:flutter_structurizr/domain/style/styles.dart'
+    as structurizr_style;
 import 'package:flutter_structurizr/presentation/widgets/diagram/structurizr_diagram.dart';
-import 'package:flutter_structurizr/presentation/widgets/property_panel_fixed.dart' as fixed;
-import 'package:flutter_structurizr/presentation/layout/automatic_layout.dart';
+import 'package:flutter_structurizr/domain/model/model.dart' as model;
+import 'package:flutter_structurizr/domain/view/views.dart';
 
 void main() {
-  runApp(const IntegratedDemoApp());
+  flutter.runApp(const IntegratedDemoApp());
 }
 
-class IntegratedDemoApp extends StatelessWidget {
+class IntegratedDemoApp extends flutter.StatelessWidget {
   const IntegratedDemoApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  flutter.Widget build(flutter.BuildContext context) {
+    return flutter.MaterialApp(
       title: 'Structurizr Demo',
-      theme: ThemeData.dark(useMaterial3: true),
+      theme: flutter.ThemeData.dark(useMaterial3: true),
       home: const IntegratedDemoScreen(),
     );
   }
 }
 
-class IntegratedDemoScreen extends StatefulWidget {
+class IntegratedDemoScreen extends flutter.StatefulWidget {
   const IntegratedDemoScreen({super.key});
 
   @override
-  State<IntegratedDemoScreen> createState() => _IntegratedDemoScreenState();
+  flutter.State<IntegratedDemoScreen> createState() =>
+      _IntegratedDemoScreenState();
 }
 
-class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
+class _IntegratedDemoScreenState extends flutter.State<IntegratedDemoScreen> {
   late Workspace workspace;
   late ModelSystemContextView systemContextView;
   late ModelContainerView containerView;
   late ModelComponentView componentView;
   String selectedViewName = 'System Context';
   ModelView? currentView;
-  
+
   @override
   void initState() {
     super.initState();
     _initializeWorkspace();
     currentView = systemContextView;
   }
-  
+
   void _initializeWorkspace() {
     // Create a simple banking system model
-    final enterprise = Enterprise('Big Bank Inc.');
-    
-    final model = Model();
-    
+    // final enterprise = Enterprise(id: '1', name: 'Big Bank Inc.'); // Unused
+
+    const modelInstance = model.Model();
+
     // People
-    final customer = Person(
+    const customer = Person(
       id: 'customer',
       name: 'Personal Banking Customer',
       description: 'A customer of the bank with personal banking accounts',
     );
-    
+
     // Software Systems
-    final internetBankingSystem = SoftwareSystem(
+    const internetBankingSystem = SoftwareSystem(
       id: 'internetBankingSystem',
       name: 'Internet Banking System',
       description: 'Allows customers to view their accounts and make payments',
     );
-    
-    final mainframeBankingSystem = SoftwareSystem(
+
+    const mainframeBankingSystem = SoftwareSystem(
       id: 'mainframeBankingSystem',
       name: 'Mainframe Banking System',
-      description: 'Stores core banking information about customers, accounts, transactions, etc.',
+      description:
+          'Stores core banking information about customers, accounts, transactions, etc.',
     );
-    
-    final emailSystem = SoftwareSystem(
+
+    const emailSystem = SoftwareSystem(
       id: 'emailSystem',
       name: 'Email System',
       description: 'The internal Microsoft Exchange email system',
     );
-    
+
     // Relationships
-    model.addRelationship(
+    modelInstance.addRelationship(
       Relationship(
         id: 'rel1',
         sourceId: customer.id,
@@ -93,8 +95,8 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
         description: 'Uses',
       ),
     );
-    
-    model.addRelationship(
+
+    modelInstance.addRelationship(
       Relationship(
         id: 'rel2',
         sourceId: internetBankingSystem.id,
@@ -102,8 +104,8 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
         description: 'Gets account information from',
       ),
     );
-    
-    model.addRelationship(
+
+    modelInstance.addRelationship(
       Relationship(
         id: 'rel3',
         sourceId: internetBankingSystem.id,
@@ -111,54 +113,55 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
         description: 'Sends emails using',
       ),
     );
-    
+
     // Add to model
-    model.addPerson(customer);
-    model.addSoftwareSystem(internetBankingSystem);
-    model.addSoftwareSystem(mainframeBankingSystem);
-    model.addSoftwareSystem(emailSystem);
-    
+    modelInstance.addPerson(customer);
+    modelInstance.addSoftwareSystem(internetBankingSystem);
+    modelInstance.addSoftwareSystem(mainframeBankingSystem);
+    modelInstance.addSoftwareSystem(emailSystem);
+
     // Containers
-    final webApplication = Container(
+    final webApplication = model_container.Container(
       id: 'webApplication',
       name: 'Web Application',
       description: 'Provides Internet banking functionality via the web',
       technology: 'Java and Spring MVC',
       parentId: internetBankingSystem.id,
     );
-    
-    final mobileApp = Container(
+
+    final mobileApp = model_container.Container(
       id: 'mobileApp',
       name: 'Mobile App',
       description: 'Provides Internet banking functionality via a mobile app',
       technology: 'Flutter',
       parentId: internetBankingSystem.id,
     );
-    
-    final apiApplication = Container(
+
+    final apiApplication = model_container.Container(
       id: 'apiApplication',
       name: 'API Application',
       description: 'Provides an API for the Internet banking functionality',
       technology: 'Java and Spring Boot',
       parentId: internetBankingSystem.id,
     );
-    
-    final database = Container(
+
+    final database = model_container.Container(
       id: 'database',
       name: 'Database',
-      description: 'Stores user registration information, hashed passwords, etc.',
+      description:
+          'Stores user registration information, hashed passwords, etc.',
       technology: 'PostgreSQL',
       parentId: internetBankingSystem.id,
     );
-    
+
     // Add containers to the Internet Banking System
     internetBankingSystem.addContainer(webApplication);
     internetBankingSystem.addContainer(mobileApp);
     internetBankingSystem.addContainer(apiApplication);
     internetBankingSystem.addContainer(database);
-    
+
     // Container relationships
-    model.addRelationship(
+    modelInstance.addRelationship(
       Relationship(
         id: 'rel4',
         sourceId: customer.id,
@@ -166,8 +169,8 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
         description: 'Uses',
       ),
     );
-    
-    model.addRelationship(
+
+    modelInstance.addRelationship(
       Relationship(
         id: 'rel5',
         sourceId: customer.id,
@@ -175,8 +178,8 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
         description: 'Uses',
       ),
     );
-    
-    model.addRelationship(
+
+    modelInstance.addRelationship(
       Relationship(
         id: 'rel6',
         sourceId: webApplication.id,
@@ -184,8 +187,8 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
         description: 'Uses',
       ),
     );
-    
-    model.addRelationship(
+
+    modelInstance.addRelationship(
       Relationship(
         id: 'rel7',
         sourceId: mobileApp.id,
@@ -193,8 +196,8 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
         description: 'Uses',
       ),
     );
-    
-    model.addRelationship(
+
+    modelInstance.addRelationship(
       Relationship(
         id: 'rel8',
         sourceId: apiApplication.id,
@@ -202,8 +205,8 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
         description: 'Reads from and writes to',
       ),
     );
-    
-    model.addRelationship(
+
+    modelInstance.addRelationship(
       Relationship(
         id: 'rel9',
         sourceId: apiApplication.id,
@@ -211,8 +214,8 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
         description: 'Uses',
       ),
     );
-    
-    model.addRelationship(
+
+    modelInstance.addRelationship(
       Relationship(
         id: 'rel10',
         sourceId: apiApplication.id,
@@ -220,7 +223,7 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
         description: 'Sends emails using',
       ),
     );
-    
+
     // Components (inside API Application)
     final signinController = Component(
       id: 'signinController',
@@ -229,7 +232,7 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
       technology: 'Java and Spring MVC',
       parentId: apiApplication.id,
     );
-    
+
     final accountsSummaryController = Component(
       id: 'accountsSummaryController',
       name: 'Accounts Summary Controller',
@@ -237,7 +240,7 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
       technology: 'Java and Spring MVC',
       parentId: apiApplication.id,
     );
-    
+
     final securityComponent = Component(
       id: 'securityComponent',
       name: 'Security Component',
@@ -245,7 +248,7 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
       technology: 'Java and Spring Security',
       parentId: apiApplication.id,
     );
-    
+
     final mainframeFacade = Component(
       id: 'mainframeFacade',
       name: 'Mainframe Banking System Facade',
@@ -253,7 +256,7 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
       technology: 'Java',
       parentId: apiApplication.id,
     );
-    
+
     final emailComponent = Component(
       id: 'emailComponent',
       name: 'Email Component',
@@ -261,16 +264,18 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
       technology: 'Java and Spring',
       parentId: apiApplication.id,
     );
-    
+
     // Add components to the API Application container
-    apiApplication.addComponent(signinController);
-    apiApplication.addComponent(accountsSummaryController);
-    apiApplication.addComponent(securityComponent);
-    apiApplication.addComponent(mainframeFacade);
-    apiApplication.addComponent(emailComponent);
-    
+    apiApplication.components.addAll([
+      signinController,
+      accountsSummaryController,
+      securityComponent,
+      mainframeFacade,
+      emailComponent,
+    ]);
+
     // Component relationships
-    model.addRelationship(
+    modelInstance.addRelationship(
       Relationship(
         id: 'rel11',
         sourceId: webApplication.id,
@@ -278,8 +283,8 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
         description: 'Uses',
       ),
     );
-    
-    model.addRelationship(
+
+    modelInstance.addRelationship(
       Relationship(
         id: 'rel12',
         sourceId: webApplication.id,
@@ -287,8 +292,8 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
         description: 'Uses',
       ),
     );
-    
-    model.addRelationship(
+
+    modelInstance.addRelationship(
       Relationship(
         id: 'rel13',
         sourceId: mobileApp.id,
@@ -296,8 +301,8 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
         description: 'Uses',
       ),
     );
-    
-    model.addRelationship(
+
+    modelInstance.addRelationship(
       Relationship(
         id: 'rel14',
         sourceId: mobileApp.id,
@@ -305,8 +310,8 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
         description: 'Uses',
       ),
     );
-    
-    model.addRelationship(
+
+    modelInstance.addRelationship(
       Relationship(
         id: 'rel15',
         sourceId: signinController.id,
@@ -314,8 +319,8 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
         description: 'Uses',
       ),
     );
-    
-    model.addRelationship(
+
+    modelInstance.addRelationship(
       Relationship(
         id: 'rel16',
         sourceId: accountsSummaryController.id,
@@ -323,8 +328,8 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
         description: 'Uses',
       ),
     );
-    
-    model.addRelationship(
+
+    modelInstance.addRelationship(
       Relationship(
         id: 'rel17',
         sourceId: securityComponent.id,
@@ -332,8 +337,8 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
         description: 'Reads from and writes to',
       ),
     );
-    
-    model.addRelationship(
+
+    modelInstance.addRelationship(
       Relationship(
         id: 'rel18',
         sourceId: mainframeFacade.id,
@@ -341,8 +346,8 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
         description: 'Uses',
       ),
     );
-    
-    model.addRelationship(
+
+    modelInstance.addRelationship(
       Relationship(
         id: 'rel19',
         sourceId: signinController.id,
@@ -350,8 +355,8 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
         description: 'Uses',
       ),
     );
-    
-    model.addRelationship(
+
+    modelInstance.addRelationship(
       Relationship(
         id: 'rel20',
         sourceId: emailComponent.id,
@@ -359,73 +364,137 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
         description: 'Uses',
       ),
     );
-    
+
     // Create workspace with the model
-    workspace = Workspace(
-      id: 'banking-system',
+    workspace = const Workspace(
+      id: 1,
       name: 'Banking System',
       description: 'A simple banking system example',
-      model: model,
+      model: modelInstance,
     );
-    
+
     // Add styles
-    final styles = Styles();
-    
+    const styles = structurizr_style.Styles();
+
     // Person style
-    styles.addElementStyle('Person').shape = 'Person';
-    
+    styles.addElementStyle(
+      const structurizr_style.ElementStyle(
+          tag: 'Person', shape: structurizr_style.Shape.person),
+    );
+
     // Software System styles
-    styles.addElementStyle('Software System').background = '#1168bd';
-    styles.addElementStyle('Software System').color = '#ffffff';
-    
+    styles.addElementStyle(
+      const structurizr_style.ElementStyle(
+        tag: 'Software System',
+        background: '#1168bd',
+        color: '#ffffff',
+      ),
+    );
+
     // Container styles
-    styles.addElementStyle('Container').background = '#438dd5';
-    styles.addElementStyle('Container').color = '#ffffff';
-    
+    styles.addElementStyle(
+      const structurizr_style.ElementStyle(
+        tag: 'Container',
+        background: '#438dd5',
+        color: '#ffffff',
+      ),
+    );
+
     // Component styles
-    styles.addElementStyle('Component').background = '#85bbf0';
-    styles.addElementStyle('Component').color = '#000000';
-    
+    styles.addElementStyle(
+      const structurizr_style.ElementStyle(
+        tag: 'Component',
+        background: '#85bbf0',
+        color: '#000000',
+      ),
+    );
+
     // Add specific styles
-    styles.addElementStyle('${mainframeBankingSystem.id}').background = '#999999';
-    styles.addElementStyle('${emailSystem.id}').background = '#999999';
-    
+    styles.addElementStyle(
+      structurizr_style.ElementStyle(
+        tag: mainframeBankingSystem.id,
+        background: '#999999',
+      ),
+    );
+    styles.addElementStyle(
+      structurizr_style.ElementStyle(
+        tag: emailSystem.id,
+        background: '#999999',
+      ),
+    );
+
     // Database style
-    styles.addElementStyle('database').shape = 'Cylinder';
-    
-    workspace.views = Views();
-    
+    styles.addElementStyle(
+      const structurizr_style.ElementStyle(
+        tag: 'database',
+        shape: structurizr_style.Shape.cylinder,
+      ),
+    );
+
+    // Views
+    const views = Views();
+
     // Add views
     systemContextView = ModelSystemContextView(
       key: 'SystemContext',
       softwareSystemId: internetBankingSystem.id,
       description: 'The system context diagram for the Internet Banking System',
-      enterpriseBoundaryVisible: true,
+      // Remove enterpriseBoundaryVisible if not supported
     );
-    workspace.views.systemContextViews.add(systemContextView);
-    
+    final updatedSystemContextViews = [
+      ...views.systemContextViews,
+      ModelSystemContextView(
+        key: 'SystemContext',
+        softwareSystemId: internetBankingSystem.id,
+        description:
+            'The system context diagram for the Internet Banking System',
+      )
+    ];
+
     containerView = ModelContainerView(
       key: 'Containers',
       softwareSystemId: internetBankingSystem.id,
       description: 'The container diagram for the Internet Banking System',
     );
-    workspace.views.containerViews.add(containerView);
-    
+    final updatedContainerViews = [
+      ...views.containerViews,
+      ModelContainerView(
+        key: 'Containers',
+        softwareSystemId: internetBankingSystem.id,
+        description: 'The container diagram for the Internet Banking System',
+      )
+    ];
+
     componentView = ModelComponentView(
       key: 'Components',
+      softwareSystemId: internetBankingSystem.id,
       containerId: apiApplication.id,
       description: 'The component diagram for the API Application',
     );
-    workspace.views.componentViews.add(componentView);
-    
-    workspace.views.styles = styles;
-    
-    // Add auto layout for proper positioning
-    AutomaticLayout.applyForceDirectedLayout(systemContextView, workspace);
-    AutomaticLayout.applyForceDirectedLayout(containerView, workspace);
-    AutomaticLayout.applyForceDirectedLayout(componentView, workspace);
+    final updatedComponentViews = [
+      ...views.componentViews,
+      ModelComponentView(
+        key: 'Components',
+        softwareSystemId: internetBankingSystem.id,
+        containerId: apiApplication.id,
+        description: 'The component diagram for the API Application',
+      )
+    ];
+
+    final updatedViews = views.copyWith(
+      systemContextViews: updatedSystemContextViews,
+      containerViews: updatedContainerViews,
+      componentViews: updatedComponentViews,
+      styles: styles,
+    );
+    workspace = workspace.copyWith(views: updatedViews);
+
+    // Remove or comment out auto layout if not implemented
+    // layout.AutomaticLayout.applyForceDirectedLayout(systemContextView, workspace);
+    // layout.AutomaticLayout.applyForceDirectedLayout(containerView, workspace);
+    // layout.AutomaticLayout.applyForceDirectedLayout(componentView, workspace);
   }
-  
+
   void _changeView(String viewName) {
     setState(() {
       selectedViewName = viewName;
@@ -444,64 +513,66 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Structurizr - $selectedViewName View'),
+  flutter.Widget build(flutter.BuildContext context) {
+    return flutter.Scaffold(
+      appBar: flutter.AppBar(
+        title: flutter.Text('Structurizr - $selectedViewName View'),
         actions: [
-          PopupMenuButton<String>(
+          flutter.PopupMenuButton<String>(
             onSelected: _changeView,
-            itemBuilder: (BuildContext context) => [
-              const PopupMenuItem<String>(
+            itemBuilder: (flutter.BuildContext context) => [
+              const flutter.PopupMenuItem<String>(
                 value: 'System Context',
-                child: Text('System Context View'),
+                child: flutter.Text('System Context View'),
               ),
-              const PopupMenuItem<String>(
+              const flutter.PopupMenuItem<String>(
                 value: 'Container',
-                child: Text('Container View'),
+                child: flutter.Text('Container View'),
               ),
-              const PopupMenuItem<String>(
+              const flutter.PopupMenuItem<String>(
                 value: 'Component',
-                child: Text('Component View'),
+                child: flutter.Text('Component View'),
               ),
             ],
           ),
         ],
       ),
-      body: Row(
+      body: flutter.Row(
         children: [
           // Diagram area (takes most of the space)
-          Expanded(
+          flutter.Expanded(
             flex: 3,
             child: currentView != null
                 ? StructurizrDiagram(
                     workspace: workspace,
                     view: currentView!,
-                    onElementSelected: (elementId) {
-                      // Handle element selection
-                      print('Selected element: $elementId');
+                    onElementSelected: (id, element) {
+                      // TODO('Replace with logging: Selected element: $id');
                     },
                   )
-                : const Center(child: Text('No view selected')),
+                : const flutter.Center(child: flutter.Text('No view selected')),
           ),
-          
+
           // Properties panel (takes about 1/4 of the space)
-          Expanded(
+          flutter.Expanded(
             flex: 1,
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  left: BorderSide(color: Colors.grey.shade700),
+            child: flutter.Container(
+              decoration: flutter.BoxDecoration(
+                border: flutter.Border(
+                  left: flutter.BorderSide(color: flutter.Colors.grey.shade700),
                 ),
               ),
-              child: const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              child: const flutter.Padding(
+                padding: flutter.EdgeInsets.all(8.0),
+                child: flutter.Column(
+                  crossAxisAlignment: flutter.CrossAxisAlignment.start,
                   children: [
-                    Text('Properties', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    SizedBox(height: 16),
-                    Text('Select an element in the diagram to view and edit its properties.'),
+                    flutter.Text('Properties',
+                        style: flutter.TextStyle(
+                            fontSize: 16, fontWeight: flutter.FontWeight.bold)),
+                    flutter.SizedBox(height: 16),
+                    flutter.Text(
+                        'Select an element in the diagram to view and edit its properties.'),
                   ],
                 ),
               ),
@@ -509,31 +580,31 @@ class _IntegratedDemoScreenState extends State<IntegratedDemoScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: BottomAppBar(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      bottomNavigationBar: flutter.BottomAppBar(
+        child: flutter.Padding(
+          padding: const flutter.EdgeInsets.symmetric(horizontal: 16.0),
+          child: flutter.Row(
+            mainAxisAlignment: flutter.MainAxisAlignment.spaceBetween,
             children: [
-              Text('Workspace: ${workspace.name}'),
-              Row(
+              flutter.Text('Workspace: ${workspace.name}'),
+              flutter.Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.zoom_in),
+                  flutter.IconButton(
+                    icon: const flutter.Icon(flutter.Icons.zoom_in),
                     onPressed: () {
                       // Zoom in functionality
                     },
                     tooltip: 'Zoom In',
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.zoom_out),
+                  flutter.IconButton(
+                    icon: const flutter.Icon(flutter.Icons.zoom_out),
                     onPressed: () {
                       // Zoom out functionality
                     },
                     tooltip: 'Zoom Out',
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.fit_screen),
+                  flutter.IconButton(
+                    icon: const flutter.Icon(flutter.Icons.fit_screen),
                     onPressed: () {
                       // Fit to screen functionality
                     },

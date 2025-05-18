@@ -53,7 +53,7 @@ class _DynamicViewExampleState extends State<DynamicViewExample> {
   /// Initialize an example workspace with a dynamic view
   void _initWorkspaceAndView() {
     // Create a simple example workspace for demonstration
-    final workspace = Workspace(name: "Workspace", model: Model(), views: Views(),); Workspace(
+    final workspace = Workspace(name: 'Workspace', model: Model(), views: Views(),); const Workspace(
       name: 'Dynamic View Example',
       description: 'Example workspace showing animation of dynamic views',
     );
@@ -121,7 +121,7 @@ class _DynamicViewExampleState extends State<DynamicViewExample> {
     );
     
     // Create a dynamic view
-    final dynamicView = DynamicView(
+    const dynamicView = DynamicView(
       key: 'dynamic',
       title: 'User Request Flow',
       description: 'Shows the flow of a user request through the system',

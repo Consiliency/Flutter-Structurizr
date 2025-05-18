@@ -61,7 +61,7 @@ class _TestPageState extends State<TestPage> with SingleTickerProviderStateMixin
   }
   
   void _initializeSampleModel() {
-    workspace = Workspace(
+    workspace = const Workspace(
       name: 'Sample Workspace',
       description: 'Sample workspace for testing',
     );
@@ -97,7 +97,7 @@ class _TestPageState extends State<TestPage> with SingleTickerProviderStateMixin
     final apiToDbRel = apiSystem.uses(database, 'Stores data');
     
     // Create a dynamic view
-    dynamicView = DynamicView(
+    dynamicView = const DynamicView(
       key: 'main',
       title: 'Main Flow',
       description: 'Main system flow',

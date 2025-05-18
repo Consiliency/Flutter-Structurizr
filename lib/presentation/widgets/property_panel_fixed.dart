@@ -1,10 +1,104 @@
 import 'package:flutter/material.dart' hide Container, Border, Element, View;
 import 'package:flutter_structurizr/domain/model/element.dart';
-import 'package:flutter_structurizr/domain/model/relationship.dart';
 import 'package:flutter_structurizr/domain/view/model_view.dart';
-import 'package:flutter_structurizr/domain/style/styles.dart' hide Border;
-import 'package:flutter_structurizr/domain/model/model.dart' hide Container, Element;
+import 'package:flutter_structurizr/domain/style/styles.dart'
+    as structurizr_style;
+import 'package:flutter_structurizr/domain/style/styles.dart'
+    show ElementStyle, RelationshipStyle, Styles;
 import 'package:flutter/material.dart' as flutter;
+import 'package:flutter_structurizr/util/color.dart';
+
+// Enum for border style selection in the UI
+enum BorderStyleOption { solid, dashed, dotted }
+
+// ===== Minimal custom painters for line and routing previews =====
+class LineStylePreviewPainter extends CustomPainter {
+  final dynamic lineStyle;
+  final Color color;
+  final double thickness;
+  LineStylePreviewPainter(
+      {required this.lineStyle, required this.color, required this.thickness});
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = thickness;
+    canvas.drawLine(
+        Offset(0, size.height / 2), Offset(size.width, size.height / 2), paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class DashedLinePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black
+      ..strokeWidth = 2;
+    double dashWidth = 5, dashSpace = 3, startX = 0;
+    while (startX < size.width) {
+      canvas.drawLine(Offset(startX, size.height / 2),
+          Offset(startX + dashWidth, size.height / 2), paint);
+      startX += dashWidth + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class DottedLinePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black
+      ..strokeWidth = 2;
+    double dotSpacing = 4, startX = 0;
+    while (startX < size.width) {
+      canvas.drawCircle(Offset(startX, size.height / 2), 1.5, paint);
+      startX += dotSpacing;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class OrthogonalRoutingPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black
+      ..strokeWidth = 2;
+    canvas.drawLine(Offset(0, size.height / 2),
+        Offset(size.width / 2, size.height / 2), paint);
+    canvas.drawLine(Offset(size.width / 2, size.height / 2),
+        Offset(size.width / 2, size.height), paint);
+    canvas.drawLine(Offset(size.width / 2, size.height),
+        Offset(size.width, size.height), paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class CurvedRoutingPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black
+      ..strokeWidth = 2;
+    final path = Path();
+    path.moveTo(0, size.height / 2);
+    path.quadraticBezierTo(size.width / 2, 0, size.width, size.height / 2);
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
 
 /// A panel for viewing and editing properties of Structurizr elements, relationships and views
 class PropertyPanel extends StatefulWidget {
@@ -13,21 +107,25 @@ class PropertyPanel extends StatefulWidget {
 
   /// The selected relationship (if any)
   final Relationship? selectedRelationship;
-  
+
   /// The current view (optional)
   final ModelView? currentView;
-  
+
   /// The styles for rendering (optional)
   final Styles? styles;
-  
+
   /// Called when an element property is changed
-  final void Function(Element element, String property, dynamic value)? onElementPropertyChanged;
-  
+  final void Function(Element element, String property, dynamic value)?
+      onElementPropertyChanged;
+
   /// Called when a relationship property is changed
-  final void Function(Relationship relationship, String property, dynamic value)? onRelationshipPropertyChanged;
-  
+  final void Function(
+          Relationship relationship, String property, dynamic value)?
+      onRelationshipPropertyChanged;
+
   /// Called when a view property is changed
-  final void Function(ModelView view, String property, dynamic value)? onViewPropertyChanged;
+  final void Function(ModelView view, String property, dynamic value)?
+      onViewPropertyChanged;
 
   /// Creates a new property panel widget
   const PropertyPanel({
@@ -45,17 +143,18 @@ class PropertyPanel extends StatefulWidget {
   State<PropertyPanel> createState() => _PropertyPanelState();
 }
 
-class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProviderStateMixin {
+class _PropertyPanelState extends State<PropertyPanel>
+    with SingleTickerProviderStateMixin {
   // Tab controller for properties, styles, and tags
   late TabController _tabController;
-  
+
   // Editing controllers
   final Map<String, TextEditingController> _textControllers = {};
-  
+
   // Track expanded sections
   bool _propertiesExpanded = true;
   bool _stylesExpanded = true;
-  bool _tagsExpanded = true;
+  final bool _tagsExpanded = true;
   bool _additionalInfoExpanded = false;
 
   @override
@@ -63,7 +162,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
   }
-  
+
   @override
   void dispose() {
     // Dispose all text controllers
@@ -73,11 +172,11 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
     _tabController.dispose();
     super.dispose();
   }
-  
+
   @override
   void didUpdateWidget(PropertyPanel oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
+
     // If selected items changed, dispose old controllers and create new ones
     if (widget.selectedElement != oldWidget.selectedElement ||
         widget.selectedRelationship != oldWidget.selectedRelationship) {
@@ -85,7 +184,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       _createControllers();
     }
   }
-  
+
   /// Creates text controllers for editing fields
   void _createControllers() {
     if (widget.selectedElement != null) {
@@ -96,48 +195,51 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       _createViewControllers(widget.currentView!);
     }
   }
-  
+
   /// Creates controllers for element properties
   void _createElementControllers(Element element) {
     _textControllers['name'] = TextEditingController(text: element.name);
-    _textControllers['description'] = TextEditingController(text: element.description ?? '');
-    
+    _textControllers['description'] =
+        TextEditingController(text: element.description ?? '');
+
     // Element-specific properties
     final elementProperties = element.properties;
-    if (elementProperties != null) {
-      for (final key in elementProperties.keys) {
-        final value = elementProperties[key];
-        if (value != null) {
-          _textControllers['property.$key'] = TextEditingController(text: value.toString());
-        }
+    for (final key in elementProperties.keys) {
+      final value = elementProperties[key];
+      if (value != null) {
+        _textControllers['property.$key'] =
+            TextEditingController(text: value.toString());
       }
     }
   }
-  
+
   /// Creates controllers for relationship properties
   void _createRelationshipControllers(Relationship relationship) {
-    _textControllers['description'] = TextEditingController(text: relationship.description ?? '');
-    _textControllers['technology'] = TextEditingController(text: relationship.technology ?? '');
-    
+    _textControllers['description'] =
+        TextEditingController(text: relationship.description ?? '');
+    _textControllers['technology'] =
+        TextEditingController(text: relationship.technology ?? '');
+
     // Relationship-specific properties
     final relationshipProperties = relationship.properties;
-    if (relationshipProperties != null) {
-      for (final key in relationshipProperties.keys) {
-        final value = relationshipProperties[key];
-        if (value != null) {
-          _textControllers['property.$key'] = TextEditingController(text: value.toString());
-        }
+    for (final key in relationshipProperties.keys) {
+      final value = relationshipProperties[key];
+      if (value != null) {
+        _textControllers['property.$key'] =
+            TextEditingController(text: value.toString());
       }
     }
   }
-  
+
   /// Creates controllers for view properties
   void _createViewControllers(ModelView view) {
     _textControllers['key'] = TextEditingController(text: view.key);
-    _textControllers['name'] = TextEditingController(text: view.name);
-    _textControllers['description'] = TextEditingController(text: view.description ?? '');
+    _textControllers['name'] =
+        TextEditingController(text: view.title ?? view.key);
+    _textControllers['description'] =
+        TextEditingController(text: view.description ?? '');
   }
-  
+
   /// Disposes all text controllers
   void _disposeControllers() {
     for (final controller in _textControllers.values) {
@@ -145,18 +247,18 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
     }
     _textControllers.clear();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     // Show empty panel if nothing is selected
     if (widget.selectedElement == null &&
         widget.selectedRelationship == null &&
         widget.currentView == null) {
       return _buildEmptyPanel(theme);
     }
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -171,7 +273,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
           labelColor: theme.primaryColor,
           unselectedLabelColor: theme.textTheme.bodyLarge?.color,
         ),
-        
+
         // Tab content
         Expanded(
           child: TabBarView(
@@ -186,7 +288,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       ],
     );
   }
-  
+
   /// Builds the panel when nothing is selected
   Widget _buildEmptyPanel(ThemeData theme) {
     return Center(
@@ -210,7 +312,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       ),
     );
   }
-  
+
   /// Builds the properties tab
   Widget _buildPropertiesTab(ThemeData theme) {
     if (widget.selectedElement != null) {
@@ -223,7 +325,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       return const SizedBox();
     }
   }
-  
+
   /// Builds the styles tab
   Widget _buildStylesTab(ThemeData theme) {
     if (widget.selectedElement != null) {
@@ -234,7 +336,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       return const SizedBox();
     }
   }
-  
+
   /// Builds the tags tab
   Widget _buildTagsTab(ThemeData theme) {
     if (widget.selectedElement != null) {
@@ -245,7 +347,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       return const SizedBox();
     }
   }
-  
+
   /// Builds properties for an element
   Widget _buildElementProperties(Element element, ThemeData theme) {
     return SingleChildScrollView(
@@ -259,7 +361,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
             style: theme.textTheme.titleMedium,
           ),
           const SizedBox(height: 16),
-          
+
           // Basic properties
           ExpansionTile(
             title: const Text('Basic Properties'),
@@ -287,14 +389,15 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                 label: 'Description',
                 controller: _textControllers['description'],
                 onChanged: (value) {
-                  widget.onElementPropertyChanged?.call(element, 'description', value);
+                  widget.onElementPropertyChanged
+                      ?.call(element, 'description', value);
                 },
               ),
             ],
           ),
-          
+
           // Custom properties
-          if (element.properties != null && element.properties!.isNotEmpty)
+          if (element.properties.isNotEmpty)
             ExpansionTile(
               title: const Text('Custom Properties'),
               initiallyExpanded: _additionalInfoExpanded,
@@ -303,7 +406,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                   _additionalInfoExpanded = expanded;
                 });
               },
-              children: element.properties!.entries.map((entry) {
+              children: element.properties.entries.map((entry) {
                 return _buildTextField(
                   label: entry.key,
                   controller: _textControllers['property.${entry.key}'],
@@ -321,9 +424,10 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       ),
     );
   }
-  
+
   /// Builds properties for a relationship
-  Widget _buildRelationshipProperties(Relationship relationship, ThemeData theme) {
+  Widget _buildRelationshipProperties(
+      Relationship relationship, ThemeData theme) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -335,7 +439,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
             style: theme.textTheme.titleMedium,
           ),
           const SizedBox(height: 16),
-          
+
           // Basic properties
           ExpansionTile(
             title: const Text('Basic Properties'),
@@ -368,21 +472,23 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                 label: 'Description',
                 controller: _textControllers['description'],
                 onChanged: (value) {
-                  widget.onRelationshipPropertyChanged?.call(relationship, 'description', value);
+                  widget.onRelationshipPropertyChanged
+                      ?.call(relationship, 'description', value);
                 },
               ),
               _buildTextField(
                 label: 'Technology',
                 controller: _textControllers['technology'],
                 onChanged: (value) {
-                  widget.onRelationshipPropertyChanged?.call(relationship, 'technology', value);
+                  widget.onRelationshipPropertyChanged
+                      ?.call(relationship, 'technology', value);
                 },
               ),
             ],
           ),
-          
+
           // Custom properties
-          if (relationship.properties != null && relationship.properties!.isNotEmpty)
+          if (relationship.properties.isNotEmpty)
             ExpansionTile(
               title: const Text('Custom Properties'),
               initiallyExpanded: _additionalInfoExpanded,
@@ -391,7 +497,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                   _additionalInfoExpanded = expanded;
                 });
               },
-              children: relationship.properties!.entries.map((entry) {
+              children: relationship.properties.entries.map((entry) {
                 return _buildTextField(
                   label: entry.key,
                   controller: _textControllers['property.${entry.key}'],
@@ -409,7 +515,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       ),
     );
   }
-  
+
   /// Builds properties for a view
   Widget _buildViewProperties(ModelView view, ThemeData theme) {
     return SingleChildScrollView(
@@ -423,7 +529,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
             style: theme.textTheme.titleMedium,
           ),
           const SizedBox(height: 16),
-          
+
           // Basic properties
           ExpansionTile(
             title: const Text('Basic Properties'),
@@ -451,7 +557,8 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                 label: 'Description',
                 controller: _textControllers['description'],
                 onChanged: (value) {
-                  widget.onViewPropertyChanged?.call(view, 'description', value);
+                  widget.onViewPropertyChanged
+                      ?.call(view, 'description', value);
                 },
               ),
             ],
@@ -460,7 +567,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       ),
     );
   }
-  
+
   /// Builds style editor for an element
   Widget _buildElementStyles(Element element, ThemeData theme) {
     if (widget.styles == null) {
@@ -468,7 +575,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
         child: Text('No styles available'),
       );
     }
-    
+
     // Get element style
     final elementStyle = widget.styles!.findElementStyle(element);
     if (elementStyle == null) {
@@ -484,10 +591,14 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
             ElevatedButton(
               onPressed: () {
                 // Create a new style for this element
-                final newStyle = ElementStyle(tag: element.tags.isNotEmpty ? element.tags.first : 'default');
+                final newStyle = structurizr_style.ElementStyle(
+                    tag: element.tags.isNotEmpty
+                        ? element.tags.first
+                        : 'default');
                 // Call the style creation function (implementation needed)
                 if (widget.onElementPropertyChanged != null) {
-                  widget.onElementPropertyChanged?.call(element, 'style', newStyle);
+                  widget.onElementPropertyChanged
+                      ?.call(element, 'style', newStyle);
                 }
               },
               child: const Text('Create Style'),
@@ -496,7 +607,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
         ),
       );
     }
-    
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -518,31 +629,32 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                 height: 40,
                 child: DecoratedBox(
                   decoration: flutter.BoxDecoration(
-                    color: elementStyle.background,
+                    color: parseColor(elementStyle.background) ?? Colors.white,
                     border: flutter.BoxBorder.lerp(
                       flutter.Border.all(
-                        color: elementStyle.stroke ?? Colors.grey,
+                        color: parseColor(elementStyle.stroke) ?? Colors.grey,
                         width: (elementStyle.strokeWidth ?? 1).toDouble(),
                       ),
                       flutter.Border.all(
-                        color: elementStyle.stroke ?? Colors.grey,
+                        color: parseColor(elementStyle.stroke) ?? Colors.grey,
                         width: (elementStyle.strokeWidth ?? 1).toDouble(),
                       ),
                       1.0,
                     ),
-                    borderRadius: elementStyle.shape == Shape.roundedBox 
-                      ? flutter.BorderRadius.circular(8) 
-                      : null,
-                    shape: elementStyle.shape == Shape.circle 
-                      ? flutter.BoxShape.circle 
-                      : flutter.BoxShape.rectangle,
+                    borderRadius:
+                        elementStyle.shape == structurizr_style.Shape.roundedBox
+                            ? flutter.BorderRadius.circular(8)
+                            : null,
+                    shape: elementStyle.shape == structurizr_style.Shape.circle
+                        ? flutter.BoxShape.circle
+                        : flutter.BoxShape.rectangle,
                   ),
                   child: Center(
                     child: Text(
                       'Aa',
                       style: TextStyle(
                         fontSize: (elementStyle.fontSize ?? 12).toDouble(),
-                        color: elementStyle.color ?? Colors.black,
+                        color: parseColor(elementStyle.color) ?? Colors.black,
                       ),
                     ),
                   ),
@@ -551,7 +663,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // Colors section
           ExpansionTile(
             title: const Text('Colors'),
@@ -565,7 +677,8 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
               // Background color picker
               ListTile(
                 title: const Text('Background Color'),
-                subtitle: Text(elementStyle.background?.toString() ?? 'Default'),
+                subtitle:
+                    Text(elementStyle.background?.toString() ?? 'Default'),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -575,7 +688,8 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                         height: 24,
                         child: DecoratedBox(
                           decoration: flutter.BoxDecoration(
-                            color: elementStyle.background,
+                            color: parseColor(elementStyle.background) ??
+                                Colors.white,
                             border: flutter.BoxBorder.lerp(
                               flutter.Border.all(color: Colors.grey),
                               flutter.Border.all(color: Colors.grey),
@@ -593,19 +707,20 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                   _showColorPicker(
                     context,
                     'Background Color',
-                    elementStyle.background ?? Colors.white,
+                    parseColor(elementStyle.background) ?? Colors.white,
                     (Color newColor) {
                       if (widget.onElementPropertyChanged != null) {
                         final updatedStyle = elementStyle.copyWith(
-                          background: newColor,
+                          background: newColor.toString(),
                         );
-                        widget.onElementPropertyChanged?.call(element, 'style', updatedStyle);
+                        widget.onElementPropertyChanged
+                            ?.call(element, 'style', updatedStyle);
                       }
                     },
                   );
                 },
               ),
-              
+
               // Text color picker
               ListTile(
                 title: const Text('Text Color'),
@@ -619,7 +734,8 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                         height: 24,
                         child: DecoratedBox(
                           decoration: flutter.BoxDecoration(
-                            color: elementStyle.color,
+                            color:
+                                parseColor(elementStyle.color) ?? Colors.black,
                             border: flutter.BoxBorder.lerp(
                               flutter.Border.all(color: Colors.grey),
                               flutter.Border.all(color: Colors.grey),
@@ -637,19 +753,20 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                   _showColorPicker(
                     context,
                     'Text Color',
-                    elementStyle.color ?? Colors.black,
+                    parseColor(elementStyle.color) ?? Colors.black,
                     (Color newColor) {
                       if (widget.onElementPropertyChanged != null) {
                         final updatedStyle = elementStyle.copyWith(
-                          color: newColor,
+                          color: newColor.toString(),
                         );
-                        widget.onElementPropertyChanged?.call(element, 'style', updatedStyle);
+                        widget.onElementPropertyChanged
+                            ?.call(element, 'style', updatedStyle);
                       }
                     },
                   );
                 },
               ),
-              
+
               // Border color picker
               ListTile(
                 title: const Text('Border Color'),
@@ -663,7 +780,8 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                         height: 24,
                         child: DecoratedBox(
                           decoration: flutter.BoxDecoration(
-                            color: elementStyle.stroke,
+                            color:
+                                parseColor(elementStyle.stroke) ?? Colors.grey,
                             border: flutter.BoxBorder.lerp(
                               flutter.Border.all(color: Colors.grey),
                               flutter.Border.all(color: Colors.grey),
@@ -679,21 +797,22 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                 ),
                 onTap: () {
                   _showColorPicker(
-                    context, 
+                    context,
                     'Border Color',
-                    elementStyle.stroke ?? Colors.grey,
+                    parseColor(elementStyle.stroke) ?? Colors.grey,
                     (Color newColor) {
                       if (widget.onElementPropertyChanged != null) {
                         final updatedStyle = elementStyle.copyWith(
-                          stroke: newColor,
+                          stroke: newColor.toString(),
                         );
-                        widget.onElementPropertyChanged?.call(element, 'style', updatedStyle);
+                        widget.onElementPropertyChanged
+                            ?.call(element, 'style', updatedStyle);
                       }
                     },
                   );
                 },
               ),
-              
+
               // Opacity slider
               ListTile(
                 title: const Text('Opacity'),
@@ -708,14 +827,15 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                       final updatedStyle = elementStyle.copyWith(
                         opacity: value.round(),
                       );
-                      widget.onElementPropertyChanged?.call(element, 'style', updatedStyle);
+                      widget.onElementPropertyChanged
+                          ?.call(element, 'style', updatedStyle);
                     }
                   },
                 ),
               ),
             ],
           ),
-          
+
           // Shape and Size section
           ExpansionTile(
             title: const Text('Shape & Size'),
@@ -729,43 +849,48 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                   _showShapeSelector(
                     context,
                     elementStyle.shape,
-                    (Shape newShape) {
+                    (structurizr_style.Shape newShape) {
                       if (widget.onElementPropertyChanged != null) {
                         final updatedStyle = elementStyle.copyWith(
                           shape: newShape,
                         );
-                        widget.onElementPropertyChanged?.call(element, 'style', updatedStyle);
+                        widget.onElementPropertyChanged
+                            ?.call(element, 'style', updatedStyle);
                       }
                     },
                   );
                 },
               ),
-              
+
               // Border style
               ListTile(
                 title: const Text('Border Style'),
-                subtitle: Text(_getBorderStyleName(elementStyle.border)),
-                trailing: _getBorderStyleIcon(elementStyle.border),
+                subtitle: Text(_getBorderStyleName(
+                    mapInternalBorderToOption(elementStyle.border))),
+                trailing: _getBorderStyleIcon(
+                    mapInternalBorderToOption(elementStyle.border)),
                 onTap: () {
                   _showBorderStyleSelector(
                     context,
-                    elementStyle.border,
-                    (flutter.Border newBorder) {
+                    mapInternalBorderToOption(elementStyle.border),
+                    (BorderStyleOption newBorder) {
                       if (widget.onElementPropertyChanged != null) {
                         final updatedStyle = elementStyle.copyWith(
-                          border: newBorder,
+                          border: mapOptionToInternalBorder(newBorder),
                         );
-                        widget.onElementPropertyChanged?.call(element, 'style', updatedStyle);
+                        widget.onElementPropertyChanged
+                            ?.call(element, 'style', updatedStyle);
                       }
                     },
                   );
                 },
               ),
-              
+
               // Width and Height
               ListTile(
                 title: const Text('Size'),
-                subtitle: Text('${elementStyle.width ?? 'Auto'} \u00d7 ${elementStyle.height ?? 'Auto'}'),
+                subtitle: Text(
+                    '${elementStyle.width ?? 'Auto'} \u00d7 ${elementStyle.height ?? 'Auto'}'),
                 trailing: const Icon(Icons.aspect_ratio),
                 onTap: () {
                   _showSizeDialog(
@@ -778,13 +903,14 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                           width: newWidth,
                           height: newHeight,
                         );
-                        widget.onElementPropertyChanged?.call(element, 'style', updatedStyle);
+                        widget.onElementPropertyChanged
+                            ?.call(element, 'style', updatedStyle);
                       }
                     },
                   );
                 },
               ),
-              
+
               // Border width
               ListTile(
                 title: const Text('Border Width'),
@@ -799,7 +925,8 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                         final updatedStyle = elementStyle.copyWith(
                           strokeWidth: newWidth,
                         );
-                        widget.onElementPropertyChanged?.call(element, 'style', updatedStyle);
+                        widget.onElementPropertyChanged
+                            ?.call(element, 'style', updatedStyle);
                       }
                     },
                   );
@@ -807,7 +934,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
               ),
             ],
           ),
-          
+
           // Text and Icon section
           ExpansionTile(
             title: const Text('Text & Icons'),
@@ -826,13 +953,14 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                         final updatedStyle = elementStyle.copyWith(
                           fontSize: newSize,
                         );
-                        widget.onElementPropertyChanged?.call(element, 'style', updatedStyle);
+                        widget.onElementPropertyChanged
+                            ?.call(element, 'style', updatedStyle);
                       }
                     },
                   );
                 },
               ),
-              
+
               // Icon
               ListTile(
                 title: const Text('Icon'),
@@ -847,28 +975,8 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                         final updatedStyle = elementStyle.copyWith(
                           icon: newIcon,
                         );
-                        widget.onElementPropertyChanged?.call(element, 'style', updatedStyle);
-                      }
-                    },
-                  );
-                },
-              ),
-              
-              // Label position
-              ListTile(
-                title: const Text('Label Position'),
-                subtitle: Text(elementStyle.labelPosition?.toString().split('.').last ?? 'Default'),
-                trailing: const Icon(Icons.vertical_align_center),
-                onTap: () {
-                  _showLabelPositionSelector(
-                    context,
-                    elementStyle.labelPosition,
-                    (flutter.LabelPosition? newPosition) {
-                      if (widget.onElementPropertyChanged != null) {
-                        final updatedStyle = elementStyle.copyWith(
-                          labelPosition: newPosition,
-                        );
-                        widget.onElementPropertyChanged?.call(element, 'style', updatedStyle);
+                        widget.onElementPropertyChanged
+                            ?.call(element, 'style', updatedStyle);
                       }
                     },
                   );
@@ -876,7 +984,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
               ),
             ],
           ),
-          
+
           // Metadata section
           ExpansionTile(
             title: const Text('Metadata'),
@@ -890,11 +998,12 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                     final updatedStyle = elementStyle.copyWith(
                       metadata: value,
                     );
-                    widget.onElementPropertyChanged?.call(element, 'style', updatedStyle);
+                    widget.onElementPropertyChanged
+                        ?.call(element, 'style', updatedStyle);
                   }
                 },
               ),
-              
+
               // Show description
               SwitchListTile(
                 title: const Text('Show Description'),
@@ -904,7 +1013,8 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                     final updatedStyle = elementStyle.copyWith(
                       description: value,
                     );
-                    widget.onElementPropertyChanged?.call(element, 'style', updatedStyle);
+                    widget.onElementPropertyChanged
+                        ?.call(element, 'style', updatedStyle);
                   }
                 },
               ),
@@ -914,7 +1024,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       ),
     );
   }
-  
+
   /// Builds style editor for a relationship
   Widget _buildRelationshipStyles(Relationship relationship, ThemeData theme) {
     if (widget.styles == null) {
@@ -922,9 +1032,10 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
         child: Text('No styles available'),
       );
     }
-    
+
     // Get relationship style
-    final relationshipStyle = widget.styles!.findRelationshipStyle(relationship);
+    final relationshipStyle =
+        widget.styles!.findRelationshipStyle(relationship);
     if (relationshipStyle == null) {
       return Center(
         child: Column(
@@ -938,10 +1049,14 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
             ElevatedButton(
               onPressed: () {
                 // Create a new style for this relationship
-                final newStyle = RelationshipStyle(tag: relationship.tags.isNotEmpty ? relationship.tags.first : 'default');
+                final newStyle = structurizr_style.RelationshipStyle(
+                    tag: relationship.tags.isNotEmpty
+                        ? relationship.tags.first
+                        : 'default');
                 // Call the style creation function
                 if (widget.onRelationshipPropertyChanged != null) {
-                  widget.onRelationshipPropertyChanged?.call(relationship, 'style', newStyle);
+                  widget.onRelationshipPropertyChanged
+                      ?.call(relationship, 'style', newStyle);
                 }
               },
               child: const Text('Create Style'),
@@ -950,7 +1065,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
         ),
       );
     }
-    
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -973,7 +1088,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                 child: CustomPaint(
                   painter: LineStylePreviewPainter(
                     lineStyle: relationshipStyle.style,
-                    color: relationshipStyle.color ?? Colors.black,
+                    color: parseColor(relationshipStyle.color) ?? Colors.black,
                     thickness: relationshipStyle.thickness.toDouble(),
                   ),
                 ),
@@ -981,7 +1096,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // Line Appearance section
           ExpansionTile(
             title: const Text('Line Appearance'),
@@ -995,7 +1110,8 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
               // Color picker
               ListTile(
                 title: const Text('Line Color'),
-                subtitle: Text(relationshipStyle.color?.toString() ?? 'Default'),
+                subtitle:
+                    Text(relationshipStyle.color?.toString() ?? 'Default'),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -1005,7 +1121,8 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                         height: 24,
                         child: DecoratedBox(
                           decoration: flutter.BoxDecoration(
-                            color: relationshipStyle.color,
+                            color: parseColor(relationshipStyle.color) ??
+                                Colors.black,
                             border: flutter.BoxBorder.lerp(
                               flutter.Border.all(color: Colors.grey),
                               flutter.Border.all(color: Colors.grey),
@@ -1023,19 +1140,20 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                   _showColorPicker(
                     context,
                     'Line Color',
-                    relationshipStyle.color ?? Colors.black,
+                    parseColor(relationshipStyle.color) ?? Colors.black,
                     (Color newColor) {
                       if (widget.onRelationshipPropertyChanged != null) {
                         final updatedStyle = relationshipStyle.copyWith(
-                          color: newColor,
+                          color: newColor.toString(),
                         );
-                        widget.onRelationshipPropertyChanged?.call(relationship, 'style', updatedStyle);
+                        widget.onRelationshipPropertyChanged
+                            ?.call(relationship, 'style', updatedStyle);
                       }
                     },
                   );
                 },
               ),
-              
+
               // Line style
               ListTile(
                 title: const Text('Line Style'),
@@ -1045,18 +1163,19 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                   _showLineStyleSelector(
                     context,
                     relationshipStyle.style,
-                    (LineStyle newStyle) {
+                    (structurizr_style.LineStyle newStyle) {
                       if (widget.onRelationshipPropertyChanged != null) {
                         final updatedStyle = relationshipStyle.copyWith(
                           style: newStyle,
                         );
-                        widget.onRelationshipPropertyChanged?.call(relationship, 'style', updatedStyle);
+                        widget.onRelationshipPropertyChanged
+                            ?.call(relationship, 'style', updatedStyle);
                       }
                     },
                   );
                 },
               ),
-              
+
               // Thickness
               ListTile(
                 title: const Text('Line Thickness'),
@@ -1071,13 +1190,14 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                         final updatedStyle = relationshipStyle.copyWith(
                           thickness: newThickness,
                         );
-                        widget.onRelationshipPropertyChanged?.call(relationship, 'style', updatedStyle);
+                        widget.onRelationshipPropertyChanged
+                            ?.call(relationship, 'style', updatedStyle);
                       }
                     },
                   );
                 },
               ),
-              
+
               // Opacity slider
               ListTile(
                 title: const Text('Opacity'),
@@ -1092,14 +1212,15 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                       final updatedStyle = relationshipStyle.copyWith(
                         opacity: value.round(),
                       );
-                      widget.onRelationshipPropertyChanged?.call(relationship, 'style', updatedStyle);
+                      widget.onRelationshipPropertyChanged
+                          ?.call(relationship, 'style', updatedStyle);
                     }
                   },
                 ),
               ),
             ],
           ),
-          
+
           // Routing section
           ExpansionTile(
             title: const Text('Routing'),
@@ -1113,12 +1234,13 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                   _showRoutingSelector(
                     context,
                     relationshipStyle.routing,
-                    (StyleRouting newRouting) {
+                    (structurizr_style.StyleRouting newRouting) {
                       if (widget.onRelationshipPropertyChanged != null) {
                         final updatedStyle = relationshipStyle.copyWith(
                           routing: newRouting,
                         );
-                        widget.onRelationshipPropertyChanged?.call(relationship, 'style', updatedStyle);
+                        widget.onRelationshipPropertyChanged
+                            ?.call(relationship, 'style', updatedStyle);
                       }
                     },
                   );
@@ -1126,7 +1248,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
               ),
             ],
           ),
-          
+
           // Text and Label section
           ExpansionTile(
             title: const Text('Label'),
@@ -1145,13 +1267,14 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                         final updatedStyle = relationshipStyle.copyWith(
                           fontSize: newSize,
                         );
-                        widget.onRelationshipPropertyChanged?.call(relationship, 'style', updatedStyle);
+                        widget.onRelationshipPropertyChanged
+                            ?.call(relationship, 'style', updatedStyle);
                       }
                     },
                   );
                 },
               ),
-              
+
               // Label width
               ListTile(
                 title: const Text('Label Width'),
@@ -1166,13 +1289,14 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                         final updatedStyle = relationshipStyle.copyWith(
                           width: newWidth,
                         );
-                        widget.onRelationshipPropertyChanged?.call(relationship, 'style', updatedStyle);
+                        widget.onRelationshipPropertyChanged
+                            ?.call(relationship, 'style', updatedStyle);
                       }
                     },
                   );
                 },
               ),
-              
+
               // Position slider
               ListTile(
                 title: const Text('Label Position'),
@@ -1187,7 +1311,8 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                       final updatedStyle = relationshipStyle.copyWith(
                         position: value.round(),
                       );
-                      widget.onRelationshipPropertyChanged?.call(relationship, 'style', updatedStyle);
+                      widget.onRelationshipPropertyChanged
+                          ?.call(relationship, 'style', updatedStyle);
                     }
                   },
                 ),
@@ -1198,11 +1323,11 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       ),
     );
   }
-  
+
   /// Builds tag editor for an element
   Widget _buildElementTags(Element element, ThemeData theme) {
     final tags = element.tags ?? [];
-    
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -1221,9 +1346,11 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                 onPressed: () {
                   // Show dialog to add a new tag
                   _showAddTagDialog(context, (newTag) {
-                    if (widget.onElementPropertyChanged != null && newTag.isNotEmpty) {
+                    if (widget.onElementPropertyChanged != null &&
+                        newTag.isNotEmpty) {
                       final updatedTags = List<String>.from(tags)..add(newTag);
-                      widget.onElementPropertyChanged?.call(element, 'tags', updatedTags);
+                      widget.onElementPropertyChanged
+                          ?.call(element, 'tags', updatedTags);
                     }
                   });
                 },
@@ -1232,7 +1359,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // Tags list
           Expanded(
             child: tags.isEmpty
@@ -1254,8 +1381,10 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                         onDeleted: () {
                           // Remove tag
                           if (widget.onElementPropertyChanged != null) {
-                            final updatedTags = List<String>.from(tags)..remove(tag);
-                            widget.onElementPropertyChanged?.call(element, 'tags', updatedTags);
+                            final updatedTags = List<String>.from(tags)
+                              ..remove(tag);
+                            widget.onElementPropertyChanged
+                                ?.call(element, 'tags', updatedTags);
                           }
                         },
                       );
@@ -1266,11 +1395,11 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       ),
     );
   }
-  
+
   /// Builds tag editor for a relationship
   Widget _buildRelationshipTags(Relationship relationship, ThemeData theme) {
     final tags = relationship.tags ?? [];
-    
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -1289,9 +1418,11 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                 onPressed: () {
                   // Show dialog to add a new tag
                   _showAddTagDialog(context, (newTag) {
-                    if (widget.onRelationshipPropertyChanged != null && newTag.isNotEmpty) {
+                    if (widget.onRelationshipPropertyChanged != null &&
+                        newTag.isNotEmpty) {
                       final updatedTags = List<String>.from(tags)..add(newTag);
-                      widget.onRelationshipPropertyChanged?.call(relationship, 'tags', updatedTags);
+                      widget.onRelationshipPropertyChanged
+                          ?.call(relationship, 'tags', updatedTags);
                     }
                   });
                 },
@@ -1300,7 +1431,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // Tags list
           Expanded(
             child: tags.isEmpty
@@ -1322,8 +1453,10 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                         onDeleted: () {
                           // Remove tag
                           if (widget.onRelationshipPropertyChanged != null) {
-                            final updatedTags = List<String>.from(tags)..remove(tag);
-                            widget.onRelationshipPropertyChanged?.call(relationship, 'tags', updatedTags);
+                            final updatedTags = List<String>.from(tags)
+                              ..remove(tag);
+                            widget.onRelationshipPropertyChanged
+                                ?.call(relationship, 'tags', updatedTags);
                           }
                         },
                       );
@@ -1334,7 +1467,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       ),
     );
   }
-  
+
   /// Builds a text field for editing properties
   Widget _buildTextField({
     required String label,
@@ -1352,14 +1485,15 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
           decoration: InputDecoration(
             labelText: label,
             border: const OutlineInputBorder(),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           ),
           readOnly: true,
           enabled: false,
         ),
       );
     }
-    
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: TextField(
@@ -1367,18 +1501,20 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
         decoration: InputDecoration(
           labelText: label,
           border: const OutlineInputBorder(),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         ),
         readOnly: readOnly,
         onChanged: onChanged,
       ),
     );
   }
-  
+
   /// Shows a dialog to add a new tag
-  void _showAddTagDialog(BuildContext context, ValueChanged<String> onTagAdded) {
+  void _showAddTagDialog(
+      BuildContext context, ValueChanged<String> onTagAdded) {
     final textController = TextEditingController();
-    
+
     showDialog(
       context: context,
       builder: (context) {
@@ -1416,9 +1552,10 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       },
     );
   }
-  
+
   /// Shows a color picker dialog
-  void _showColorPicker(BuildContext context, String title, Color initialColor, ValueChanged<Color> onColorSelected) {
+  void _showColorPicker(BuildContext context, String title, Color initialColor,
+      ValueChanged<Color> onColorSelected) {
     // A list of material colors to choose from
     final List<Color> materialColors = [
       Colors.red,
@@ -1443,10 +1580,10 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       Colors.black,
       Colors.white,
     ];
-    
+
     // Selected color
     Color selectedColor = initialColor;
-    
+
     // Show the color picker dialog
     showDialog(
       context: context,
@@ -1476,7 +1613,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Color grid
                     Wrap(
                       spacing: 8,
@@ -1496,15 +1633,15 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                                 color: color,
                                 border: flutter.BoxBorder.lerp(
                                   flutter.Border.all(
-                                    color: selectedColor == color 
-                                      ? Colors.blue 
-                                      : Colors.grey,
+                                    color: selectedColor == color
+                                        ? Colors.blue
+                                        : Colors.grey,
                                     width: selectedColor == color ? 2 : 1,
                                   ),
                                   flutter.Border.all(
-                                    color: selectedColor == color 
-                                      ? Colors.blue 
-                                      : Colors.grey,
+                                    color: selectedColor == color
+                                        ? Colors.blue
+                                        : Colors.grey,
                                     width: selectedColor == color ? 2 : 1,
                                   ),
                                   1.0,
@@ -1516,17 +1653,18 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
                         );
                       }).toList(),
                     ),
-                    
+
                     // Transparency slider
                     const SizedBox(height: 16),
                     const Text('Transparency'),
                     Slider(
-                      value: 1.0 - (selectedColor.alpha / 255),
+                      value: 1.0 - (selectedColor.a / 255),
                       min: 0.0,
                       max: 1.0,
                       onChanged: (value) {
                         setState(() {
-                          selectedColor = selectedColor.withAlpha(((1.0 - value) * 255).round());
+                          selectedColor =
+                              selectedColor.withValues(alpha: ((1.0 - value)));
                         });
                       },
                     ),
@@ -1554,9 +1692,12 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       },
     );
   }
-  
+
   /// Shows a shape selector dialog
-  void _showShapeSelector(BuildContext context, Shape currentShape, ValueChanged<Shape> onShapeSelected) {
+  void _showShapeSelector(
+      BuildContext context,
+      structurizr_style.Shape currentShape,
+      ValueChanged<structurizr_style.Shape> onShapeSelected) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1568,14 +1709,14 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
             crossAxisCount: 3,
             crossAxisSpacing: 8,
             mainAxisSpacing: 8,
-            children: Shape.values.map((shape) {
+            children: structurizr_style.Shape.values.map((shape) {
               final isSelected = shape == currentShape;
               return GestureDetector(
                 onTap: () {
                   Navigator.of(context).pop();
                   onShapeSelected(shape);
                 },
-                child: Container(
+                child: flutter.Container(
                   decoration: flutter.BoxDecoration(
                     border: flutter.BoxBorder.lerp(
                       flutter.Border.all(
@@ -1618,16 +1759,19 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       ),
     );
   }
-  
+
   /// Shows a line style selector dialog
-  void _showLineStyleSelector(BuildContext context, LineStyle currentStyle, ValueChanged<LineStyle> onStyleSelected) {
+  void _showLineStyleSelector(
+      BuildContext context,
+      structurizr_style.LineStyle currentStyle,
+      ValueChanged<structurizr_style.LineStyle> onStyleSelected) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Select Line Style'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: LineStyle.values.map((style) {
+          children: structurizr_style.LineStyle.values.map((style) {
             final isSelected = style == currentStyle;
             return ListTile(
               leading: _getLineStyleIcon(style),
@@ -1651,16 +1795,19 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       ),
     );
   }
-  
+
   /// Shows a border style selector dialog
-  void _showBorderStyleSelector(BuildContext context, flutter.Border currentStyle, ValueChanged<flutter.Border> onStyleSelected) {
+  void _showBorderStyleSelector(
+      BuildContext context,
+      BorderStyleOption currentStyle,
+      ValueChanged<BorderStyleOption> onStyleSelected) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Select Border Style'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: flutter.Border.values.map((style) {
+          children: BorderStyleOption.values.map((style) {
             final isSelected = style == currentStyle;
             return ListTile(
               leading: _getBorderStyleIcon(style),
@@ -1684,16 +1831,19 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       ),
     );
   }
-  
+
   /// Shows a routing selector dialog
-  void _showRoutingSelector(BuildContext context, StyleRouting currentRouting, ValueChanged<StyleRouting> onRoutingSelected) {
+  void _showRoutingSelector(
+      BuildContext context,
+      structurizr_style.StyleRouting currentRouting,
+      ValueChanged<structurizr_style.StyleRouting> onRoutingSelected) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Select Routing'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: StyleRouting.values.map((routing) {
+          children: structurizr_style.StyleRouting.values.map((routing) {
             final isSelected = routing == currentRouting;
             return ListTile(
               leading: _getRoutingIcon(routing),
@@ -1717,11 +1867,13 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       ),
     );
   }
-  
+
   /// Shows a font size dialog
-  void _showFontSizeDialog(BuildContext context, int? currentSize, ValueChanged<int?> onSizeSelected) {
-    final textController = TextEditingController(text: currentSize?.toString() ?? '');
-    
+  void _showFontSizeDialog(BuildContext context, int? currentSize,
+      ValueChanged<int?> onSizeSelected) {
+    final textController =
+        TextEditingController(text: currentSize?.toString() ?? '');
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1762,12 +1914,15 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       ),
     );
   }
-  
+
   /// Shows a size editing dialog
-  void _showSizeDialog(BuildContext context, int? currentWidth, int? currentHeight, Function(int?, int?) onSizeSelected) {
-    final widthController = TextEditingController(text: currentWidth?.toString() ?? '');
-    final heightController = TextEditingController(text: currentHeight?.toString() ?? '');
-    
+  void _showSizeDialog(BuildContext context, int? currentWidth,
+      int? currentHeight, Function(int?, int?) onSizeSelected) {
+    final widthController =
+        TextEditingController(text: currentWidth?.toString() ?? '');
+    final heightController =
+        TextEditingController(text: currentHeight?.toString() ?? '');
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1807,13 +1962,14 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
-              
+
               final widthText = widthController.text.trim();
               final heightText = heightController.text.trim();
-              
+
               final width = widthText.isEmpty ? null : int.tryParse(widthText);
-              final height = heightText.isEmpty ? null : int.tryParse(heightText);
-              
+              final height =
+                  heightText.isEmpty ? null : int.tryParse(heightText);
+
               onSizeSelected(width, height);
             },
             child: const Text('Apply'),
@@ -1822,11 +1978,12 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       ),
     );
   }
-  
+
   /// Shows a stroke width dialog
-  void _showStrokeWidthDialog(BuildContext context, int currentWidth, ValueChanged<int> onWidthSelected) {
+  void _showStrokeWidthDialog(BuildContext context, int currentWidth,
+      ValueChanged<int> onWidthSelected) {
     int width = currentWidth;
-    
+
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -1870,11 +2027,12 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       ),
     );
   }
-  
+
   /// Shows a thickness dialog
-  void _showThicknessDialog(BuildContext context, int currentThickness, ValueChanged<int> onThicknessSelected) {
+  void _showThicknessDialog(BuildContext context, int currentThickness,
+      ValueChanged<int> onThicknessSelected) {
     int thickness = currentThickness;
-    
+
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -1918,11 +2076,13 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       ),
     );
   }
-  
+
   /// Shows a label width dialog
-  void _showLabelWidthDialog(BuildContext context, int? currentWidth, ValueChanged<int?> onWidthSelected) {
-    final textController = TextEditingController(text: currentWidth?.toString() ?? '');
-    
+  void _showLabelWidthDialog(BuildContext context, int? currentWidth,
+      ValueChanged<int?> onWidthSelected) {
+    final textController =
+        TextEditingController(text: currentWidth?.toString() ?? '');
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1963,53 +2123,12 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       ),
     );
   }
-  
-  /// Shows a label position selector dialog
-  void _showLabelPositionSelector(BuildContext context, flutter.LabelPosition? currentPosition, ValueChanged<flutter.LabelPosition?> onPositionSelected) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Select Label Position'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: const Text('Default'),
-              selected: currentPosition == null,
-              onTap: () {
-                Navigator.of(context).pop();
-                onPositionSelected(null);
-              },
-            ),
-            ...flutter.LabelPosition.values.map((position) {
-              final isSelected = position == currentPosition;
-              return ListTile(
-                title: Text(_getLabelPositionName(position)),
-                selected: isSelected,
-                onTap: () {
-                  Navigator.of(context).pop();
-                  onPositionSelected(position);
-                },
-              );
-            }).toList(),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
-    );
-  }
-  
+
   /// Shows a dialog for setting an icon
-  void _showIconDialog(BuildContext context, String? currentIcon, ValueChanged<String?> onIconSelected) {
+  void _showIconDialog(BuildContext context, String? currentIcon,
+      ValueChanged<String?> onIconSelected) {
     final textController = TextEditingController(text: currentIcon ?? '');
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -2063,20 +2182,20 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
       ),
     );
   }
-  
+
   // ===== Helper methods for UI elements =====
-  
+
   /// Gets a shape icon based on the shape type
-  Widget _getShapeIcon(Shape shape) {
+  Widget _getShapeIcon(structurizr_style.Shape shape) {
     switch (shape) {
-      case Shape.box:
-        return Container(
+      case structurizr_style.Shape.box:
+        return flutter.Container(
           width: 24,
           height: 24,
           color: Colors.grey.shade300,
         );
-      case Shape.roundedBox:
-        return Container(
+      case structurizr_style.Shape.roundedBox:
+        return flutter.Container(
           width: 24,
           height: 24,
           decoration: flutter.BoxDecoration(
@@ -2084,8 +2203,8 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
             borderRadius: flutter.BorderRadius.circular(6),
           ),
         );
-      case Shape.circle:
-        return Container(
+      case structurizr_style.Shape.circle:
+        return flutter.Container(
           width: 24,
           height: 24,
           decoration: flutter.BoxDecoration(
@@ -2093,8 +2212,8 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
             shape: flutter.BoxShape.circle,
           ),
         );
-      case Shape.ellipse:
-        return Container(
+      case structurizr_style.Shape.ellipse:
+        return flutter.Container(
           width: 24,
           height: 18,
           decoration: flutter.BoxDecoration(
@@ -2102,64 +2221,64 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
             borderRadius: flutter.BorderRadius.circular(12),
           ),
         );
-      case Shape.hexagon:
+      case structurizr_style.Shape.hexagon:
         return const Icon(Icons.hexagon, size: 24);
-      case Shape.cylinder:
+      case structurizr_style.Shape.cylinder:
         return const Icon(Icons.panorama_vertical, size: 24);
-      case Shape.pipe:
+      case structurizr_style.Shape.pipe:
         return const Icon(Icons.priority_high, size: 24);
-      case Shape.person:
+      case structurizr_style.Shape.person:
         return const Icon(Icons.person, size: 24);
-      case Shape.robot:
+      case structurizr_style.Shape.robot:
         return const Icon(Icons.smart_toy, size: 24);
-      case Shape.folder:
+      case structurizr_style.Shape.folder:
         return const Icon(Icons.folder, size: 24);
-      case Shape.webBrowser:
+      case structurizr_style.Shape.webBrowser:
         return const Icon(Icons.web, size: 24);
-      case Shape.mobileDevicePortrait:
+      case structurizr_style.Shape.mobileDevicePortrait:
         return const Icon(Icons.smartphone, size: 24);
-      case Shape.mobileDeviceLandscape:
-        return const Icon(Icons.smartphone_landscape, size: 24);
-      case Shape.component:
+      case structurizr_style.Shape.mobileDeviceLandscape:
+        return const Icon(Icons.smartphone, size: 24);
+      case structurizr_style.Shape.component:
         return const Icon(Icons.settings, size: 24);
       default:
         return const Icon(Icons.square, size: 24);
     }
   }
-  
+
   /// Gets a line style icon based on the style type
-  Widget _getLineStyleIcon(LineStyle style) {
+  Widget _getLineStyleIcon(structurizr_style.LineStyle style) {
     switch (style) {
-      case LineStyle.solid:
-        return Container(
+      case structurizr_style.LineStyle.solid:
+        return flutter.Container(
           width: 30,
           height: 2,
           color: Colors.black,
         );
-      case LineStyle.dashed:
+      case structurizr_style.LineStyle.dashed:
         return CustomPaint(
           size: const Size(30, 2),
           painter: DashedLinePainter(),
         );
-      case LineStyle.dotted:
+      case structurizr_style.LineStyle.dotted:
         return CustomPaint(
           size: const Size(30, 2),
           painter: DottedLinePainter(),
         );
       default:
-        return Container(
+        return flutter.Container(
           width: 30,
           height: 2,
           color: Colors.black,
         );
     }
   }
-  
+
   /// Gets a border style icon based on the style type
-  Widget _getBorderStyleIcon(flutter.Border style) {
+  Widget _getBorderStyleIcon(BorderStyleOption style) {
     switch (style) {
-      case flutter.Border.solid:
-        return Container(
+      case BorderStyleOption.solid:
+        return flutter.Container(
           width: 24,
           height: 24,
           decoration: flutter.BoxDecoration(
@@ -2171,8 +2290,8 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
             borderRadius: flutter.BorderRadius.circular(4),
           ),
         );
-      case flutter.Border.dashed:
-        return Container(
+      case BorderStyleOption.dashed:
+        return flutter.Container(
           width: 24,
           height: 24,
           decoration: flutter.BoxDecoration(
@@ -2184,8 +2303,8 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
             borderRadius: flutter.BorderRadius.circular(4),
           ),
         );
-      case flutter.Border.dotted:
-        return Container(
+      case BorderStyleOption.dotted:
+        return flutter.Container(
           width: 24,
           height: 24,
           decoration: flutter.BoxDecoration(
@@ -2198,7 +2317,7 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
           ),
         );
       default:
-        return Container(
+        return flutter.Container(
           width: 24,
           height: 24,
           decoration: flutter.BoxDecoration(
@@ -2212,18 +2331,18 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
         );
     }
   }
-  
+
   /// Gets a routing icon based on the routing type
-  Widget _getRoutingIcon(StyleRouting routing) {
+  Widget _getRoutingIcon(structurizr_style.StyleRouting routing) {
     switch (routing) {
-      case StyleRouting.direct:
+      case structurizr_style.StyleRouting.direct:
         return const Icon(Icons.arrow_forward);
-      case StyleRouting.orthogonal:
+      case structurizr_style.StyleRouting.orthogonal:
         return CustomPaint(
           size: const Size(24, 24),
           painter: OrthogonalRoutingPainter(),
         );
-      case StyleRouting.curved:
+      case structurizr_style.StyleRouting.curved:
         return CustomPaint(
           size: const Size(24, 24),
           painter: CurvedRoutingPainter(),
@@ -2232,199 +2351,37 @@ class _PropertyPanelState extends State<PropertyPanel> with SingleTickerProvider
         return const Icon(Icons.arrow_forward);
     }
   }
-  
+
   /// Gets a shape name from a Shape enum value
-  String _getShapeName(Shape shape) {
+  String _getShapeName(structurizr_style.Shape shape) {
     return shape.toString().split('.').last;
   }
-  
+
   /// Gets a line style name from a LineStyle enum value
-  String _getLineStyleName(LineStyle style) {
+  String _getLineStyleName(structurizr_style.LineStyle style) {
     return style.toString().split('.').last;
   }
-  
+
   /// Gets a border style name from a Border enum value
-  String _getBorderStyleName(flutter.Border style) {
+  String _getBorderStyleName(BorderStyleOption style) {
     return style.toString().split('.').last;
   }
-  
+
   /// Gets a routing name from a StyleRouting enum value
-  String _getRoutingName(StyleRouting routing) {
+  String _getRoutingName(structurizr_style.StyleRouting routing) {
     return routing.toString().split('.').last;
   }
-  
-  /// Gets a label position name from a LabelPosition enum value
-  String _getLabelPositionName(flutter.LabelPosition position) {
-    return position.toString().split('.').last;
-  }
-}
 
-/// Class definitions for special painters
-
-/// Dashed line painter
-class DashedLinePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
-    
-    double startX = 0;
-    const double dashWidth = 5;
-    const double dashSpace = 3;
-    
-    while (startX < size.width) {
-      canvas.drawLine(
-        Offset(startX, size.height / 2),
-        Offset(startX + dashWidth, size.height / 2),
-        paint,
-      );
-      startX += dashWidth + dashSpace;
-    }
+  // ===== Helper methods for border and line style mapping =====
+  BorderStyleOption mapInternalBorderToOption(dynamic border) {
+    // TODO: Map internal border representation to BorderStyleOption
+    // For now, just return solid as a placeholder
+    return BorderStyleOption.solid;
   }
-  
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
 
-/// Dotted line painter
-class DottedLinePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 2
-      ..style = PaintingStyle.fill;
-    
-    double startX = 0;
-    const double dotSize = 2;
-    const double dotSpace = 3;
-    
-    while (startX < size.width) {
-      canvas.drawCircle(
-        Offset(startX + dotSize / 2, size.height / 2),
-        dotSize / 2,
-        paint,
-      );
-      startX += dotSize + dotSpace;
-    }
+  String mapOptionToInternalBorder(BorderStyleOption option) {
+    // TODO: Map BorderStyleOption to internal border string
+    // For now, just return 'solid' as a placeholder
+    return 'solid';
   }
-  
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-/// Orthogonal routing painter
-class OrthogonalRoutingPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
-    
-    final path = Path();
-    path.moveTo(0, size.height / 2);
-    path.lineTo(size.width / 2, size.height / 2);
-    path.lineTo(size.width / 2, size.height / 4);
-    path.lineTo(size.width, size.height / 4);
-    
-    canvas.drawPath(path, paint);
-  }
-  
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-/// Curved routing painter
-class CurvedRoutingPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..color = Colors.black
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
-    
-    final path = Path();
-    path.moveTo(0, size.height / 2);
-    path.quadraticBezierTo(
-      size.width / 2, size.height,
-      size.width, size.height / 2,
-    );
-    
-    canvas.drawPath(path, paint);
-  }
-  
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-/// Renders a line style preview
-class LineStylePreviewPainter extends CustomPainter {
-  final LineStyle lineStyle;
-  final Color color;
-  final double thickness;
-  
-  LineStylePreviewPainter({
-    required this.lineStyle,
-    required this.color,
-    required this.thickness,
-  });
-  
-  @override
-  void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..color = color
-      ..strokeWidth = thickness
-      ..style = PaintingStyle.stroke;
-    
-    switch (lineStyle) {
-      case LineStyle.solid:
-        canvas.drawLine(
-          Offset(0, size.height / 2),
-          Offset(size.width, size.height / 2),
-          paint,
-        );
-        break;
-      case LineStyle.dashed:
-        double startX = 0;
-        final double dashWidth = 5;
-        final double dashSpace = 3;
-        
-        while (startX < size.width) {
-          canvas.drawLine(
-            Offset(startX, size.height / 2),
-            Offset(startX + dashWidth, size.height / 2),
-            paint,
-          );
-          startX += dashWidth + dashSpace;
-        }
-        break;
-      case LineStyle.dotted:
-        double startX = 0;
-        final double dotSize = thickness;
-        final double dotSpace = thickness + 2;
-        
-        final dotPaint = Paint()
-          ..color = color
-          ..style = PaintingStyle.fill;
-          
-        while (startX < size.width) {
-          canvas.drawCircle(
-            Offset(startX + dotSize / 2, size.height / 2),
-            dotSize / 2,
-            dotPaint,
-          );
-          startX += dotSize + dotSpace;
-        }
-        break;
-    }
-  }
-  
-  @override
-  bool shouldRepaint(covariant LineStylePreviewPainter oldDelegate) => 
-    oldDelegate.lineStyle != lineStyle ||
-    oldDelegate.color != color ||
-    oldDelegate.thickness != thickness;
 }

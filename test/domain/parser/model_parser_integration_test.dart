@@ -1,9 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 import 'package:flutter_structurizr/domain/parser/parser.dart';
-import 'package:flutter_structurizr/domain/parser/ast/ast.dart';
-import 'package:flutter_structurizr/domain/parser/lexer/token.dart';
-import 'package:flutter_structurizr/domain/parser/lexer/lexer.dart';
 
 /// This test file focuses on the integration testing of the ModelParser methods
 /// as defined in Table 7 of the refactored_method_relationship.md file.
@@ -17,7 +13,7 @@ import 'package:flutter_structurizr/domain/parser/lexer/lexer.dart';
 void main() {
   group('ModelParser Integration Tests', () {
     test('should parse complete model with all element types', () {
-      final dsl = '''
+      const dsl = '''
         workspace "Test Workspace" {
           model {
             // Enterprise definition
@@ -75,7 +71,7 @@ void main() {
     });
     
     test('should parse model with nested elements and hierarchical relationships', () {
-      final dsl = '''
+      const dsl = '''
         workspace "Nested Test" {
           model {
             user = person "User"
@@ -113,7 +109,7 @@ void main() {
     });
     
     test('should parse model with complex enterprise structure', () {
-      final dsl = '''
+      const dsl = '''
         workspace "Enterprise Test" {
           model {
             enterprise "BigCorp" {
@@ -157,7 +153,7 @@ void main() {
     });
     
     test('should parse group with elements and internal relationships', () {
-      final dsl = '''
+      const dsl = '''
         workspace "Group Test" {
           model {
             group "Core Systems" {
@@ -186,7 +182,7 @@ void main() {
     });
     
     test('should parse implied relationships between elements', () {
-      final dsl = '''
+      const dsl = '''
         workspace "Relationship Test" {
           model {
             user = person "User"
@@ -210,7 +206,7 @@ void main() {
     });
     
     test('should parse relationships with additional properties', () {
-      final dsl = '''
+      const dsl = '''
         workspace "Relationship Properties Test" {
           model {
             user = person "User"
@@ -239,7 +235,7 @@ void main() {
     });
     
     test('should handle model with explicit identifiers', () {
-      final dsl = '''
+      const dsl = '''
         workspace {
           model {
             user = person "User"
@@ -275,7 +271,7 @@ void main() {
     });
     
     test('should handle model with complex nesting', () {
-      final dsl = '''
+      const dsl = '''
         workspace {
           model {
             enterprise "BigCorp" {
@@ -315,7 +311,7 @@ void main() {
     });
     
     test('should report errors for invalid model syntax', () {
-      final invalidDsl = '''
+      const invalidDsl = '''
         workspace {
           model {
             // Missing name for person
@@ -345,7 +341,7 @@ void main() {
     });
     
     test('should handle empty structures correctly', () {
-      final dsl = '''
+      const dsl = '''
         workspace {
           model {
             enterprise "Empty Enterprise" { }

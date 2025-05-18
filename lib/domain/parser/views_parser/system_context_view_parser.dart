@@ -1,17 +1,18 @@
 import 'package:flutter_structurizr/domain/model/software_system.dart';
 import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/parser/ast/ast.dart';
-import 'package:flutter_structurizr/domain/parser/ast/nodes/view_node_extensions.dart';
 import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 import 'package:flutter_structurizr/domain/parser/reference_resolver.dart';
 import 'package:flutter_structurizr/domain/view/view.dart';
 import 'package:flutter_structurizr/application/dsl/workspace_builder.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/model_element_node.dart'
+    show SystemContextViewNode, ElementNode;
 
 /// Parser for system context views in the DSL.
 class SystemContextViewParser {
   /// The error reporter for semantic errors
   final ErrorReporter errorReporter;
-  
+
   /// The reference resolver for handling element references
   final ReferenceResolver referenceResolver;
 
@@ -22,30 +23,26 @@ class SystemContextViewParser {
   });
 
   /// Parses and builds a system context view from an AST node
-  SystemContextView? parse(SystemContextViewNode node, WorkspaceBuilder builder) {
-    print('DEBUG: [SystemContextViewParser] Looking up systemId: ${node.systemId}');
-    
+  SystemContextView? parse(
+      SystemContextViewNode node, WorkspaceBuilder builder) {
     // Resolve the system reference
     final softwareSystem = referenceResolver.resolveReference(
-      node.systemId, 
+      node.systemId,
       sourcePosition: node.sourcePosition,
       searchByName: true,
       expectedType: SoftwareSystem,
     ) as SoftwareSystem?;
-    
-    print('DEBUG: [SystemContextViewParser] softwareSystem resolved: '
-        '[36m${softwareSystem?.name}[0m, id: '
-        '[36m${softwareSystem?.id}[0m');
-    
+
     if (softwareSystem == null) {
       // List all available software system IDs and names
-      final allSystems = referenceResolver.getAllElements().values.where(
-        (e) => e.runtimeType.toString() == 'SoftwareSystem'
-      );
-      final availableIds = allSystems.map(
-        (sys) => 'id: ${sys.id}, name: ${sys.name}'
-      ).join('; ');
-      
+      final allSystems = referenceResolver
+          .getAllElements()
+          .values
+          .where((e) => e.runtimeType.toString() == 'SoftwareSystem');
+      final availableIds = allSystems
+          .map((sys) => 'id: ${sys.id}, name: ${sys.name}')
+          .join('; ');
+
       errorReporter.reportStandardError(
         'Software system not found for system context view: ${node.key}, systemId: ${node.systemId}\n'
         'Available software system IDs: $availableIds',
@@ -53,7 +50,7 @@ class SystemContextViewParser {
       );
       return null;
     }
-    
+
     // Create auto-layout if specified
     AutomaticLayout? automaticLayout;
     if (node.autoLayout != null) {
@@ -63,7 +60,7 @@ class SystemContextViewParser {
         nodeSeparation: node.autoLayout!.nodeSeparation ?? 300,
       );
     }
-    
+
     // Process animations if specified
     final animationSteps = <AnimationStep>[];
     for (final animation in node.animations) {
@@ -73,11 +70,13 @@ class SystemContextViewParser {
         relationships: animation.relationships,
       ));
     }
-    
+
     // Process include/exclude rules for the view
-    final includes = node.includes.map((include) => include.expression).toList();
-    final excludes = node.excludes.map((exclude) => exclude.expression).toList();
-    
+    final includes =
+        node.includes.map((include) => include.expression).toList();
+    final excludes =
+        node.excludes.map((exclude) => exclude.expression).toList();
+
     // Calculate element views and relationship views based on include/exclude criteria
     final model = builder.workspace?.model;
     if (model == null) {
@@ -87,12 +86,12 @@ class SystemContextViewParser {
       );
       return null;
     }
-    
+
     // Populate elements and relationships based on include/exclude rules
     final elementViews = <ElementView>[];
     final relationshipViews = <RelationshipView>[];
-    
-    if (includes.contains("*")) {
+
+    if (includes.contains('*')) {
       // Include all elements in scope
       handleIncludeAll(node);
     } else if (!includes.isEmpty || !excludes.isEmpty) {
@@ -101,7 +100,7 @@ class SystemContextViewParser {
     } else {
       // Default population behavior - add the system itself
       elementViews.add(ElementView(id: softwareSystem.id));
-      
+
       // Add all people who have relationships to/from this system
       for (final person in model.people) {
         final relsTo = person.getRelationshipsTo(softwareSystem.id);
@@ -116,7 +115,7 @@ class SystemContextViewParser {
           }
         }
       }
-      
+
       // Add all other software systems that have relationships to/from this system
       for (final otherSystem in model.softwareSystems) {
         if (otherSystem.id == softwareSystem.id) continue;
@@ -133,20 +132,20 @@ class SystemContextViewParser {
         }
       }
     }
-    
+
     // Populate default values
     populateDefaults(node);
-    
+
     // Set advanced features
     setAdvancedFeatures(node);
-    
+
     // Determine the view title
     final resolvedTitle = (node.title?.isNotEmpty == true)
         ? node.title
         : ((softwareSystem.name.isNotEmpty)
             ? '${softwareSystem.name} - System Context'
             : 'System Context');
-    
+
     // Create and return the view
     return SystemContextView(
       key: node.key,
@@ -161,11 +160,9 @@ class SystemContextViewParser {
       excludeTags: excludes,
     );
   }
-  
+
   /// Handles the "include *" rule by adding all relevant elements
   void handleIncludeAll(SystemContextViewNode viewNode) {
-    print('DEBUG: [SystemContextViewParser] Handling include * rule');
-    
     // Get the software system
     final softwareSystem = referenceResolver.resolveReference(
       viewNode.systemId,
@@ -173,33 +170,33 @@ class SystemContextViewParser {
       searchByName: true,
       expectedType: SoftwareSystem,
     ) as SoftwareSystem?;
-    
+
     if (softwareSystem == null) return;
-    
+
     // Add the software system itself
-    viewNode.addElement(ElementNode(id: softwareSystem.id, name: softwareSystem.name));
-    
+    viewNode.addElement(
+        ElementNode(id: softwareSystem.id, name: softwareSystem.name));
+
     // Get the model
     final model = referenceResolver.getModel();
     if (model == null) return;
-    
+
     // Add all people in the model
     for (final person in model.people) {
       viewNode.addElement(ElementNode(id: person.id, name: person.name));
     }
-    
+
     // Add all other software systems
     for (final otherSystem in model.softwareSystems) {
       if (otherSystem.id != softwareSystem.id) {
-        viewNode.addElement(ElementNode(id: otherSystem.id, name: otherSystem.name));
+        viewNode.addElement(
+            ElementNode(id: otherSystem.id, name: otherSystem.name));
       }
     }
   }
-  
+
   /// Handles specific include/exclude tag expressions
   void handleIncludeExclude(SystemContextViewNode viewNode) {
-    print('DEBUG: [SystemContextViewParser] Handling specific include/exclude rules');
-    
     // Get the software system
     final softwareSystem = referenceResolver.resolveReference(
       viewNode.systemId,
@@ -207,24 +204,27 @@ class SystemContextViewParser {
       searchByName: true,
       expectedType: SoftwareSystem,
     ) as SoftwareSystem?;
-    
+
     if (softwareSystem == null) return;
-    
+
     // Add the software system itself
-    viewNode.addElement(ElementNode(id: softwareSystem.id, name: softwareSystem.name));
-    
+    viewNode.addElement(
+        ElementNode(id: softwareSystem.id, name: softwareSystem.name));
+
     // Get the model
     final model = referenceResolver.getModel();
     if (model == null) return;
-    
+
     // Get include and exclude expressions
-    final includes = viewNode.includes.map((include) => include.expression).toList();
-    final excludes = viewNode.excludes.map((exclude) => exclude.expression).toList();
-    
+    final includes =
+        viewNode.includes.map((include) => include.expression).toList();
+    final excludes =
+        viewNode.excludes.map((exclude) => exclude.expression).toList();
+
     // Filter people based on tags
     for (final person in model.people) {
       bool shouldInclude = false;
-      
+
       // Check includes
       if (includes.isEmpty) {
         shouldInclude = true; // No includes means include everything
@@ -236,7 +236,7 @@ class SystemContextViewParser {
           }
         }
       }
-      
+
       // Check excludes
       for (final tag in person.tags) {
         if (excludes.contains(tag)) {
@@ -244,18 +244,18 @@ class SystemContextViewParser {
           break;
         }
       }
-      
+
       if (shouldInclude) {
         viewNode.addElement(ElementNode(id: person.id, name: person.name));
       }
     }
-    
+
     // Filter software systems based on tags
     for (final otherSystem in model.softwareSystems) {
       if (otherSystem.id == softwareSystem.id) continue;
-      
+
       bool shouldInclude = false;
-      
+
       // Check includes
       if (includes.isEmpty) {
         shouldInclude = true; // No includes means include everything
@@ -267,7 +267,7 @@ class SystemContextViewParser {
           }
         }
       }
-      
+
       // Check excludes
       for (final tag in otherSystem.tags) {
         if (excludes.contains(tag)) {
@@ -275,17 +275,16 @@ class SystemContextViewParser {
           break;
         }
       }
-      
+
       if (shouldInclude) {
-        viewNode.addElement(ElementNode(id: otherSystem.id, name: otherSystem.name));
+        viewNode.addElement(
+            ElementNode(id: otherSystem.id, name: otherSystem.name));
       }
     }
   }
-  
+
   /// Populates default values for the view
   void populateDefaults(SystemContextViewNode viewNode) {
-    print('DEBUG: [SystemContextViewParser] Populating defaults');
-    
     // Get the software system
     final softwareSystem = referenceResolver.resolveReference(
       viewNode.systemId,
@@ -293,37 +292,36 @@ class SystemContextViewParser {
       searchByName: true,
       expectedType: SoftwareSystem,
     ) as SoftwareSystem?;
-    
+
     if (softwareSystem == null) return;
-    
+
     // Always ensure the central software system is included
     if (!viewNode.hasElement(softwareSystem.id)) {
-      viewNode.addElement(ElementNode(id: softwareSystem.id, name: softwareSystem.name));
+      viewNode.addElement(
+          ElementNode(id: softwareSystem.id, name: softwareSystem.name));
     }
-    
+
     // Set default paper size if not specified
-    if (!viewNode.hasProperty("paperSize")) {
-      viewNode.setProperty("paperSize", "A4_Landscape");
+    if (!viewNode.hasProperty('paperSize')) {
+      viewNode.setProperty('paperSize', 'A4_Landscape');
     }
-    
+
     // Set default auto-layout if not specified
     if (viewNode.autoLayout == null) {
       // This would be done at the model level rather than node level
       // since the AST node doesn't support adding this after creation
     }
   }
-  
+
   /// Sets advanced features for the view
   void setAdvancedFeatures(SystemContextViewNode viewNode) {
-    print('DEBUG: [SystemContextViewParser] Setting advanced features');
-    
     // Set enterprise boundary by default if enterprise name is defined
     final model = referenceResolver.getModel();
     if (model?.enterprise != null && model!.enterprise!.name.isNotEmpty) {
-      viewNode.setProperty("showEnterpriseBoundary", "true");
+      viewNode.setProperty('showEnterpriseBoundary', 'true');
     }
-    
+
     // Set other advanced properties if needed
-    viewNode.setProperty("lastLayoutDate", DateTime.now().toIso8601String());
+    viewNode.setProperty('lastLayoutDate', DateTime.now().toIso8601String());
   }
 }

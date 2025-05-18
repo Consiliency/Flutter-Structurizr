@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_structurizr/domain/model/workspace.dart';
 import 'package:flutter_structurizr/presentation/widgets/documentation/documentation_search_controller.dart';
 import 'package:flutter_structurizr/presentation/widgets/documentation/documentation_search_index.dart';
 
@@ -8,16 +7,16 @@ import 'package:flutter_structurizr/presentation/widgets/documentation/documenta
 class SearchPanel extends StatefulWidget {
   /// The search controller
   final DocumentationSearchController controller;
-  
+
   /// Called when a search result is selected
   final Function(DocumentationSearchResult)? onResultSelected;
-  
+
   /// Whether to use dark mode styling
   final bool isDarkMode;
-  
+
   /// Whether to show filter options
   final bool showFilters;
-  
+
   /// Creates a new search panel
   const SearchPanel({
     Key? key,
@@ -34,23 +33,23 @@ class SearchPanel extends StatefulWidget {
 class _SearchPanelState extends State<SearchPanel> {
   late TextEditingController _textController;
   late FocusNode _searchFocusNode;
-  
+
   @override
   void initState() {
     super.initState();
     _textController = TextEditingController(text: widget.controller.query);
     _searchFocusNode = FocusNode();
-    
+
     // Update text controller when query changes
     widget.controller.addListener(_updateFromController);
   }
-  
+
   void _updateFromController() {
     if (_textController.text != widget.controller.query) {
       _textController.text = widget.controller.query;
     }
   }
-  
+
   @override
   void dispose() {
     widget.controller.removeListener(_updateFromController);
@@ -65,18 +64,19 @@ class _SearchPanelState extends State<SearchPanel> {
       duration: const Duration(milliseconds: 200),
       width: widget.controller.isExpanded ? 360 : 240,
       constraints: BoxConstraints(
-        maxHeight: widget.controller.isExpanded && widget.controller.results.isNotEmpty 
-            ? 400 
-            : 56,
+        maxHeight:
+            widget.controller.isExpanded && widget.controller.results.isNotEmpty
+                ? 400
+                : 56,
       ),
       decoration: BoxDecoration(
         color: widget.isDarkMode ? Colors.grey.shade800 : Colors.white,
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: widget.isDarkMode 
-                ? Colors.black.withOpacity(0.3) 
-                : Colors.black.withOpacity(0.1),
+            color: widget.isDarkMode
+                ? Colors.black.withValues(alpha: 0.3)
+                : Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -92,7 +92,9 @@ class _SearchPanelState extends State<SearchPanel> {
                 padding: const EdgeInsets.only(left: 16.0),
                 child: Icon(
                   Icons.search,
-                  color: widget.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+                  color: widget.isDarkMode
+                      ? Colors.grey.shade400
+                      : Colors.grey.shade600,
                 ),
               ),
               Expanded(
@@ -102,10 +104,13 @@ class _SearchPanelState extends State<SearchPanel> {
                   decoration: InputDecoration(
                     hintText: 'Search documentation...',
                     hintStyle: TextStyle(
-                      color: widget.isDarkMode ? Colors.grey.shade500 : Colors.grey.shade400,
+                      color: widget.isDarkMode
+                          ? Colors.grey.shade500
+                          : Colors.grey.shade400,
                     ),
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 16),
                   ),
                   style: TextStyle(
                     color: widget.isDarkMode ? Colors.white : Colors.black87,
@@ -118,7 +123,8 @@ class _SearchPanelState extends State<SearchPanel> {
                   },
                   onSubmitted: (_) {
                     if (widget.controller.results.isNotEmpty) {
-                      widget.onResultSelected?.call(widget.controller.results.first);
+                      widget.onResultSelected
+                          ?.call(widget.controller.results.first);
                     }
                   },
                   // Keyboard shortcuts for search navigation
@@ -138,7 +144,9 @@ class _SearchPanelState extends State<SearchPanel> {
                 IconButton(
                   icon: Icon(
                     Icons.clear,
-                    color: widget.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+                    color: widget.isDarkMode
+                        ? Colors.grey.shade400
+                        : Colors.grey.shade600,
                     size: 20,
                   ),
                   onPressed: () {
@@ -153,8 +161,12 @@ class _SearchPanelState extends State<SearchPanel> {
                   icon: Icon(
                     Icons.filter_list,
                     color: widget.controller.filters.isNotEmpty
-                        ? (widget.isDarkMode ? Colors.blue.shade300 : Colors.blue)
-                        : (widget.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600),
+                        ? (widget.isDarkMode
+                            ? Colors.blue.shade300
+                            : Colors.blue)
+                        : (widget.isDarkMode
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade600),
                     size: 20,
                   ),
                   onPressed: () {
@@ -163,7 +175,7 @@ class _SearchPanelState extends State<SearchPanel> {
                 ),
             ],
           ),
-          
+
           // Search results
           if (widget.controller.isExpanded)
             Flexible(
@@ -178,29 +190,34 @@ class _SearchPanelState extends State<SearchPanel> {
                           padding: const EdgeInsets.all(16.0),
                           child: CircularProgressIndicator(
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              widget.isDarkMode ? Colors.blue.shade300 : Colors.blue,
+                              widget.isDarkMode
+                                  ? Colors.blue.shade300
+                                  : Colors.blue,
                             ),
                             strokeWidth: 2,
                           ),
                         ),
                       );
                     }
-                    
-                    if (widget.controller.results.isEmpty && widget.controller.query.isNotEmpty) {
+
+                    if (widget.controller.results.isEmpty &&
+                        widget.controller.query.isNotEmpty) {
                       return Center(
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Text(
                             'No results found',
                             style: TextStyle(
-                              color: widget.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+                              color: widget.isDarkMode
+                                  ? Colors.grey.shade400
+                                  : Colors.grey.shade600,
                               fontStyle: FontStyle.italic,
                             ),
                           ),
                         ),
                       );
                     }
-                    
+
                     return ListView.builder(
                       padding: EdgeInsets.zero,
                       shrinkWrap: true,
@@ -218,16 +235,16 @@ class _SearchPanelState extends State<SearchPanel> {
       ),
     );
   }
-  
+
   Widget _buildResultItem(DocumentationSearchResult result, int index) {
     // Determine result icon based on type
     IconData icon;
     Color iconColor;
-    
+
     if (result.type == 'decision') {
       icon = Icons.assignment;
       final status = result.metadata['status']?.toLowerCase() ?? '';
-      
+
       // Color based on decision status
       if (status == 'accepted') {
         iconColor = Colors.green;
@@ -240,13 +257,14 @@ class _SearchPanelState extends State<SearchPanel> {
       } else if (status == 'proposed') {
         iconColor = Colors.blue;
       } else {
-        iconColor = widget.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700;
+        iconColor =
+            widget.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700;
       }
     } else {
       icon = Icons.article;
       iconColor = widget.isDarkMode ? Colors.blue.shade300 : Colors.blue;
     }
-    
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -275,7 +293,8 @@ class _SearchPanelState extends State<SearchPanel> {
                       result.title,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: widget.isDarkMode ? Colors.white : Colors.black87,
+                        color:
+                            widget.isDarkMode ? Colors.white : Colors.black87,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -285,7 +304,9 @@ class _SearchPanelState extends State<SearchPanel> {
                       result.path,
                       style: TextStyle(
                         fontSize: 12,
-                        color: widget.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+                        color: widget.isDarkMode
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade600,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -295,7 +316,9 @@ class _SearchPanelState extends State<SearchPanel> {
                       result.content,
                       style: TextStyle(
                         fontSize: 13,
-                        color: widget.isDarkMode ? Colors.grey.shade300 : Colors.grey.shade800,
+                        color: widget.isDarkMode
+                            ? Colors.grey.shade300
+                            : Colors.grey.shade800,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -318,17 +341,18 @@ class _SearchPanelState extends State<SearchPanel> {
       ),
     );
   }
-  
+
   List<Widget> _buildMetadataTags(Map<String, String> metadata) {
     final tags = <Widget>[];
-    
+
     // Add decision ID tag
     if (metadata.containsKey('id')) {
       tags.add(
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
-            color: widget.isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200,
+            color:
+                widget.isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
@@ -341,12 +365,12 @@ class _SearchPanelState extends State<SearchPanel> {
         ),
       );
     }
-    
+
     // Add status tag if present
     if (metadata.containsKey('status')) {
       final status = metadata['status']!;
       Color statusColor;
-      
+
       // Determine color based on status
       if (status.toLowerCase() == 'accepted') {
         statusColor = Colors.green;
@@ -359,17 +383,19 @@ class _SearchPanelState extends State<SearchPanel> {
       } else if (status.toLowerCase() == 'proposed') {
         statusColor = Colors.blue;
       } else {
-        statusColor = widget.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700;
+        statusColor =
+            widget.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700;
       }
-      
+
       tags.add(
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
-            color: statusColor.withOpacity(widget.isDarkMode ? 0.3 : 0.2),
+            color: statusColor.withValues(alpha: widget.isDarkMode ? 0.3 : 0.2),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: statusColor.withOpacity(widget.isDarkMode ? 0.5 : 0.4),
+              color:
+                  statusColor.withValues(alpha: widget.isDarkMode ? 0.5 : 0.4),
               width: 1,
             ),
           ),
@@ -377,22 +403,24 @@ class _SearchPanelState extends State<SearchPanel> {
             status,
             style: TextStyle(
               fontSize: 11,
-              color: widget.isDarkMode 
-                  ? statusColor.shade300 
+              color: widget.isDarkMode
+                  ? statusColor.shade300
                   : statusColor.shade700,
             ),
           ),
         ),
       );
     }
-    
+
     // Add date tag if present
     if (metadata.containsKey('date')) {
       tags.add(
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           decoration: BoxDecoration(
-            color: widget.isDarkMode ? Colors.blue.shade900.withOpacity(0.3) : Colors.blue.shade50,
+            color: widget.isDarkMode
+                ? Colors.blue.shade900.withValues(alpha: 0.3)
+                : Colors.blue.shade50,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -401,14 +429,18 @@ class _SearchPanelState extends State<SearchPanel> {
               Icon(
                 Icons.calendar_today,
                 size: 10,
-                color: widget.isDarkMode ? Colors.blue.shade300 : Colors.blue.shade700,
+                color: widget.isDarkMode
+                    ? Colors.blue.shade300
+                    : Colors.blue.shade700,
               ),
               const SizedBox(width: 4),
               Text(
                 metadata['date']!,
                 style: TextStyle(
                   fontSize: 11,
-                  color: widget.isDarkMode ? Colors.blue.shade300 : Colors.blue.shade700,
+                  color: widget.isDarkMode
+                      ? Colors.blue.shade300
+                      : Colors.blue.shade700,
                 ),
               ),
             ],
@@ -416,10 +448,10 @@ class _SearchPanelState extends State<SearchPanel> {
         ),
       );
     }
-    
+
     return tags;
   }
-  
+
   void _showFilterDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -431,7 +463,8 @@ class _SearchPanelState extends State<SearchPanel> {
               color: widget.isDarkMode ? Colors.white : Colors.black87,
             ),
           ),
-          backgroundColor: widget.isDarkMode ? Colors.grey.shade800 : Colors.white,
+          backgroundColor:
+              widget.isDarkMode ? Colors.grey.shade800 : Colors.white,
           content: SizedBox(
             width: 300,
             child: Column(
@@ -452,7 +485,8 @@ class _SearchPanelState extends State<SearchPanel> {
                   children: [
                     _buildFilterChip(
                       label: 'Documentation',
-                      isSelected: widget.controller.filters['type'] == 'documentation',
+                      isSelected:
+                          widget.controller.filters['type'] == 'documentation',
                       onSelected: (selected) {
                         if (selected) {
                           widget.controller.addFilter('type', 'documentation');
@@ -464,7 +498,8 @@ class _SearchPanelState extends State<SearchPanel> {
                     ),
                     _buildFilterChip(
                       label: 'Decisions',
-                      isSelected: widget.controller.filters['type'] == 'decision',
+                      isSelected:
+                          widget.controller.filters['type'] == 'decision',
                       onSelected: (selected) {
                         if (selected) {
                           widget.controller.addFilter('type', 'decision');
@@ -477,7 +512,7 @@ class _SearchPanelState extends State<SearchPanel> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Decision status filter
                 Text(
                   'Decision Status',
@@ -493,7 +528,8 @@ class _SearchPanelState extends State<SearchPanel> {
                   children: [
                     _buildFilterChip(
                       label: 'Accepted',
-                      isSelected: widget.controller.filters['status'] == 'accepted',
+                      isSelected:
+                          widget.controller.filters['status'] == 'accepted',
                       color: Colors.green,
                       onSelected: (selected) {
                         if (selected) {
@@ -506,7 +542,8 @@ class _SearchPanelState extends State<SearchPanel> {
                     ),
                     _buildFilterChip(
                       label: 'Proposed',
-                      isSelected: widget.controller.filters['status'] == 'proposed',
+                      isSelected:
+                          widget.controller.filters['status'] == 'proposed',
                       color: Colors.blue,
                       onSelected: (selected) {
                         if (selected) {
@@ -519,7 +556,8 @@ class _SearchPanelState extends State<SearchPanel> {
                     ),
                     _buildFilterChip(
                       label: 'Rejected',
-                      isSelected: widget.controller.filters['status'] == 'rejected',
+                      isSelected:
+                          widget.controller.filters['status'] == 'rejected',
                       color: Colors.red,
                       onSelected: (selected) {
                         if (selected) {
@@ -532,7 +570,8 @@ class _SearchPanelState extends State<SearchPanel> {
                     ),
                     _buildFilterChip(
                       label: 'Superseded',
-                      isSelected: widget.controller.filters['status'] == 'superseded',
+                      isSelected:
+                          widget.controller.filters['status'] == 'superseded',
                       color: Colors.orange,
                       onSelected: (selected) {
                         if (selected) {
@@ -545,7 +584,8 @@ class _SearchPanelState extends State<SearchPanel> {
                     ),
                     _buildFilterChip(
                       label: 'Deprecated',
-                      isSelected: widget.controller.filters['status'] == 'deprecated',
+                      isSelected:
+                          widget.controller.filters['status'] == 'deprecated',
                       color: Colors.amber,
                       onSelected: (selected) {
                         if (selected) {
@@ -581,7 +621,9 @@ class _SearchPanelState extends State<SearchPanel> {
               child: Text(
                 'Cancel',
                 style: TextStyle(
-                  color: widget.isDarkMode ? Colors.grey.shade300 : Colors.grey.shade700,
+                  color: widget.isDarkMode
+                      ? Colors.grey.shade300
+                      : Colors.grey.shade700,
                 ),
               ),
             ),
@@ -590,7 +632,7 @@ class _SearchPanelState extends State<SearchPanel> {
       },
     );
   }
-  
+
   Widget _buildFilterChip({
     required String label,
     required bool isSelected,
@@ -598,7 +640,7 @@ class _SearchPanelState extends State<SearchPanel> {
     Color? color,
   }) {
     final chipColor = color ?? Colors.blue;
-    
+
     return FilterChip(
       label: Text(
         label,
@@ -610,8 +652,9 @@ class _SearchPanelState extends State<SearchPanel> {
         ),
       ),
       selected: isSelected,
-      selectedColor: chipColor.withOpacity(widget.isDarkMode ? 0.7 : 0.8),
-      backgroundColor: widget.isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200,
+      selectedColor: chipColor.withValues(alpha: widget.isDarkMode ? 0.7 : 0.8),
+      backgroundColor:
+          widget.isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200,
       checkmarkColor: widget.isDarkMode ? Colors.white : Colors.white,
       onSelected: onSelected,
     );

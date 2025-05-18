@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart' hide Element, Container, View;
 import 'package:flutter_structurizr/domain/model/workspace.dart';
-import 'package:flutter_structurizr/domain/view/views.dart';
 import 'package:flutter_structurizr/infrastructure/export/diagram_exporter.dart';
 import 'package:flutter_structurizr/infrastructure/export/export_manager.dart';
 import 'package:path/path.dart' as path;

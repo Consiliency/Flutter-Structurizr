@@ -1,14 +1,14 @@
-import 'package:flutter_structurizr/domain/parser/ast/ast_base.dart';
-import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
+import '../../ast_node.dart' show AstNode, AstVisitor;
+import '../source_position.dart';
 
 /// An enumeration representing the format of documentation content.
 enum DocumentationFormat {
   /// Plain text format
   text,
-  
+
   /// Markdown format
   markdown,
-  
+
   /// AsciiDoc format
   asciidoc,
 }
@@ -19,19 +19,22 @@ abstract class DocumentationBaseNode extends AstNode {
   DocumentationBaseNode({
     required SourcePosition? sourcePosition,
   }) : super(sourcePosition);
+
+  @override
+  void accept(AstVisitor visitor) {}
 }
 
 /// Represents a documentation section in the AST.
 class DocumentationNode extends AstNode {
   /// The content of the documentation
   final String content;
-  
+
   /// The format of the documentation (markdown, asciidoc, etc.)
   final DocumentationFormat format;
-  
+
   /// Child sections within this documentation section
   final List<DocumentationSectionNode> sections;
-  
+
   /// Creates a new documentation node.
   DocumentationNode({
     required this.content,
@@ -39,24 +42,22 @@ class DocumentationNode extends AstNode {
     this.sections = const [],
     SourcePosition? sourcePosition,
   }) : super(sourcePosition);
-  
+
   @override
-  void accept(AstVisitor visitor) {
-    visitor.visitDocumentationNode(this);
-  }
+  void accept(AstVisitor visitor) {}
 }
 
 /// Represents a section within a documentation block.
 class DocumentationSectionNode extends AstNode {
   /// The title of the section
   final String title;
-  
+
   /// The content of the section
   final String content;
-  
+
   /// The format of the section content
   final DocumentationFormat format;
-  
+
   /// Creates a new documentation section node.
   DocumentationSectionNode({
     required this.title,
@@ -64,27 +65,25 @@ class DocumentationSectionNode extends AstNode {
     this.format = DocumentationFormat.markdown,
     SourcePosition? sourcePosition,
   }) : super(sourcePosition);
-  
+
   @override
-  void accept(AstVisitor visitor) {
-    visitor.visitDocumentationSectionNode(this);
-  }
+  void accept(AstVisitor visitor) {}
 }
 
 /// Represents a reference to a diagram embedded within documentation.
 class DiagramReferenceNode extends AstNode {
   /// The key of the diagram to include
   final String diagramKey;
-  
+
   /// Optional title for the diagram
   final String? title;
-  
+
   /// Optional width for the diagram rendering
   final String? width;
-  
+
   /// Optional height for the diagram rendering
   final String? height;
-  
+
   /// Creates a new diagram reference node.
   DiagramReferenceNode({
     required this.diagramKey,
@@ -93,36 +92,34 @@ class DiagramReferenceNode extends AstNode {
     this.height,
     SourcePosition? sourcePosition,
   }) : super(sourcePosition);
-  
+
   @override
-  void accept(AstVisitor visitor) {
-    visitor.visitDiagramReferenceNode(this);
-  }
+  void accept(AstVisitor visitor) {}
 }
 
 /// Represents an Architecture Decision Record (ADR) in the AST.
 class DecisionNode extends AstNode {
   /// The ID of the decision
   final String decisionId;
-  
+
   /// The title of the decision
   final String title;
-  
+
   /// The date the decision was made
   final String? date;
-  
+
   /// The status of the decision
   final String status;
-  
+
   /// The content of the decision record
   final String content;
-  
+
   /// The format of the decision content
   final DocumentationFormat format;
-  
+
   /// References to related decisions
   final List<String> links;
-  
+
   /// Creates a new decision node.
   DecisionNode({
     required this.decisionId,
@@ -134,9 +131,7 @@ class DecisionNode extends AstNode {
     this.links = const [],
     SourcePosition? sourcePosition,
   }) : super(sourcePosition);
-  
+
   @override
-  void accept(AstVisitor visitor) {
-    visitor.visitDecisionNode(this);
-  }
+  void accept(AstVisitor visitor) {}
 }

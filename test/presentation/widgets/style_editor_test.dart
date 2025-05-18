@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart' hide Container, Element;
-import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/style/styles.dart';
-import 'package:flutter_structurizr/domain/style/styles.dart' as styles show Border;
+import 'package:flutter_structurizr/domain/style/styles.dart' as styles
+    show Border;
 import 'package:flutter_structurizr/presentation/widgets/property_panel.dart';
+import 'package:logging/logging.dart';
+
+final logger = Logger('TestLogger');
 
 void main() {
   // Create test element
@@ -15,10 +18,10 @@ void main() {
   );
 
   // Create test styles
-  final testElementStyle = ElementStyle(
+  const testElementStyle = ElementStyle(
     tag: 'TestTag',
-    background: const Color(0xFFFF0000),
-    color: const Color(0xFFFFFFFF),
+    background: '#FF0000',
+    color: '#FFFFFF',
     shape: Shape.box,
     border: styles.Border.solid,
     strokeWidth: 1,
@@ -26,12 +29,12 @@ void main() {
     opacity: 100,
   );
 
-  final testStyles = const Styles(
+  const testStyles = Styles(
     elements: [
       ElementStyle(
         tag: 'TestTag',
-        background: Color(0xFFFF0000),
-        color: Color(0xFFFFFFFF),
+        background: '#FF0000',
+        color: '#FFFFFF',
         shape: Shape.box,
         border: styles.Border.solid,
         strokeWidth: 1,
@@ -42,10 +45,11 @@ void main() {
     relationships: [],
   );
 
-  testWidgets('PropertyPanel displays element styles correctly', (WidgetTester tester) async {
+  testWidgets('PropertyPanel displays element styles correctly',
+      (WidgetTester tester) async {
     // Track style changes
     ElementStyle? updatedStyle;
-    
+
     // Build the PropertyPanel
     await tester.pumpWidget(
       MaterialApp(
@@ -65,14 +69,14 @@ void main() {
 
     // Verify initial styles tab exists
     expect(find.text('Styles'), findsOneWidget);
-    
+
     // Tap on Styles tab
     await tester.tap(find.text('Styles'));
     await tester.pumpAndSettle();
-    
+
     // Verify element style section is visible
     expect(find.text('Element Style'), findsOneWidget);
-    
+
     // Verify style sections are visible
     expect(find.text('Style Properties'), findsOneWidget);
     expect(find.text('Background Color'), findsOneWidget);
@@ -81,9 +85,10 @@ void main() {
     expect(find.text('Icon'), findsOneWidget);
   });
 
-  testWidgets('PropertyPanel displays relationship styles correctly', (WidgetTester tester) async {
+  testWidgets('PropertyPanel displays relationship styles correctly',
+      (WidgetTester tester) async {
     // Create test relationship
-    final testRelationship = Relationship(
+    const testRelationship = Relationship(
       id: 'test-relationship',
       sourceId: 'source',
       destinationId: 'destination',
@@ -92,9 +97,9 @@ void main() {
     );
 
     // Create test relationship style
-    final testRelationshipStyle = RelationshipStyle(
+    const testRelationshipStyle = RelationshipStyle(
       tag: 'TestRelTag',
-      color: const Color(0xFF0000FF),
+      color: '#0000FF',
       thickness: 2,
       style: LineStyle.solid,
       routing: StyleRouting.direct,
@@ -102,12 +107,12 @@ void main() {
       opacity: 100,
     );
 
-    final testStyles = const Styles(
+    const testStyles = Styles(
       elements: [],
       relationships: [
         RelationshipStyle(
           tag: 'TestRelTag',
-          color: Color(0xFF0000FF),
+          color: '#0000FF',
           thickness: 2,
           style: LineStyle.solid,
           routing: StyleRouting.direct,
@@ -119,7 +124,7 @@ void main() {
 
     // Track style changes
     RelationshipStyle? updatedStyle;
-    
+
     // Build the PropertyPanel
     await tester.pumpWidget(
       MaterialApp(
@@ -139,14 +144,14 @@ void main() {
 
     // Verify initial styles tab exists
     expect(find.text('Styles'), findsOneWidget);
-    
+
     // Tap on Styles tab
     await tester.tap(find.text('Styles'));
     await tester.pumpAndSettle();
-    
+
     // Verify relationship style section is visible
     expect(find.text('Relationship Style'), findsOneWidget);
-    
+
     // Verify style sections are visible
     expect(find.text('Style Properties'), findsOneWidget);
     expect(find.text('Line Color'), findsOneWidget);
@@ -155,7 +160,8 @@ void main() {
     expect(find.text('Label Position'), findsOneWidget);
   });
 
-  testWidgets('PropertyPanel shows empty state when no styles available', (WidgetTester tester) async {
+  testWidgets('PropertyPanel shows empty state when no styles available',
+      (WidgetTester tester) async {
     // Build the PropertyPanel with no styles
     await tester.pumpWidget(
       MaterialApp(
@@ -171,21 +177,23 @@ void main() {
     // Tap on Styles tab
     await tester.tap(find.text('Styles'));
     await tester.pumpAndSettle();
-    
+
     // Verify empty state is shown
     // No explicit empty state text in the widget, so skip this check or update if needed
   });
 
-  testWidgets('PropertyPanel allows creating new styles for elements without styles', (WidgetTester tester) async {
+  testWidgets(
+      'PropertyPanel allows creating new styles for elements without styles',
+      (WidgetTester tester) async {
     // Element without matching style
     final noStyleElement = BasicElement.create(
       name: 'No Style Element',
       tags: const ['NoMatchingTag'],
       type: 'NoStyleType',
     );
-    
+
     bool createStyleCalled = false;
-    
+
     // Build the PropertyPanel
     await tester.pumpWidget(
       MaterialApp(
@@ -206,7 +214,7 @@ void main() {
     // Tap on Styles tab
     await tester.tap(find.text('Styles'));
     await tester.pumpAndSettle();
-    
+
     // Debug: print all visible text widgets
     final textWidgets = find.byType(Text);
     for (var i = 0; i < tester.widgetList(textWidgets).length; i++) {
@@ -216,20 +224,20 @@ void main() {
         // ignore Material tab labels to reduce noise
         if (!['Properties', 'Styles', 'Tags'].contains(textWidget.data)) {
           // ignore style property labels
-          print('DEBUG: Text widget: "${textWidget.data}"');
+          logger.info('DEBUG: Text widget: "${textWidget.data}"');
         }
       }
     }
     // Verify 'No style defined for this element' message is shown
     expect(find.text('No style defined for this element'), findsOneWidget);
-    
+
     // Verify Add Style button is shown
     expect(find.text('Add Style'), findsOneWidget);
-    
+
     // Tap Add Style button
     await tester.tap(find.text('Add Style'));
     await tester.pumpAndSettle();
-    
+
     // Verify the callback was called
     expect(createStyleCalled, true);
   });

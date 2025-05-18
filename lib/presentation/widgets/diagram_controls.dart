@@ -4,40 +4,40 @@ import 'package:flutter/material.dart';
 class DiagramControlsConfig {
   /// Whether to show the zoom in button
   final bool showZoomIn;
-  
+
   /// Whether to show the zoom out button
   final bool showZoomOut;
-  
+
   /// Whether to show the reset view button
   final bool showResetView;
-  
+
   /// Whether to show the fit to screen button
   final bool showFitToScreen;
-  
+
   /// Whether to show the button labels
   final bool showLabels;
-  
+
   /// Whether to arrange the controls vertically (true) or horizontally (false)
   final bool isVertical;
-  
+
   /// Color of the control buttons
   final Color? buttonColor;
-  
+
   /// Color of the control button icons
   final Color? iconColor;
-  
+
   /// Size of the buttons
   final double buttonSize;
-  
+
   /// Spacing between buttons
   final double buttonSpacing;
-  
+
   /// Opacity of the buttons
   final double opacity;
-  
+
   /// Background blur effect intensity (0 for no blur)
   final double blurRadius;
-  
+
   /// Creates a new configuration for diagram controls
   const DiagramControlsConfig({
     this.showZoomIn = true,
@@ -53,7 +53,7 @@ class DiagramControlsConfig {
     this.opacity = 0.8,
     this.blurRadius = 0.0,
   });
-  
+
   /// Creates a copy of this configuration with the given fields replaced with new values
   DiagramControlsConfig copyWith({
     bool? showZoomIn,
@@ -87,25 +87,25 @@ class DiagramControlsConfig {
 }
 
 /// A widget that provides navigation controls for a Structurizr diagram.
-/// 
+///
 /// This widget typically displays buttons for zooming in/out, resetting the view,
 /// and fitting the diagram to the screen.
 class DiagramControls extends StatelessWidget {
   /// Called when the user taps the zoom in button
   final VoidCallback onZoomIn;
-  
+
   /// Called when the user taps the zoom out button
   final VoidCallback onZoomOut;
-  
+
   /// Called when the user taps the reset view button
   final VoidCallback onResetView;
-  
+
   /// Called when the user taps the fit to screen button
   final VoidCallback onFitToScreen;
-  
+
   /// Configuration options for the controls
   final DiagramControlsConfig config;
-  
+
   /// Creates a new diagram controls widget
   const DiagramControls({
     Key? key,
@@ -119,14 +119,14 @@ class DiagramControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     // Use theme colors if not specified in config
     final buttonColor = config.buttonColor ?? theme.colorScheme.surface;
     final iconColor = config.iconColor ?? theme.colorScheme.primary;
-    
+
     // Create control buttons
     final controls = <Widget>[];
-    
+
     // Zoom in button
     if (config.showZoomIn) {
       controls.add(_buildButton(
@@ -136,13 +136,13 @@ class DiagramControls extends StatelessWidget {
         buttonColor: buttonColor,
         iconColor: iconColor,
       ));
-      
+
       controls.add(SizedBox(
         height: config.isVertical ? config.buttonSpacing : 0,
         width: config.isVertical ? 0 : config.buttonSpacing,
       ));
     }
-    
+
     // Zoom out button
     if (config.showZoomOut) {
       controls.add(_buildButton(
@@ -152,13 +152,13 @@ class DiagramControls extends StatelessWidget {
         buttonColor: buttonColor,
         iconColor: iconColor,
       ));
-      
+
       controls.add(SizedBox(
         height: config.isVertical ? config.buttonSpacing : 0,
         width: config.isVertical ? 0 : config.buttonSpacing,
       ));
     }
-    
+
     // Reset view button
     if (config.showResetView) {
       controls.add(_buildButton(
@@ -168,13 +168,13 @@ class DiagramControls extends StatelessWidget {
         buttonColor: buttonColor,
         iconColor: iconColor,
       ));
-      
+
       controls.add(SizedBox(
         height: config.isVertical ? config.buttonSpacing : 0,
         width: config.isVertical ? 0 : config.buttonSpacing,
       ));
     }
-    
+
     // Fit to screen button
     if (config.showFitToScreen) {
       controls.add(_buildButton(
@@ -185,17 +185,17 @@ class DiagramControls extends StatelessWidget {
         iconColor: iconColor,
       ));
     }
-    
+
     // Create container with controls
     return Container(
       decoration: BoxDecoration(
-        color: buttonColor.withOpacity(config.opacity),
+        color: buttonColor.withValues(alpha: config.opacity),
         borderRadius: BorderRadius.circular(config.buttonSize / 2),
         boxShadow: [
           if (config.blurRadius > 0)
             BoxShadow(
               blurRadius: config.blurRadius,
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
             ),
         ],
       ),
@@ -210,7 +210,7 @@ class DiagramControls extends StatelessWidget {
             ),
     );
   }
-  
+
   /// Build a control button with optional label
   Widget _buildButton({
     required IconData icon,
@@ -229,11 +229,11 @@ class DiagramControls extends StatelessWidget {
         padding: EdgeInsets.zero,
       ),
     );
-    
+
     if (!config.showLabels) {
       return buttonWidget;
     }
-    
+
     // If labels should be shown, wrap the button in a column/row with a label
     return config.isVertical
         ? Column(

@@ -1,0 +1,8 @@
+{
+  "telemetry.telemetryLevel": "off",
+  "workbench.colorTheme": "Default Dark+",
+  "editor.fontSize": 14,
+  "dart.flutterSdkPath": "/path/to/your/flutter",
+  "dart.debugExternalPackageLibraries": true,
+  "dart.debugSdkLibraries": false
+}

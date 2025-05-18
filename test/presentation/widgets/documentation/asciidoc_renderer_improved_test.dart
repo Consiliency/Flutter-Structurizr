@@ -4,8 +4,6 @@ import 'package:flutter_structurizr/domain/model/workspace.dart';
 import 'package:flutter_structurizr/domain/model/model.dart';
 import 'package:flutter_structurizr/presentation/widgets/documentation/asciidoc_renderer.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
-import 'dart:async';
 
 import 'mock_webview.dart';
 
@@ -151,8 +149,8 @@ void main() {
       // Complete the rendering
       if (mockController.channels.containsKey('AsciidocRenderer')) {
         final channel = mockController.channels['AsciidocRenderer']!;
-        channel.onMessageReceived?.call(
-          JavaScriptMessage(message: '{"status": "complete", "renderTime": 150}')
+        channel.onMessageReceived.call(
+          const JavaScriptMessage(message: '{"status": "complete", "renderTime": 150}')
         );
       }
       await tester.pump();
@@ -177,7 +175,7 @@ embed:SystemContext[width=800,height=600,title=System Context Diagram]
       String? selectedDiagramKey;
       
       // Create a sample workspace
-      final workspace = Workspace(
+      const workspace = Workspace(
         id: 1,
         name: 'Test Workspace',
         description: 'Test workspace for diagram embedding',
@@ -206,8 +204,8 @@ embed:SystemContext[width=800,height=600,title=System Context Diagram]
       // Simulate diagram click from JavaScript
       if (mockController.channels.containsKey('AsciidocDiagram')) {
         final channel = mockController.channels['AsciidocDiagram']!;
-        channel.onMessageReceived?.call(
-          JavaScriptMessage(message: '{"diagramKey": "SystemContext"}')
+        channel.onMessageReceived.call(
+          const JavaScriptMessage(message: '{"diagramKey": "SystemContext"}')
         );
       }
       await tester.pump();
@@ -248,8 +246,8 @@ embed:SystemContext[width=800,height=600,title=System Context Diagram]
       // Simulate link click from JavaScript
       if (mockController.channels.containsKey('AsciidocLink')) {
         final channel = mockController.channels['AsciidocLink']!;
-        channel.onMessageReceived?.call(
-          JavaScriptMessage(message: '{"url": "https://www.google.com"}')
+        channel.onMessageReceived.call(
+          const JavaScriptMessage(message: '{"url": "https://www.google.com"}')
         );
       }
       await tester.pump();
@@ -260,8 +258,8 @@ embed:SystemContext[width=800,height=600,title=System Context Diagram]
       // Simulate document link click
       if (mockController.channels.containsKey('AsciidocLink')) {
         final channel = mockController.channels['AsciidocLink']!;
-        channel.onMessageReceived?.call(
-          JavaScriptMessage(message: '{"url": "doc:OtherDocument"}')
+        channel.onMessageReceived.call(
+          const JavaScriptMessage(message: '{"url": "doc:OtherDocument"}')
         );
       }
       await tester.pump();

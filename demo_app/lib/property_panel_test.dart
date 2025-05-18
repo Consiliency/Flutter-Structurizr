@@ -1,9 +1,4 @@
 import 'package:flutter/material.dart' hide Container, Border, Element, View;
-import 'package:flutter_structurizr/presentation/widgets/property_panel.dart';
-import 'package:flutter_structurizr/presentation/widgets/filter_panel.dart';
-import 'package:flutter_structurizr/domain/style/styles.dart' hide Border;
-import 'package:flutter_structurizr/domain/model/workspace.dart';
-import 'package:flutter_structurizr/domain/model/model.dart' as structurizr_model;
 import 'package:flutter/material.dart' as flutter;
 
 // Mock classes for testing

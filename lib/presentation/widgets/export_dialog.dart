@@ -464,16 +464,14 @@ class _ExportDialogState extends State<ExportDialog> {
     final views = <ModelView>[];
     
     // Collect all views from the workspace
-    if (widget.workspace.views != null) {
-      views.addAll(widget.workspace.views!.systemLandscapeViews);
-      views.addAll(widget.workspace.views!.systemContextViews);
-      views.addAll(widget.workspace.views!.containerViews);
-      views.addAll(widget.workspace.views!.componentViews);
-      views.addAll(widget.workspace.views!.deploymentViews);
-      views.addAll(widget.workspace.views!.dynamicViews);
-      views.addAll(widget.workspace.views!.filteredViews);
-    }
-    
+    views.addAll(widget.workspace.views.systemLandscapeViews);
+    views.addAll(widget.workspace.views.systemContextViews);
+    views.addAll(widget.workspace.views.containerViews);
+    views.addAll(widget.workspace.views.componentViews);
+    views.addAll(widget.workspace.views.deploymentViews);
+    views.addAll(widget.workspace.views.dynamicViews);
+    views.addAll(widget.workspace.views.filteredViews);
+      
     return Row(
       children: [
         const Text('View:'),

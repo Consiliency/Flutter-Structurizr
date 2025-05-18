@@ -7,6 +7,7 @@
    - Check `specs/testing_plan_template.md` for additional testing guidance
    - Identify test categories required (unit, widget, integration, golden)
    - Note any specific testing frameworks or dependencies needed
+   - Check for recent test-related best practices and lessons learned in CLAUDE.md and specs/testing_plan.md
 
 2. Verify testing environment:
    - Check existing test files related to the implemented phase
@@ -21,7 +22,7 @@
    - Create new tests for any untested functionality
    - Consider potential name conflicts with Flutter built-ins
    - Reference the `ai_doc/` directory for specific framework and library documentation
-   - Use Web Fetch, Web Search, and Fetch tools to find examples and documentation if nit in `/ai_docs`
+   - Use Web Fetch, Web Search, and Fetch tools to find examples and documentation if not in `/ai_docs`
      - Compile new documentation that you find into a library specific markdown file and save it in `/ai_docs` for future reference
    - Ensure test coverage for:
      - Normal use cases
@@ -47,9 +48,12 @@
      - `scripts/run_ui_tests.sh` for UI component tests
    - Run tests for the specific components implemented
    - Run any affected existing tests
+   - Run flutter test --coverage and report coverage metrics
    - Document test results and failures
    - Debug and fix any test failures
    - Rerun tests until all pass
+   - If new test strategies or helpers are developed, update the testing plan in specs/
+   - Document any persistent test failures or workarounds for future developers
 
 ## Test Debugging and Refinement
 

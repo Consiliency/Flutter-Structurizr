@@ -1,19 +1,17 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 import 'package:flutter_structurizr/domain/parser/parser.dart';
-import 'package:flutter_structurizr/domain/parser/ast/ast.dart';
 
 void main() {
   group('Parser', () {
     test('should parse empty workspace', () {
-      final source = '''
+      const source = '''
         workspace "Empty Workspace" {
         }
       ''';
-      
+
       final parser = Parser(source);
       final workspace = parser.parse();
-      
+
       expect(workspace, isA<WorkspaceNode>());
       expect(workspace.name, equals('Empty Workspace'));
       expect(workspace.model, isNull);
@@ -25,32 +23,32 @@ void main() {
       expect(workspace.properties, isNull);
       expect(workspace.configuration, isEmpty);
     });
-    
+
     test('should parse workspace with description', () {
-      final source = '''
+      const source = '''
         workspace "Test Workspace" "This is a test workspace" {
         }
       ''';
-      
+
       final parser = Parser(source);
       final workspace = parser.parse();
-      
+
       expect(workspace, isA<WorkspaceNode>());
       expect(workspace.name, equals('Test Workspace'));
       expect(workspace.description, equals('This is a test workspace'));
     });
 
     test('should parse workspace with model section', () {
-      final source = '''
+      const source = '''
         workspace "Model Test" {
           model {
           }
         }
       ''';
-      
+
       final parser = Parser(source);
       final workspace = parser.parse();
-      
+
       expect(workspace.model, isA<ModelNode>());
       expect(workspace.model!.people, isEmpty);
       expect(workspace.model!.softwareSystems, isEmpty);
@@ -58,7 +56,7 @@ void main() {
     });
 
     test('should parse person declarations', () {
-      final source = '''
+      const source = '''
         workspace "Person Test" {
           model {
             person "User" "A user of the system"
@@ -68,47 +66,47 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(source);
       final workspace = parser.parse();
-      
+
       expect(workspace.model!.people.length, equals(2));
-      
+
       final user = workspace.model!.people[0];
       expect(user.id, equals('User'));
       expect(user.name, equals('User'));
       expect(user.description, equals('A user of the system'));
       expect(user.tags, isNull);
-      
+
       final admin = workspace.model!.people[1];
       expect(admin.id, equals('Admin'));
       expect(admin.name, equals('Admin'));
       expect(admin.description, equals('A system administrator'));
       expect(admin.tags, isA<TagsNode>());
-      expect(admin.tags!.tags, contains('admin'));
+      expect(admin.tags.tags, contains('admin'));
     });
 
     test('should parse person with variable assignment', () {
-      final source = '''
+      const source = '''
         workspace "Variable Test" {
           model {
             user = person "End User" "A regular user of the system"
           }
         }
       ''';
-      
+
       final parser = Parser(source);
       final workspace = parser.parse();
-      
+
       expect(workspace.model!.people.length, equals(1));
-      
+
       final user = workspace.model!.people[0];
       expect(user.id, equals('user'));
       expect(user.name, equals('End User'));
     });
 
     test('should parse software system declarations', () {
-      final source = '''
+      const source = '''
         workspace "System Test" {
           model {
             softwareSystem "System A" "Description of System A"
@@ -118,26 +116,26 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(source);
       final workspace = parser.parse();
-      
+
       expect(workspace.model!.softwareSystems.length, equals(2));
-      
+
       final systemA = workspace.model!.softwareSystems[0];
       expect(systemA.id, equals('SystemA'));
       expect(systemA.name, equals('System A'));
       expect(systemA.description, equals('Description of System A'));
-      
+
       final systemB = workspace.model!.softwareSystems[1];
       expect(systemB.id, equals('sys'));
       expect(systemB.name, equals('System B'));
       expect(systemB.tags, isA<TagsNode>());
-      expect(systemB.tags!.tags, contains('web'));
+      expect(systemB.tags.tags, contains('web'));
     });
 
     test('should parse container declarations', () {
-      final source = '''
+      const source = '''
         workspace "Container Test" {
           model {
             system = softwareSystem "System" {
@@ -149,28 +147,28 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(source);
       final workspace = parser.parse();
-      
+
       final system = workspace.model!.softwareSystems[0];
       expect(system.containers.length, equals(2));
-      
+
       final webApp = system.containers[0];
       expect(webApp.id, equals('webApp'));
       expect(webApp.name, equals('Web Application'));
       expect(webApp.description, equals('Delivers the web UI'));
       expect(webApp.technology, equals('React'));
-      
+
       final api = system.containers[1];
       expect(api.id, equals('api'));
       expect(api.technology, equals('Spring Boot'));
       expect(api.tags, isA<TagsNode>());
-      expect(api.tags!.tags, contains('api'));
+      expect(api.tags.tags, contains('api'));
     });
 
     test('should parse component declarations', () {
-      final source = '''
+      const source = '''
         workspace "Component Test" {
           model {
             system = softwareSystem "System" {
@@ -184,27 +182,27 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(source);
       final workspace = parser.parse();
-      
+
       final system = workspace.model!.softwareSystems[0];
       final api = system.containers[0];
       expect(api.components.length, equals(2));
-      
+
       final controller = api.components[0];
       expect(controller.id, equals('controller'));
       expect(controller.name, equals('Controller'));
       expect(controller.technology, equals('Spring MVC'));
-      
+
       final service = api.components[1];
       expect(service.id, equals('service'));
       expect(service.tags, isA<TagsNode>());
-      expect(service.tags!.tags, contains('service'));
+      expect(service.tags.tags, contains('service'));
     });
 
     test('should parse deployment environment and nodes', () {
-      final source = '''
+      const source = '''
         workspace "Deployment Test" {
           model {
             system = softwareSystem "System" {
@@ -221,30 +219,30 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(source);
       final workspace = parser.parse();
-      
+
       final system = workspace.model!.softwareSystems[0];
       expect(system.deploymentEnvironments.length, equals(1));
-      
+
       final prod = system.deploymentEnvironments[0];
       expect(prod.name, equals('Production'));
-      
+
       final aws = prod.deploymentNodes[0];
       expect(aws.id, equals('aws'));
       expect(aws.name, equals('AWS'));
-      
+
       final ec2 = aws.children[0];
       expect(ec2.id, equals('ec2'));
       expect(ec2.technology, equals('Amazon EC2'));
-      
+
       final containerInstance = ec2.containerInstances[0];
       expect(containerInstance.containerId, equals('webapp'));
     });
 
     test('should parse infrastructure nodes', () {
-      final source = '''
+      const source = '''
         workspace "Infrastructure Test" {
           model {
             system = softwareSystem "System" {
@@ -259,14 +257,14 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(source);
       final workspace = parser.parse();
-      
+
       final system = workspace.model!.softwareSystems[0];
       final prod = system.deploymentEnvironments[0];
       final aws = prod.deploymentNodes[0];
-      
+
       expect(aws.infrastructureNodes.length, equals(1));
       final rds = aws.infrastructureNodes[0];
       expect(rds.id, equals('rds'));
@@ -277,7 +275,7 @@ void main() {
     });
 
     test('should parse explicitly defined relationships', () {
-      final source = '''
+      const source = '''
         workspace "Relationship Test" {
           model {
             user = person "User"
@@ -292,27 +290,27 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(source);
       final workspace = parser.parse();
-      
+
       expect(workspace.model!.relationships.length, equals(1));
-      
+
       final rel = workspace.model!.relationships[0];
       expect(rel.sourceId, equals('user'));
       expect(rel.destinationId, equals('system'));
       expect(rel.description, equals('Uses'));
       expect(rel.technology, equals('HTTP/JSON'));
       expect(rel.tags, isA<TagsNode>());
-      expect(rel.tags!.tags, contains('important'));
+      expect(rel.tags.tags, contains('important'));
       expect(rel.properties, isA<PropertiesNode>());
-      expect(rel.properties!.properties.length, equals(1));
-      expect(rel.properties!.properties[0].name, equals('weight'));
-      expect(rel.properties!.properties[0].value, equals('5'));
+      expect(rel.properties.properties.length, equals(1));
+      expect(rel.properties.properties[0].name, equals('weight'));
+      expect(rel.properties.properties[0].value, equals('5'));
     });
 
     test('should parse implicit relationships within elements', () {
-      final source = '''
+      const source = '''
         workspace "Implicit Relationship Test" {
           model {
             user = person "User"
@@ -322,13 +320,13 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(source);
       final workspace = parser.parse();
-      
+
       final system = workspace.model!.softwareSystems[0];
       expect(system.relationships.length, equals(1));
-      
+
       final rel = system.relationships[0];
       expect(rel.sourceId, equals('user'));
       expect(rel.destinationId, equals('this'));
@@ -336,7 +334,7 @@ void main() {
     });
 
     test('should parse views section', () {
-      final source = '''
+      const source = '''
         workspace "Views Test" {
           model {
             user = person "User"
@@ -356,21 +354,21 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(source);
       final workspace = parser.parse();
-      
+
       expect(workspace.views, isA<ViewsNode>());
       expect(workspace.views!.systemLandscapeViews.length, equals(1));
       expect(workspace.views!.systemContextViews.length, equals(1));
-      
+
       final landscape = workspace.views!.systemLandscapeViews[0];
       expect(landscape.key, equals('landscape'));
       expect(landscape.title, equals('Enterprise Landscape'));
       expect(landscape.includes.length, equals(1));
       expect(landscape.includes[0].expression, equals('*'));
       expect(landscape.autoLayout, isA<AutoLayoutNode>());
-      
+
       final context = workspace.views!.systemContextViews[0];
       expect(context.key, equals('context'));
       expect(context.systemId, equals('system'));
@@ -380,7 +378,7 @@ void main() {
     });
 
     test('should parse container and component views', () {
-      final source = '''
+      const source = '''
         workspace "Container Views Test" {
           model {
             system = softwareSystem "System"
@@ -400,24 +398,24 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(source);
       final workspace = parser.parse();
-      
+
       expect(workspace.views!.containerViews.length, equals(1));
       expect(workspace.views!.componentViews.length, equals(1));
-      
+
       final containerView = workspace.views!.containerViews[0];
       expect(containerView.key, equals('containers'));
       expect(containerView.systemId, equals('system'));
-      
+
       final componentView = workspace.views!.componentViews[0];
       expect(componentView.key, equals('components'));
       expect(componentView.containerId, equals('container'));
     });
 
     test('should parse dynamic views', () {
-      final source = '''
+      const source = '''
         workspace "Dynamic View Test" {
           model {
             user = person "User"
@@ -432,12 +430,12 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(source);
       final workspace = parser.parse();
-      
+
       expect(workspace.views!.dynamicViews.length, equals(1));
-      
+
       final dynamicView = workspace.views!.dynamicViews[0];
       expect(dynamicView.key, equals('dynamic'));
       expect(dynamicView.scope, equals('system'));
@@ -445,7 +443,7 @@ void main() {
     });
 
     test('should parse deployment views', () {
-      final source = '''
+      const source = '''
         workspace "Deployment View Test" {
           model {
             system = softwareSystem "System"
@@ -459,12 +457,12 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(source);
       final workspace = parser.parse();
-      
+
       expect(workspace.views!.deploymentViews.length, equals(1));
-      
+
       final deploymentView = workspace.views!.deploymentViews[0];
       expect(deploymentView.key, equals('deployment'));
       expect(deploymentView.systemId, equals('system'));
@@ -473,7 +471,7 @@ void main() {
     });
 
     test('should parse filtered views', () {
-      final source = '''
+      const source = '''
         workspace "Filtered View Test" {
           views {
             systemLandscape "landscape" {
@@ -487,12 +485,12 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(source);
       final workspace = parser.parse();
-      
+
       expect(workspace.views!.filteredViews.length, equals(1));
-      
+
       final filteredView = workspace.views!.filteredViews[0];
       expect(filteredView.key, equals('filtered'));
       expect(filteredView.baseViewKey, equals('landscape'));
@@ -504,7 +502,7 @@ void main() {
     });
 
     test('should parse styles section', () {
-      final source = '''
+      const source = '''
         workspace "Styles Test" {
           styles {
             element "person" {
@@ -528,14 +526,14 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(source);
       final workspace = parser.parse();
-      
+
       expect(workspace.styles, isA<StylesNode>());
       expect(workspace.styles!.elementStyles.length, equals(1));
       expect(workspace.styles!.relationshipStyles.length, equals(1));
-      
+
       final elementStyle = workspace.styles!.elementStyles[0];
       expect(elementStyle.tag, equals('person'));
       expect(elementStyle.shape, equals('Person'));
@@ -543,7 +541,7 @@ void main() {
       expect(elementStyle.color, equals('#FFFFFF'));
       expect(elementStyle.fontSize, equals(22));
       expect(elementStyle.border, equals('Dashed'));
-      
+
       final relationshipStyle = workspace.styles!.relationshipStyles[0];
       expect(relationshipStyle.tag, equals('Relationship'));
       expect(relationshipStyle.thickness, equals(4));
@@ -557,21 +555,22 @@ void main() {
     });
 
     test('should parse themes', () {
-      final source = '''
+      const source = '''
         workspace "Themes Test" {
           themes "https://static.structurizr.com/themes/default.json"
         }
       ''';
-      
+
       final parser = Parser(source);
       final workspace = parser.parse();
-      
+
       expect(workspace.themes.length, equals(1));
-      expect(workspace.themes[0].url, equals('https://static.structurizr.com/themes/default.json'));
+      expect(workspace.themes[0].url,
+          equals('https://static.structurizr.com/themes/default.json'));
     });
 
     test('should parse branding', () {
-      final source = '''
+      const source = '''
         workspace "Branding Test" {
           branding {
             logo "https://example.com/logo.png"
@@ -581,10 +580,10 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(source);
       final workspace = parser.parse();
-      
+
       expect(workspace.branding, isA<BrandingNode>());
       expect(workspace.branding!.logo, equals('https://example.com/logo.png'));
       expect(workspace.branding!.width, equals(400));
@@ -593,7 +592,7 @@ void main() {
     });
 
     test('should parse terminology', () {
-      final source = '''
+      const source = '''
         workspace "Terminology Test" {
           terminology {
             person "Individual"
@@ -605,10 +604,10 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(source);
       final workspace = parser.parse();
-      
+
       expect(workspace.terminology, isA<TerminologyNode>());
       expect(workspace.terminology!.person, equals('Individual'));
       expect(workspace.terminology!.softwareSystem, equals('Application'));
@@ -619,7 +618,7 @@ void main() {
     });
 
     test('should parse configuration', () {
-      final source = '''
+      const source = '''
         workspace "Configuration Test" {
           model {
             !identifiers hierarchical
@@ -633,57 +632,58 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(source);
       final workspace = parser.parse();
-      
+
       expect(workspace.views!.configuration.length, equals(2));
-      expect(workspace.views!.configuration['branding.logo'], equals('https://example.com/logo.png'));
+      expect(workspace.views!.configuration['branding.logo'],
+          equals('https://example.com/logo.png'));
       expect(workspace.views!.configuration['styles.opacity'], equals('80'));
     });
 
     group('Error Handling', () {
       test('should report error for missing workspace braces', () {
-        final source = '''
+        const source = '''
           workspace "Error Test"
         ''';
-        
+
         final parser = Parser(source);
         final workspace = parser.parse();
-        
+
         expect(parser.errorReporter.hasErrors, isTrue);
         expect(parser.errorReporter.errors.length, greaterThan(0));
       });
 
       test('should report error for invalid element type', () {
-        final source = '''
+        const source = '''
           workspace "Error Test" {
             model {
               unknownElement "Test"
             }
           }
         ''';
-        
+
         final parser = Parser(source);
         final workspace = parser.parse();
-        
+
         expect(parser.errorReporter.hasErrors, isTrue);
       });
 
       test('should report error for missing required elements', () {
-        final source = '''
+        const source = '''
           workspace {
           }
         ''';
-        
+
         final parser = Parser(source);
         final workspace = parser.parse();
-        
+
         expect(parser.errorReporter.hasErrors, isTrue);
       });
 
       test('should recover from syntax errors', () {
-        final source = '''
+        const source = '''
           workspace "Recovery Test" {
             model {
               // This is an error, but parsing should continue
@@ -694,10 +694,10 @@ void main() {
             }
           }
         ''';
-        
+
         final parser = Parser(source);
         final workspace = parser.parse();
-        
+
         expect(parser.errorReporter.hasErrors, isTrue);
         expect(workspace.model!.people.length, equals(1));
         expect(workspace.model!.people[0].id, equals('user'));
@@ -705,7 +705,7 @@ void main() {
     });
 
     test('should parse complex model with all elements', () {
-      final source = '''
+      const source = '''
         workspace "Complete Example" "Comprehensive example with all elements" {
           model {
             user = person "User" "A user of the system" {
@@ -839,21 +839,21 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(source);
       final workspace = parser.parse();
-      
+
       // Basic validations for complex model
       expect(workspace.name, equals('Complete Example'));
       expect(workspace.model!.people.length, equals(2));
       expect(workspace.model!.softwareSystems.length, equals(2));
       expect(workspace.model!.relationships.length, equals(3));
-      
-      final system = workspace.model!.softwareSystems
-          .firstWhere((s) => s.id == 'system');
+
+      final system =
+          workspace.model!.softwareSystems.firstWhere((s) => s.id == 'system');
       expect(system.containers.length, equals(3));
       expect(system.deploymentEnvironments.length, equals(1));
-      
+
       expect(workspace.views!.systemLandscapeViews.length, equals(1));
       expect(workspace.views!.systemContextViews.length, equals(1));
       expect(workspace.views!.containerViews.length, equals(1));
@@ -861,10 +861,10 @@ void main() {
       expect(workspace.views!.dynamicViews.length, equals(1));
       expect(workspace.views!.deploymentViews.length, equals(1));
       expect(workspace.views!.filteredViews.length, equals(1));
-      
+
       expect(workspace.styles!.elementStyles.length, equals(3));
       expect(workspace.styles!.relationshipStyles.length, equals(1));
-      
+
       expect(workspace.themes.length, equals(1));
       expect(workspace.branding!.logo, equals('https://example.com/logo.png'));
       expect(workspace.terminology!.person, equals('User'));

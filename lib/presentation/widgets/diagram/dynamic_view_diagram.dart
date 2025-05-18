@@ -4,8 +4,6 @@ import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/view/view.dart' hide View;
 import 'package:flutter_structurizr/presentation/widgets/diagram/animation_controls.dart';
 import 'package:flutter_structurizr/presentation/widgets/diagram/structurizr_diagram.dart';
-import 'package:flutter_structurizr/domain/model/model.dart' hide Container, Element;
-import 'package:flutter_structurizr/domain/style/styles.dart' hide Border;
 
 /// Configuration options for the DynamicViewDiagram widget
 class DynamicViewDiagramConfig {

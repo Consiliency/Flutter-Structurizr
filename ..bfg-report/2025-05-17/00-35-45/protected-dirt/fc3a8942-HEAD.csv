@@ -1,0 +1,8 @@
+5d94188a29dea903bb355857583b2661c54dd57f,MODIFY,regular-file,assets/fonts/OpenSans-Bold.ttf,279351,71;197
+13c0d030ec406b06d180f1dd5c6a77ea7feb886d,MODIFY,regular-file,assets/fonts/OpenSans-Regular.ttf,279361,71;197
+d2b6fbcf1664ac2a6dc50268249d8278380753fe,MODIFY,regular-file,lib/presentation/widgets/documentation/markdown_extensions.dart,19574,48;59;75
+741c009c6a4a2c55aaecfe59fa6dc8acee80e6fa,MODIFY,regular-file,lib/presentation/widgets/documentation/markdown_renderer.dart,18031,341-342
+5d94188a29dea903bb355857583b2661c54dd57f,MODIFY,regular-file,test_app/assets/fonts/OpenSans-Bold.ttf,279351,71;197
+13c0d030ec406b06d180f1dd5c6a77ea7feb886d,MODIFY,regular-file,test_app/assets/fonts/OpenSans-Regular.ttf,279361,71;197
+5d94188a29dea903bb355857583b2661c54dd57f,MODIFY,regular-file,test_app/test_app/assets/fonts/OpenSans-Bold.ttf,279351,71;197
+13c0d030ec406b06d180f1dd5c6a77ea7feb886d,MODIFY,regular-file,test_app/test_app/assets/fonts/OpenSans-Regular.ttf,279361,71;197

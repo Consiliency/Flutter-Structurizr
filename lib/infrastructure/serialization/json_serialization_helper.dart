@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/workspace.dart';
-import 'package:flutter_structurizr/domain/view/model_view.dart';
 
 /// Helper class for JSON serialization and deserialization.
 class JsonSerializationHelper {
@@ -20,7 +19,7 @@ class JsonSerializationHelper {
   
   /// Pretty prints a workspace as formatted JSON.
   static String prettyPrintWorkspace(Workspace workspace) {
-    final encoder = JsonEncoder.withIndent('  ');
+    const encoder = JsonEncoder.withIndent('  ');
     return encoder.convert(workspace.toJson());
   }
   
@@ -85,7 +84,7 @@ class JsonSerializationHelper {
         return errors;
       }
       
-      final map = decoded as Map<String, dynamic>;
+      final map = decoded;
       
       // Check required root fields
       if (!map.containsKey('id')) {

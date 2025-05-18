@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_structurizr/domain/model/model.dart';
 import 'package:flutter_structurizr/domain/model/workspace.dart';
-import 'package:flutter_structurizr/domain/view/view.dart';
 import 'package:flutter_structurizr/infrastructure/export/export_manager.dart';
 
 void main() {
@@ -36,7 +35,7 @@ class _C4ExportExampleState extends State<C4ExportExample> {
 
   void _setupWorkspace() {
     // Create a model
-    final model = Model();
+    const model = Model();
     
     // Add people
     final user = model.addPerson(
@@ -128,7 +127,7 @@ class _C4ExportExampleState extends State<C4ExportExample> {
     containerView.addNearestNeighbours(internetBankingSystem);
     
     // Create workspace
-    _workspace = Workspace('Banking System', 'Example workspace for banking system');
+    _workspace = const Workspace('Banking System', 'Example workspace for banking system');
     _workspace.model = model;
     _workspace.views = views;
   }
@@ -229,13 +228,13 @@ class _C4ExportExampleState extends State<C4ExportExample> {
                       }
                     },
                     items: [
-                      DropdownMenuItem(
+                      const DropdownMenuItem(
                         value: ExportFormat.c4json,
-                        child: const Text('C4 Model JSON'),
+                        child: Text('C4 Model JSON'),
                       ),
-                      DropdownMenuItem(
+                      const DropdownMenuItem(
                         value: ExportFormat.c4yaml,
-                        child: const Text('C4 Model YAML'),
+                        child: Text('C4 Model YAML'),
                       ),
                     ],
                   ),

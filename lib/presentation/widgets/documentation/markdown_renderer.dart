@@ -5,7 +5,8 @@ import 'package:markdown/markdown.dart' as md;
 import 'package:flutter_highlight/flutter_highlight.dart';
 import 'package:flutter_highlight/themes/github.dart';
 import 'package:flutter_structurizr/util/themes/github_dark.dart';
-import 'package:flutter_structurizr/presentation/widgets/documentation/markdown_extensions.dart' as md_ext;
+import 'package:flutter_structurizr/presentation/widgets/documentation/markdown_extensions.dart'
+    as md_ext;
 
 /// A custom syntax extension for embedding diagrams
 class DiagramSyntax extends md.InlineSyntax {
@@ -15,13 +16,13 @@ class DiagramSyntax extends md.InlineSyntax {
   bool onMatch(md.InlineParser parser, Match match) {
     final title = match[1]!;
     final viewKey = match[2]!;
-    
+
     // Parse optional parameters if present
     final params = <String, String>{};
     if (match.groupCount >= 3 && match[3] != null) {
       final paramString = match[3]!;
       final paramPairs = paramString.split('&');
-      
+
       for (final pair in paramPairs) {
         final parts = pair.split('=');
         if (parts.length == 2) {
@@ -29,7 +30,7 @@ class DiagramSyntax extends md.InlineSyntax {
         }
       }
     }
-    
+
     parser.addNode(DiagramElement(title, viewKey, params));
     return true;
   }
@@ -41,14 +42,15 @@ class DiagramElement extends md.Element {
   final String viewKey;
   final Map<String, String> params;
 
-  DiagramElement(this.title, this.viewKey, [this.params = const {}]) : super('diagram', []);
+  DiagramElement(this.title, this.viewKey, [this.params = const {}])
+      : super('diagram', []);
 
   /// Gets the width of the diagram, defaults to 'auto'
   String get width => params['width'] ?? 'auto';
-  
+
   /// Gets the height of the diagram, defaults to 'auto'
   String get height => params['height'] ?? 'auto';
-  
+
   /// Whether to show title for the diagram, defaults to true
   bool get showTitle => params['showTitle']?.toLowerCase() != 'false';
 
@@ -63,7 +65,7 @@ class EmbeddedDiagramBuilder extends MarkdownElementBuilder {
   final bool isDarkMode;
 
   EmbeddedDiagramBuilder({
-    this.workspace, 
+    this.workspace,
     this.onDiagramSelected,
     this.isDarkMode = false,
   });
@@ -80,12 +82,14 @@ class EmbeddedDiagramBuilder extends MarkdownElementBuilder {
               color: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300,
             ),
             borderRadius: BorderRadius.circular(4.0),
-            color: isDarkMode ? Colors.grey.shade800.withOpacity(0.3) : Colors.grey.shade50,
+            color: isDarkMode
+                ? Colors.grey.shade800.withValues(alpha: 0.3)
+                : Colors.grey.shade50,
           ),
           child: Row(
             children: [
               Icon(
-                Icons.insert_chart_outlined, 
+                Icons.insert_chart_outlined,
                 color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700,
               ),
               const SizedBox(width: 8),
@@ -94,7 +98,9 @@ class EmbeddedDiagramBuilder extends MarkdownElementBuilder {
                   'Diagram: ${element.title} (Workspace not available)',
                   style: TextStyle(
                     fontStyle: FontStyle.italic,
-                    color: isDarkMode ? Colors.grey.shade300 : Colors.grey.shade700,
+                    color: isDarkMode
+                        ? Colors.grey.shade300
+                        : Colors.grey.shade700,
                   ),
                 ),
               ),
@@ -104,9 +110,11 @@ class EmbeddedDiagramBuilder extends MarkdownElementBuilder {
       }
 
       // Apply width and height constraints if specified
-      final double? width = element.width == 'auto' ? null : double.tryParse(element.width);
-      final double? height = element.height == 'auto' ? null : double.tryParse(element.height);
-      
+      final double? width =
+          element.width == 'auto' ? null : double.tryParse(element.width);
+      final double? height =
+          element.height == 'auto' ? null : double.tryParse(element.height);
+
       // Create a button that shows the diagram when clicked
       return Container(
         width: width,
@@ -118,13 +126,11 @@ class EmbeddedDiagramBuilder extends MarkdownElementBuilder {
         margin: const EdgeInsets.symmetric(vertical: 16.0),
         decoration: BoxDecoration(
           border: Border.all(
-            color: isDarkMode 
-                ? Colors.blue.shade800
-                : Colors.blue.shade300,
+            color: isDarkMode ? Colors.blue.shade800 : Colors.blue.shade300,
           ),
           borderRadius: BorderRadius.circular(4.0),
-          color: isDarkMode 
-              ? Color(0xFF0D2C54).withOpacity(0.5)
+          color: isDarkMode
+              ? const Color(0xFF0D2C54).withValues(alpha: 0.5)
               : Colors.blue.shade50,
         ),
         child: InkWell(
@@ -143,7 +149,7 @@ class EmbeddedDiagramBuilder extends MarkdownElementBuilder {
                   Row(
                     children: [
                       Icon(
-                        Icons.account_tree, 
+                        Icons.account_tree,
                         color: isDarkMode ? Colors.blue.shade300 : Colors.blue,
                         size: 18,
                       ),
@@ -163,7 +169,6 @@ class EmbeddedDiagramBuilder extends MarkdownElementBuilder {
                   const Divider(height: 1),
                   const SizedBox(height: 8),
                 ],
-                
                 Expanded(
                   child: Center(
                     child: Column(
@@ -172,13 +177,17 @@ class EmbeddedDiagramBuilder extends MarkdownElementBuilder {
                         Icon(
                           Icons.preview,
                           size: 48,
-                          color: isDarkMode ? Colors.blue.shade200 : Colors.blue.shade300,
+                          color: isDarkMode
+                              ? Colors.blue.shade200
+                              : Colors.blue.shade300,
                         ),
                         const SizedBox(height: 12),
                         Text(
                           'Click to view diagram',
                           style: TextStyle(
-                            color: isDarkMode ? Colors.blue.shade200 : Colors.blue.shade700,
+                            color: isDarkMode
+                                ? Colors.blue.shade200
+                                : Colors.blue.shade700,
                             fontSize: 14,
                           ),
                         ),
@@ -186,8 +195,8 @@ class EmbeddedDiagramBuilder extends MarkdownElementBuilder {
                         Text(
                           '(${element.viewKey})',
                           style: TextStyle(
-                            color: isDarkMode 
-                                ? Colors.grey.shade400 
+                            color: isDarkMode
+                                ? Colors.grey.shade400
                                 : Colors.grey.shade600,
                             fontSize: 12,
                           ),
@@ -215,7 +224,7 @@ class SyntaxHighlighterBuilder extends MarkdownElementBuilder {
   @override
   Widget? visitElementAfter(md.Element element, TextStyle? preferredStyle) {
     String? language = element.attributes['class'];
-    
+
     if (language != null && language.startsWith('language-')) {
       language = language.substring(9); // Remove 'language-' prefix
     } else {
@@ -248,37 +257,37 @@ class SyntaxHighlighterBuilder extends MarkdownElementBuilder {
 class MarkdownRenderer extends StatelessWidget {
   /// The Markdown content to render.
   final String content;
-  
+
   /// Optional workspace for resolving diagram references.
   final Workspace? workspace;
-  
+
   /// Called when a diagram is selected.
   final Function(String)? onDiagramSelected;
-  
+
   /// Optional initial scroll position.
   final double initialScrollOffset;
-  
+
   /// Whether to apply section numbering to headers.
   final bool enableSectionNumbering;
-  
+
   /// Whether to use dark mode.
   final bool isDarkMode;
-  
+
   /// Additional extensions for markdown processing.
   final List<md.BlockSyntax>? blockSyntaxes;
-  
+
   /// Additional extensions for markdown processing.
   final List<md.InlineSyntax>? inlineSyntaxes;
-  
+
   /// Whether to enable task list support.
   final bool enableTaskLists;
-  
+
   /// Whether to enable enhanced image handling.
   final bool enableEnhancedImages;
-  
+
   /// Whether to show metadata blocks.
   final bool showMetadata;
-  
+
   /// Whether to cache images.
   final bool enableImageCaching;
 
@@ -307,7 +316,7 @@ class MarkdownRenderer extends StatelessWidget {
     );
 
     String processedContent = content;
-    
+
     // Add section numbering if enabled
     if (enableSectionNumbering) {
       processedContent = _addSectionNumbering(processedContent);
@@ -316,11 +325,11 @@ class MarkdownRenderer extends StatelessWidget {
     // Build the custom extension set
     final blockExtensions = <md.BlockSyntax>[
       if (blockSyntaxes != null) ...blockSyntaxes!,
-      md.FencedCodeBlockSyntax(),
+      const md.FencedCodeBlockSyntax(),
       if (enableTaskLists) md_ext.TaskListSyntax(),
       if (showMetadata) md_ext.MetadataBlockSyntax(),
     ];
-    
+
     final inlineExtensions = <md.InlineSyntax>[
       if (inlineSyntaxes != null) ...inlineSyntaxes!,
       DiagramSyntax(),
@@ -328,7 +337,7 @@ class MarkdownRenderer extends StatelessWidget {
       md_ext.KeyboardShortcutSyntax(),
       md.InlineHtmlSyntax(),
     ];
-    
+
     // Build the element builders map
     final builders = <String, MarkdownElementBuilder>{
       'code': SyntaxHighlighterBuilder(isDarkMode: isDarkMode),
@@ -340,17 +349,19 @@ class MarkdownRenderer extends StatelessWidget {
       'table': md_ext.EnhancedTableBuilder(isDarkMode: isDarkMode),
       'task-list': md_ext.TaskListBuilder(isDarkMode: isDarkMode),
       'task-list-item': md_ext.TaskListBuilder(isDarkMode: isDarkMode),
-      if (enableEnhancedImages) 'enhanced-image': md_ext.EnhancedImageBuilder(
-        isDarkMode: isDarkMode,
-        enableCaching: enableImageCaching,
-      ),
-      if (showMetadata) 'metadata': md_ext.MetadataBuilder(
-        isDarkMode: isDarkMode,
-        visible: showMetadata,
-      ),
+      if (enableEnhancedImages)
+        'enhanced-image': md_ext.EnhancedImageBuilder(
+          isDarkMode: isDarkMode,
+          enableCaching: enableImageCaching,
+        ),
+      if (showMetadata)
+        'metadata': md_ext.MetadataBuilder(
+          isDarkMode: isDarkMode,
+          visible: showMetadata,
+        ),
       'kbd': md_ext.KeyboardShortcutBuilder(isDarkMode: isDarkMode),
     };
-    
+
     return Markdown(
       controller: scrollController,
       data: processedContent,
@@ -391,9 +402,8 @@ class MarkdownRenderer extends StatelessWidget {
         code: theme.textTheme.bodySmall!.copyWith(
           color: isDarkMode ? Colors.lightBlue.shade300 : Colors.blue.shade700,
           fontFamily: 'monospace',
-          backgroundColor: isDarkMode 
-              ? Colors.grey.shade800 
-              : Colors.grey.shade200,
+          backgroundColor:
+              isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
         ),
         blockquote: theme.textTheme.bodyMedium!.copyWith(
           color: isDarkMode ? Colors.white54 : Colors.grey.shade700,
@@ -432,7 +442,7 @@ class MarkdownRenderer extends StatelessWidget {
   }
 
   /// Adds section numbering to the markdown headers.
-  /// 
+  ///
   /// This function adds hierarchical section numbers to markdown headers.
   /// For example:
   /// # Header -> # 1 Header
@@ -442,13 +452,13 @@ class MarkdownRenderer extends StatelessWidget {
     final lines = content.split('\n');
     final numbers = [0, 0, 0, 0, 0, 0]; // h1, h2, h3, h4, h5, h6
     final processedLines = <String>[];
-    
+
     bool isCodeBlock = false;
     String? codeBlockMarker;
-    
+
     for (var i = 0; i < lines.length; i++) {
       final line = lines[i];
-      
+
       // Skip numbering within code blocks
       if (line.trim().startsWith('```')) {
         if (!isCodeBlock) {
@@ -461,66 +471,66 @@ class MarkdownRenderer extends StatelessWidget {
         processedLines.add(line);
         continue;
       }
-      
+
       if (isCodeBlock) {
         processedLines.add(line);
         continue;
       }
-      
+
       // Check for ATX-style headers (# Header)
       final atxMatch = RegExp(r'^(#{1,6})\s+(.+)$').firstMatch(line);
       if (atxMatch != null) {
         final level = atxMatch.group(1)!.length - 1; // 0-based index
-        
+
         // Reset lower level counters
         for (var j = level + 1; j < numbers.length; j++) {
           numbers[j] = 0;
         }
-        
+
         // Increment the current level
         numbers[level]++;
-        
+
         // Build section number
-        final sectionNumber = numbers
-            .sublist(0, level + 1)
-            .where((num) => num > 0)
-            .join('.');
-        
+        final sectionNumber =
+            numbers.sublist(0, level + 1).where((num) => num > 0).join('.');
+
         // Replace the header
         final title = atxMatch.group(2)!;
         processedLines.add('${atxMatch.group(1)!} $sectionNumber $title');
         continue;
       }
-      
+
       // Check for Setext-style headers (Header\n===== or Header\n-----)
       if (i < lines.length - 1) {
         final nextLine = lines[i + 1];
-        
-        if (nextLine.startsWith('=') && nextLine.trim().replaceAll('=', '').isEmpty) {
+
+        if (nextLine.startsWith('=') &&
+            nextLine.trim().replaceAll('=', '').isEmpty) {
           // h1
           numbers[0]++;
-          
+
           // Reset all other counters
           for (var j = 1; j < numbers.length; j++) {
             numbers[j] = 0;
           }
-          
+
           // Replace the header and add both lines
           processedLines.add('# ${numbers[0]} ${lines[i]}');
           processedLines.add(nextLine);
           i++; // Skip the next line (underline)
           continue;
         }
-        
-        if (nextLine.startsWith('-') && nextLine.trim().replaceAll('-', '').isEmpty) {
+
+        if (nextLine.startsWith('-') &&
+            nextLine.trim().replaceAll('-', '').isEmpty) {
           // h2
           numbers[1]++;
-          
+
           // Reset lower level counters
           for (var j = 2; j < numbers.length; j++) {
             numbers[j] = 0;
           }
-          
+
           // Replace the header and add both lines
           processedLines.add('## ${numbers[0]}.${numbers[1]} ${lines[i]}');
           processedLines.add(nextLine);
@@ -528,11 +538,11 @@ class MarkdownRenderer extends StatelessWidget {
           continue;
         }
       }
-      
+
       // Not a header, add the line as is
       processedLines.add(line);
     }
-    
+
     return processedLines.join('\n');
   }
 }

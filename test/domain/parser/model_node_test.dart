@@ -36,7 +36,7 @@ void main() {
     test('addEnterprise sets enterprise name on model', () {
       final enterpriseNode = EnterpriseNode(
         name: 'Test Enterprise',
-        sourcePosition: SourcePosition(0, 0),
+        sourcePosition: const SourcePosition(0, 0),
       );
       
       final updatedModel = modelNode.addEnterprise(enterpriseNode);
@@ -51,7 +51,7 @@ void main() {
         name: 'User',
         description: 'A user of the system',
         relationships: [],
-        sourcePosition: SourcePosition(0, 0),
+        sourcePosition: const SourcePosition(0, 0),
       );
       
       final updatedModel = modelNode.addElement(personNode);
@@ -64,7 +64,7 @@ void main() {
         sourceId: 'source',
         destinationId: 'destination',
         description: 'relates to',
-        sourcePosition: SourcePosition(0, 0),
+        sourcePosition: const SourcePosition(0, 0),
       );
       
       final updatedModel = modelNode.addRelationship(relationshipNode);
@@ -77,7 +77,7 @@ void main() {
         sourceId: 'source',
         destinationId: 'destination',
         description: 'implied relationship',
-        sourcePosition: SourcePosition(0, 0),
+        sourcePosition: const SourcePosition(0, 0),
       );
       
       final updatedModel = modelNode.addImpliedRelationship(relationshipNode);

@@ -5,11 +5,18 @@ import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/person.dart';
 import 'package:flutter_structurizr/domain/model/software_system.dart';
 import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
-import 'package:flutter_structurizr/domain/parser/ast/ast.dart';
 import 'package:flutter_structurizr/domain/parser/reference_resolver.dart';
 import 'package:flutter_structurizr/domain/parser/views_parser/system_context_view_parser.dart';
 import 'package:flutter_structurizr/domain/view/view.dart';
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/view_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/include_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/exclude_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/auto_layout_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/animation_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/tags_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/properties_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/property_node.dart';
 
 class MockParserError implements ParserError {
   @override
@@ -153,6 +160,33 @@ class TestableWorkspaceBuilder extends WorkspaceBuilderImpl {
   @override
   void setDefaultsFromJava() {
     super.setDefaultsFromJava();
+  }
+}
+
+class TestableSystemContextViewParser extends SystemContextViewParser {
+  TestableSystemContextViewParser({
+    required super.errorReporter,
+    required super.referenceResolver,
+  });
+
+  @override
+  void handleIncludeAll(SystemContextViewNode viewNode) {
+    super.handleIncludeAll(viewNode);
+  }
+
+  @override
+  void handleIncludeExclude(SystemContextViewNode viewNode) {
+    super.handleIncludeExclude(viewNode);
+  }
+
+  @override
+  void populateDefaults(SystemContextViewNode viewNode) {
+    super.populateDefaults(viewNode);
+  }
+
+  @override
+  void setAdvancedFeatures(SystemContextViewNode viewNode) {
+    super.setAdvancedFeatures(viewNode);
   }
 }
 
@@ -1145,43 +1179,6 @@ void main() {
   });
   
   group('SystemContextViewParser.handleIncludeAll', () {
-    // Create mock classes to test internal parser methods
-    class TestableSystemContextViewParser extends SystemContextViewParser {
-      TestableSystemContextViewParser({
-        required super.errorReporter,
-        required super.referenceResolver,
-      });
-      
-      @override
-      void handleIncludeAll(SystemContextViewNode viewNode) {
-        super.handleIncludeAll(viewNode);
-      }
-      
-      @override
-      void handleIncludeExclude(SystemContextViewNode viewNode) {
-        super.handleIncludeExclude(viewNode);
-      }
-      
-      @override
-      void populateDefaults(SystemContextViewNode viewNode) {
-        super.populateDefaults(viewNode);
-      }
-      
-      @override
-      void setAdvancedFeatures(SystemContextViewNode viewNode) {
-        super.setAdvancedFeatures(viewNode);
-      }
-    }
-    
-    late TestableSystemContextViewParser testableParser;
-    
-    setUp(() {
-      testableParser = TestableSystemContextViewParser(
-        errorReporter: errorReporter,
-        referenceResolver: builder.referenceResolver,
-      );
-    });
-    
     test('adds all relevant elements when no include/exclude rules', () {
       // Arrange
       builder.createWorkspace(name: 'Test Workspace');
@@ -1238,27 +1235,6 @@ void main() {
   });
   
   group('SystemContextViewParser.handleIncludeExclude', () {
-    class TestableSystemContextViewParser extends SystemContextViewParser {
-      TestableSystemContextViewParser({
-        required super.errorReporter,
-        required super.referenceResolver,
-      });
-      
-      @override
-      void handleIncludeExclude(SystemContextViewNode viewNode) {
-        super.handleIncludeExclude(viewNode);
-      }
-    }
-    
-    late TestableSystemContextViewParser testableParser;
-    
-    setUp(() {
-      testableParser = TestableSystemContextViewParser(
-        errorReporter: errorReporter,
-        referenceResolver: builder.referenceResolver,
-      );
-    });
-    
     test('filters elements based on include rules', () {
       // Arrange
       builder.createWorkspace(name: 'Test Workspace');
@@ -1380,27 +1356,6 @@ void main() {
   });
   
   group('SystemContextViewParser.populateDefaults', () {
-    class TestableSystemContextViewParser extends SystemContextViewParser {
-      TestableSystemContextViewParser({
-        required super.errorReporter,
-        required super.referenceResolver,
-      });
-      
-      @override
-      void populateDefaults(SystemContextViewNode viewNode) {
-        super.populateDefaults(viewNode);
-      }
-    }
-    
-    late TestableSystemContextViewParser testableParser;
-    
-    setUp(() {
-      testableParser = TestableSystemContextViewParser(
-        errorReporter: errorReporter,
-        referenceResolver: builder.referenceResolver,
-      );
-    });
-    
     test('adds default elements to the view', () {
       // Arrange
       builder.createWorkspace(name: 'Test Workspace');
@@ -1437,27 +1392,6 @@ void main() {
   });
   
   group('SystemContextViewParser.setAdvancedFeatures', () {
-    class TestableSystemContextViewParser extends SystemContextViewParser {
-      TestableSystemContextViewParser({
-        required super.errorReporter,
-        required super.referenceResolver,
-      });
-      
-      @override
-      void setAdvancedFeatures(SystemContextViewNode viewNode) {
-        super.setAdvancedFeatures(viewNode);
-      }
-    }
-    
-    late TestableSystemContextViewParser testableParser;
-    
-    setUp(() {
-      testableParser = TestableSystemContextViewParser(
-        errorReporter: errorReporter,
-        referenceResolver: builder.referenceResolver,
-      );
-    });
-    
     test('sets advanced features on the view node', () {
       // Arrange
       builder.createWorkspace(name: 'Test Workspace');

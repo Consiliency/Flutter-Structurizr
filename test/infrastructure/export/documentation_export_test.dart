@@ -313,7 +313,7 @@ Workspace _createWorkspaceWithDocumentation({
   return Workspace(
     id: 1,
     name: 'Test Workspace',
-    model: Model(),
+    model: const Model(),
     documentation: Documentation(
       sections: sections,
       decisions: decisions,

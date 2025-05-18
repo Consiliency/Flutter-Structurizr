@@ -10,3 +10,18 @@ import 'package:flutter_structurizr/domain/model/model.dart' as structurizr_mode
 Container(...)
 // Use domain model's Container
 structurizr_model.Container(...)
+
+# Import Conflict Resolution
+
+- Always use `hide` directives to avoid conflicts with Flutter built-ins (Container, Element, View, Border).
+- Use alias types (ModelElement, ModelContainer, ModelView) for domain model classes.
+- Prefer Material or SizedBox over Container for UI layout when conflicts arise.
+- For UI components that need to import all four, use:
+  ```dart
+  import 'package:flutter/material.dart' hide Container, Element, View, Border;
+  ```
+- For class references, use these alias types:
+  - **ModelElement** instead of Element
+  - **ModelContainer** instead of Container
+  - **ModelView** instead of View
+- Replace Flutter's Container with Material or SizedBox for similar functionality.

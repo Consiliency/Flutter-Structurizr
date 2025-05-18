@@ -1,7 +1,9 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_structurizr/domain/parser/ast/ast_base.dart';
-import 'package:flutter_structurizr/domain/parser/ast/nodes/model_node.dart';
+import 'package:test/test.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/group_node.dart';
 import 'package:flutter_structurizr/domain/parser/ast/nodes/model_element_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/property_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/properties_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/source_position.dart';
 import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 
 void main() {
@@ -10,21 +12,21 @@ void main() {
     
     setUp(() {
       groupNode = GroupNode(
+        const SourcePosition(line: 0, column: 0),
         name: 'TestGroup',
         elements: [],
         children: [],
         relationships: [],
-        sourcePosition: SourcePosition(0, 0),
       );
     });
     
     group('addElement method', () {
       test('adds person element to empty group', () {
         final personNode = PersonNode(
+          const SourcePosition(line: 0, column: 0),
           id: 'person1',
           name: 'Person1',
           relationships: [],
-          sourcePosition: SourcePosition(0, 0),
         );
         
         final updatedGroup = groupNode.addElement(personNode);
@@ -35,11 +37,11 @@ void main() {
 
       test('adds software system element to group', () {
         final systemNode = SoftwareSystemNode(
+          const SourcePosition(line: 0, column: 0),
           id: 'system1',
           name: 'System1',
           containers: [],
           relationships: [],
-          sourcePosition: SourcePosition(0, 0),
         );
         
         final updatedGroup = groupNode.addElement(systemNode);
@@ -50,18 +52,18 @@ void main() {
 
       test('adds multiple elements to group', () {
         final person = PersonNode(
+          const SourcePosition(line: 0, column: 0),
           id: 'person1',
           name: 'Person1',
           relationships: [],
-          sourcePosition: SourcePosition(0, 0),
         );
         
         final system = SoftwareSystemNode(
+          const SourcePosition(line: 1, column: 0),
           id: 'system1',
           name: 'System1',
           containers: [],
           relationships: [],
-          sourcePosition: SourcePosition(1, 0),
         );
         
         final updatedGroup1 = groupNode.addElement(person);
@@ -74,28 +76,28 @@ void main() {
 
       test('preserves other group properties when adding element', () {
         final groupWithProperties = GroupNode(
+          const SourcePosition(line: 0, column: 0),
           name: 'GroupWithProps',
           elements: [],
           children: [],
           relationships: [],
           properties: PropertiesNode(
+            const SourcePosition(line: 0, column: 0),
             properties: [
               PropertyNode(
+                const SourcePosition(line: 0, column: 0),
                 name: 'key',
                 value: 'value',
-                sourcePosition: SourcePosition(0, 0),
               ),
             ],
-            sourcePosition: SourcePosition(0, 0),
           ),
-          sourcePosition: SourcePosition(0, 0),
         );
         
         final person = PersonNode(
+          const SourcePosition(line: 1, column: 0),
           id: 'person1',
           name: 'Person1',
           relationships: [],
-          sourcePosition: SourcePosition(1, 0),
         );
         
         final updatedGroup = groupWithProperties.addElement(person);
@@ -103,24 +105,24 @@ void main() {
         expect(updatedGroup.elements.length, equals(1));
         expect(updatedGroup.elements.first, equals(person));
         expect(updatedGroup.properties, isNotNull);
-        expect(updatedGroup.properties!.properties.length, equals(1));
-        expect(updatedGroup.properties!.properties.first.name, equals('key'));
-        expect(updatedGroup.properties!.properties.first.value, equals('value'));
+        expect(updatedGroup.properties.properties.length, equals(1));
+        expect(updatedGroup.properties.properties.first.name, equals('key'));
+        expect(updatedGroup.properties.properties.first.value, equals('value'));
       });
 
       test('handles adding element with same ID by adding a duplicate', () {
         final person1 = PersonNode(
+          const SourcePosition(line: 0, column: 0),
           id: 'duplicate',
           name: 'Person1',
           relationships: [],
-          sourcePosition: SourcePosition(0, 0),
         );
         
         final person2 = PersonNode(
+          const SourcePosition(line: 1, column: 0),
           id: 'duplicate',
           name: 'Person2',
           relationships: [],
-          sourcePosition: SourcePosition(1, 0),
         );
         
         final updatedGroup1 = groupNode.addElement(person1);
@@ -150,7 +152,7 @@ void main() {
         
         expect(updatedGroup.properties, isNotNull);
         
-        final property = updatedGroup.properties!.properties.firstWhere(
+        final property = updatedGroup.properties.properties.firstWhere(
           (p) => p.name == 'key1',
           orElse: () => PropertyNode(sourcePosition: null),
         );
@@ -164,7 +166,7 @@ void main() {
         
         expect(updatedGroup.properties, isNotNull);
         
-        final property = updatedGroup.properties!.properties.firstWhere(
+        final property = updatedGroup.properties.properties.firstWhere(
           (p) => p.name == 'count',
           orElse: () => PropertyNode(sourcePosition: null),
         );
@@ -178,7 +180,7 @@ void main() {
         
         expect(updatedGroup.properties, isNotNull);
         
-        final property = updatedGroup.properties!.properties.firstWhere(
+        final property = updatedGroup.properties.properties.firstWhere(
           (p) => p.name == 'enabled',
           orElse: () => PropertyNode(sourcePosition: null),
         );
@@ -192,9 +194,9 @@ void main() {
         final updatedGroup2 = updatedGroup1.setProperty('key', 'value2');
         
         expect(updatedGroup2.properties, isNotNull);
-        expect(updatedGroup2.properties!.properties.length, equals(1));
+        expect(updatedGroup2.properties.properties.length, equals(1));
         
-        final property = updatedGroup2.properties!.properties.first;
+        final property = updatedGroup2.properties.properties.first;
         expect(property.name, equals('key'));
         expect(property.value, equals('value2'));
       });
@@ -204,12 +206,12 @@ void main() {
         final updatedGroup2 = updatedGroup1.setProperty('key2', 'value2');
         
         expect(updatedGroup2.properties, isNotNull);
-        expect(updatedGroup2.properties!.properties.length, equals(2));
+        expect(updatedGroup2.properties.properties.length, equals(2));
         
-        final property1 = updatedGroup2.properties!.properties.firstWhere(
+        final property1 = updatedGroup2.properties.properties.firstWhere(
           (p) => p.name == 'key1',
         );
-        final property2 = updatedGroup2.properties!.properties.firstWhere(
+        final property2 = updatedGroup2.properties.properties.firstWhere(
           (p) => p.name == 'key2',
         );
         
@@ -219,10 +221,10 @@ void main() {
 
       test('preserves other group data when setting property', () {
         final element = PersonNode(
+          const SourcePosition(line: 0, column: 0),
           id: 'person1',
           name: 'Person1',
           relationships: [],
-          sourcePosition: SourcePosition(0, 0),
         );
         
         final groupWithElement = groupNode.addElement(element);
@@ -232,7 +234,7 @@ void main() {
         expect(updatedGroup.elements.first, equals(element));
         expect(updatedGroup.properties, isNotNull);
         
-        final property = updatedGroup.properties!.properties.first;
+        final property = updatedGroup.properties.properties.first;
         expect(property.name, equals('key'));
         expect(property.value, equals('value'));
       });
@@ -256,17 +258,15 @@ void main() {
           // If implemented to handle null values
           expect(updatedGroup, isA<GroupNode>());
           
-          if (updatedGroup.properties != null) {
-            final property = updatedGroup.properties!.properties.firstWhere(
-              (p) => p.name == 'key',
-              orElse: () => PropertyNode(sourcePosition: null),
-            );
-            
-            if (property.sourcePosition != null) {
-              expect(property.value, isNull);
-            }
+          final property = updatedGroup.properties.properties.firstWhere(
+            (p) => p.name == 'key',
+            orElse: () => PropertyNode(sourcePosition: null),
+          );
+          
+          if (property.sourcePosition != null) {
+            expect(property.value, isNull);
           }
-        } catch (e) {
+                } catch (e) {
           // If null values are not allowed
           expect(e, isA<Error>());
         }

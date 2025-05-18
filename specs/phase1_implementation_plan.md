@@ -247,3 +247,7 @@ API documentation for core model classes.
 - ✅ Serialization working correctly
 - ✅ Immutability and extension methods functioning as expected
 - ✅ Type aliases correctly handling naming conflicts
+
+## Method Relationship Table Reference
+
+See the main implementation spec for the method relationship tables and build order. All model and element methods are implemented as per Table 2 (Model Node/Group/Enterprise/Element Foundation).

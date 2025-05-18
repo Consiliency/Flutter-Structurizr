@@ -114,7 +114,7 @@ class ManualLayout implements LayoutStrategy {
     for (final entry in positions.entries) {
       final id = entry.key;
       final position = entry.value;
-      final size = sizes[id] ?? Size(100, 100);
+      final size = sizes[id] ?? const Size(100, 100);
 
       minX = min(minX, position.dx);
       minY = min(minY, position.dy);

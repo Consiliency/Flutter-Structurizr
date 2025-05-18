@@ -1,5 +1,4 @@
 import 'package:flutter_structurizr/presentation/layout/grid_layout.dart';
-import 'package:flutter_structurizr/presentation/layout/layout_strategy.dart';
 import 'package:flutter_structurizr/presentation/layout/manual_layout.dart';
 import 'package:flutter_structurizr/domain/view/view.dart';
 import 'package:flutter/material.dart' hide Element, Container, View;
@@ -22,8 +21,9 @@ void main() {
       );
 
       final elementViews = [
-        ElementView(id: 'element1'), // Intentionally null x,y to test that manual positions take precedence
-        ElementView(id: 'element2'),
+        const ElementView(
+            id: 'element1'), // Intentionally null x,y to test that manual positions take precedence
+        const ElementView(id: 'element2'),
       ];
 
       final elementSizes = {
@@ -58,9 +58,12 @@ void main() {
         manualPositions: manualPositions,
       );
 
-      final elementViewPosition = const Offset(300, 400);
+      const elementViewPosition = Offset(300, 400);
       final elementViews = [
-        ElementView(id: 'element1', x: elementViewPosition.dx.toInt(), y: elementViewPosition.dy.toInt()),
+        ElementView(
+            id: 'element1',
+            x: elementViewPosition.dx.toInt(),
+            y: elementViewPosition.dy.toInt()),
       ];
 
       final elementSizes = {
@@ -96,8 +99,8 @@ void main() {
       );
 
       final elementViews = [
-        ElementView(id: 'element1'),
-        ElementView(id: 'element2'), // No manual position for this one
+        const ElementView(id: 'element1'),
+        const ElementView(id: 'element2'), // No manual position for this one
       ];
 
       final elementSizes = {
@@ -135,8 +138,8 @@ void main() {
       );
 
       final elementViews = [
-        ElementView(id: 'element1'),
-        ElementView(id: 'element2'), // No manual position for this one
+        const ElementView(id: 'element1'),
+        const ElementView(id: 'element2'), // No manual position for this one
       ];
 
       final elementSizes = {
@@ -155,14 +158,15 @@ void main() {
       // Assert
       expect(positions.length, 1); // Only one element has a position
       expect(positions['element1'], equals(manualPositions['element1']));
-      expect(positions.containsKey('element2'), false); // No position for element2
+      expect(
+          positions.containsKey('element2'), false); // No position for element2
     });
 
     test('fromElementViews should create layout correctly', () {
       // Arrange
       final elementViews = [
-        ElementView(id: 'element1', x: 100, y: 200),
-        ElementView(id: 'element2', x: 300, y: 400),
+        const ElementView(id: 'element1', x: 100, y: 200),
+        const ElementView(id: 'element2', x: 300, y: 400),
       ];
 
       final fallbackStrategy = GridLayout();
@@ -300,12 +304,14 @@ void main() {
 
       // Reset layout
       layout.clearAllPositions();
-      expect(layout.calculateLayout(
-        elementViews: <ElementView>[],
-        relationshipViews: <RelationshipView>[],
-        canvasSize: const Size(800, 600),
-        elementSizes: {},
-      ), isEmpty);
+      expect(
+          layout.calculateLayout(
+            elementViews: <ElementView>[],
+            relationshipViews: <RelationshipView>[],
+            canvasSize: const Size(800, 600),
+            elementSizes: {},
+          ),
+          isEmpty);
 
       // Import positions
       layout.importPositions(exportedPositions);

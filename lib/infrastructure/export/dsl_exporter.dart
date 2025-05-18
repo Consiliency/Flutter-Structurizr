@@ -100,7 +100,7 @@ class DslExporter implements DiagramExporter<String> {
       }
       
       // Add styles section if requested
-      if (includeStyles && workspace.styles != null) {
+      if (includeStyles) {
         _generateStylesSection(buffer, workspace);
       }
       
@@ -172,105 +172,101 @@ class DslExporter implements DiagramExporter<String> {
   void _generateViewsSection(StringBuffer buffer, Workspace workspace) {
     buffer.writeln('${indent}views {');
     
-    if (workspace.views != null) {
-      // Add system landscape views
-      if (workspace.views!.systemLandscapeViews.isNotEmpty) {
-        buffer.writeln();
-        buffer.writeln('${indent}${indent}# System Landscape Views');
-        
-        for (final view in workspace.views!.systemLandscapeViews) {
-          _generateSystemLandscapeViewDefinition(buffer, view, '${indent}${indent}');
-        }
-      }
+    // Add system landscape views
+    if (workspace.views.systemLandscapeViews.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln('${indent}${indent}# System Landscape Views');
       
-      // Add system context views
-      if (workspace.views!.systemContextViews.isNotEmpty) {
-        buffer.writeln();
-        buffer.writeln('${indent}${indent}# System Context Views');
-        
-        for (final view in workspace.views!.systemContextViews) {
-          _generateSystemContextViewDefinition(buffer, view, '${indent}${indent}');
-        }
+      for (final view in workspace.views.systemLandscapeViews) {
+        _generateSystemLandscapeViewDefinition(buffer, view, '${indent}${indent}');
       }
-      
-      // Add container views
-      if (workspace.views!.containerViews.isNotEmpty) {
-        buffer.writeln();
-        buffer.writeln('${indent}${indent}# Container Views');
-        
-        for (final view in workspace.views!.containerViews) {
-          _generateContainerViewDefinition(buffer, view, '${indent}${indent}');
-        }
-      }
-      
-      // Add component views
-      if (workspace.views!.componentViews.isNotEmpty) {
-        buffer.writeln();
-        buffer.writeln('${indent}${indent}# Component Views');
-        
-        for (final view in workspace.views!.componentViews) {
-          _generateComponentViewDefinition(buffer, view, '${indent}${indent}');
-        }
-      }
-      
-      // Add dynamic views
-      if (workspace.views!.dynamicViews.isNotEmpty) {
-        buffer.writeln();
-        buffer.writeln('${indent}${indent}# Dynamic Views');
-        
-        for (final view in workspace.views!.dynamicViews) {
-          _generateDynamicViewDefinition(buffer, view, '${indent}${indent}');
-        }
-      }
-      
-      // Add deployment views
-      if (workspace.views!.deploymentViews.isNotEmpty) {
-        buffer.writeln();
-        buffer.writeln('${indent}${indent}# Deployment Views');
-        
-        for (final view in workspace.views!.deploymentViews) {
-          _generateDeploymentViewDefinition(buffer, view, '${indent}${indent}');
-        }
-      }
-      
-      // Add configuration
-      _generateViewsConfigurationDefinition(buffer, workspace, '${indent}${indent}');
     }
     
+    // Add system context views
+    if (workspace.views.systemContextViews.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln('${indent}${indent}# System Context Views');
+      
+      for (final view in workspace.views.systemContextViews) {
+        _generateSystemContextViewDefinition(buffer, view, '${indent}${indent}');
+      }
+    }
+    
+    // Add container views
+    if (workspace.views.containerViews.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln('${indent}${indent}# Container Views');
+      
+      for (final view in workspace.views.containerViews) {
+        _generateContainerViewDefinition(buffer, view, '${indent}${indent}');
+      }
+    }
+    
+    // Add component views
+    if (workspace.views.componentViews.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln('${indent}${indent}# Component Views');
+      
+      for (final view in workspace.views.componentViews) {
+        _generateComponentViewDefinition(buffer, view, '${indent}${indent}');
+      }
+    }
+    
+    // Add dynamic views
+    if (workspace.views.dynamicViews.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln('${indent}${indent}# Dynamic Views');
+      
+      for (final view in workspace.views.dynamicViews) {
+        _generateDynamicViewDefinition(buffer, view, '${indent}${indent}');
+      }
+    }
+    
+    // Add deployment views
+    if (workspace.views.deploymentViews.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln('${indent}${indent}# Deployment Views');
+      
+      for (final view in workspace.views.deploymentViews) {
+        _generateDeploymentViewDefinition(buffer, view, '${indent}${indent}');
+      }
+    }
+    
+    // Add configuration
+    _generateViewsConfigurationDefinition(buffer, workspace, '${indent}${indent}');
+      
     buffer.writeln('${indent}}');
     buffer.writeln();
   }
 
   /// Generates the styles section in DSL
   void _generateStylesSection(StringBuffer buffer, Workspace workspace) {
-    if (workspace.styles != null) {
-      buffer.writeln('${indent}styles {');
+    buffer.writeln('${indent}styles {');
+    
+    final styles = workspace.styles;
+    
+    // Output element styles
+    if (styles.elements.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln('${indent}${indent}# Element Styles');
       
-      final styles = workspace.styles;
-      
-      // Output element styles
-      if (styles.elements.isNotEmpty) {
-        buffer.writeln();
-        buffer.writeln('${indent}${indent}# Element Styles');
-        
-        for (final style in styles.elements) {
-          _generateElementStyleDefinition(buffer, style, '${indent}${indent}');
-        }
+      for (final style in styles.elements) {
+        _generateElementStyleDefinition(buffer, style, '${indent}${indent}');
       }
-      
-      // Output relationship styles
-      if (styles.relationships.isNotEmpty) {
-        buffer.writeln();
-        buffer.writeln('${indent}${indent}# Relationship Styles');
-        
-        for (final style in styles.relationships) {
-          _generateRelationshipStyleDefinition(buffer, style, '${indent}${indent}');
-        }
-      }
-      
-      buffer.writeln('${indent}}');
     }
-  }
+    
+    // Output relationship styles
+    if (styles.relationships.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln('${indent}${indent}# Relationship Styles');
+      
+      for (final style in styles.relationships) {
+        _generateRelationshipStyleDefinition(buffer, style, '${indent}${indent}');
+      }
+    }
+    
+    buffer.writeln('${indent}}');
+    }
 
   /// Generates a person definition in DSL
   void _generatePersonDefinition(StringBuffer buffer, Person person, String indentation) {
@@ -285,13 +281,13 @@ class DslExporter implements DiagramExporter<String> {
     buffer.writeln(' {');
     
     // Add tags
-    if (person.tags != null && person.tags!.isNotEmpty) {
-      buffer.writeln('${indentation}${indent}tags "${_escapeString(person.tags!.join(', '))}"');
+    if (person.tags.isNotEmpty) {
+      buffer.writeln('${indentation}${indent}tags "${_escapeString(person.tags.join(', '))}"');
     }
     
     // Add custom properties
-    if (person.properties != null && person.properties!.isNotEmpty) {
-      for (final entry in person.properties!.entries) {
+    if (person.properties.isNotEmpty) {
+      for (final entry in person.properties.entries) {
         buffer.writeln('${indentation}${indent}properties {');
         buffer.writeln('${indentation}${indent}${indent}"${_escapeString(entry.key)}" "${_escapeString(entry.value)}"');
         buffer.writeln('${indentation}${indent}}');
@@ -325,18 +321,18 @@ class DslExporter implements DiagramExporter<String> {
     buffer.writeln(' {');
     
     // Add tags
-    if (system.tags != null && system.tags!.isNotEmpty) {
-      buffer.writeln('${indentation}${indent}tags "${_escapeString(system.tags!.join(', '))}"');
+    if (system.tags.isNotEmpty) {
+      buffer.writeln('${indentation}${indent}tags "${_escapeString(system.tags.join(', '))}"');
     }
     
     // Add location
-    if (system.location != null && system.location!.isNotEmpty) {
-      buffer.writeln('${indentation}${indent}location "${_escapeString(system.location!)}"');
+    if (system.location.isNotEmpty) {
+      buffer.writeln('${indentation}${indent}location "${_escapeString(system.location)}"');
     }
     
     // Add custom properties
-    if (system.properties != null && system.properties!.isNotEmpty) {
-      for (final entry in system.properties!.entries) {
+    if (system.properties.isNotEmpty) {
+      for (final entry in system.properties.entries) {
         buffer.writeln('${indentation}${indent}properties {');
         buffer.writeln('${indentation}${indent}${indent}"${_escapeString(entry.key)}" "${_escapeString(entry.value)}"');
         buffer.writeln('${indentation}${indent}}');
@@ -557,8 +553,8 @@ class DslExporter implements DiagramExporter<String> {
   void _generateRelationshipDefinition(StringBuffer buffer, Relationship relationship, String indentation) {
     buffer.write('${indentation}-> ${relationship.destinationId} ');
     
-    if (relationship.description != null && relationship.description!.isNotEmpty) {
-      buffer.write('"${_escapeString(relationship.description!)}" ');
+    if (relationship.description.isNotEmpty) {
+      buffer.write('"${_escapeString(relationship.description)}" ');
     } else {
       buffer.write('"Uses" ');
     }
@@ -822,7 +818,7 @@ class DslExporter implements DiagramExporter<String> {
     }
     
     // Add terminology if available
-    if (workspace.configuration?.properties?.containsKey('terminology') == true) {
+    if (workspace.configuration?.properties.containsKey('terminology') == true) {
       buffer.writeln('${indentation}${indent}terminology {');
       // Add custom terminology definitions here if available
       buffer.writeln('${indentation}${indent}}');
@@ -854,24 +850,18 @@ class DslExporter implements DiagramExporter<String> {
       buffer.writeln('${indentation}${indent}fontSize ${style.fontSize}');
     }
     
-    if (style.shape != null) {
-      final shapeStr = style.shape.toString().split('.').last;
-      buffer.writeln('${indentation}${indent}shape "$shapeStr"');
-    }
-    
+    final shapeStr = style.shape.toString().split('.').last;
+    buffer.writeln('${indentation}${indent}shape "$shapeStr"');
+      
     if (style.icon != null && style.icon!.isNotEmpty) {
       buffer.writeln('${indentation}${indent}icon "${_escapeString(style.icon!)}"');
     }
     
-    if (style.border != null) {
-      final borderStr = style.border.toString().split('.').last;
-      buffer.writeln('${indentation}${indent}border "$borderStr"');
-    }
-    
-    if (style.opacity != null) {
-      buffer.writeln('${indentation}${indent}opacity ${style.opacity}');
-    }
-    
+    final borderStr = style.border.toString().split('.').last;
+    buffer.writeln('${indentation}${indent}border "$borderStr"');
+      
+    buffer.writeln('${indentation}${indent}opacity ${style.opacity}');
+      
     if (style.width != null) {
       buffer.writeln('${indentation}${indent}width ${style.width}');
     }
@@ -890,19 +880,15 @@ class DslExporter implements DiagramExporter<String> {
     buffer.writeln('{');
     
     // Add style properties
-    if (style.thickness != null) {
-      buffer.writeln('${indentation}${indent}thickness ${style.thickness}');
-    }
-    
+    buffer.writeln('${indentation}${indent}thickness ${style.thickness}');
+      
     if (style.color != null) {
       final colorStr = style.color.toString();
       buffer.writeln('${indentation}${indent}color "$colorStr"');
     }
     
-    if (style.routing != null) {
-      buffer.writeln('${indentation}${indent}routing ${style.routing}');
-    }
-    
+    buffer.writeln('${indentation}${indent}routing ${style.routing}');
+      
     if (style.fontSize != null) {
       buffer.writeln('${indentation}${indent}fontSize ${style.fontSize}');
     }
@@ -911,10 +897,8 @@ class DslExporter implements DiagramExporter<String> {
       buffer.writeln('${indentation}${indent}width ${style.width}');
     }
     
-    if (style.position != null) {
-      buffer.writeln('${indentation}${indent}position ${style.position}');
-    }
-    
+    buffer.writeln('${indentation}${indent}position ${style.position}');
+      
     buffer.writeln('${indentation}}');
   }
 

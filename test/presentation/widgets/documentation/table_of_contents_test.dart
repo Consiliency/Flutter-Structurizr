@@ -7,28 +7,28 @@ void main() {
   group('TableOfContents', () {
     // Test data
     final sections = [
-      DocumentationSection(
+      const DocumentationSection(
         title: '1. Introduction',
         content: '# Introduction',
         order: 1,
       ),
-      DocumentationSection(
+      const DocumentationSection(
         title: '1.1. Getting Started',
         content: '# Getting Started',
         order: 2,
       ),
-      DocumentationSection(
+      const DocumentationSection(
         title: '1.2. Installation',
         content: '# Installation',
         order: 3,
       ),
-      DocumentationSection(
+      const DocumentationSection(
         title: '2. Architecture',
         content: '# Architecture',
         order: 4,
         elementId: 'system-1',
       ),
-      DocumentationSection(
+      const DocumentationSection(
         title: '2.1. Components',
         content: '# Components',
         order: 5,

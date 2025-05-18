@@ -32,13 +32,13 @@ class DocumentationNavigatorController extends ChangeNotifier {
 
   /// Whether the content panel is expanded (hiding the table of contents).
   bool _contentExpanded = false;
-  
+
   /// Navigation history stack
   final List<_NavigationHistoryEntry> _history = [];
-  
+
   /// Current position in history stack
   int _historyPosition = -1;
-  
+
   /// Maximum history size
   static const int _maxHistorySize = 50;
 
@@ -56,13 +56,13 @@ class DocumentationNavigatorController extends ChangeNotifier {
 
   /// Whether the content panel is expanded.
   bool get contentExpanded => _contentExpanded;
-  
+
   /// Whether navigation can go back in history
   bool get canGoBack => _historyPosition > 0;
-  
+
   /// Whether navigation can go forward in history
   bool get canGoForward => _historyPosition < _history.length - 1;
-  
+
   /// Adds an entry to the navigation history.
   void _addToHistory() {
     // Create a new history entry
@@ -71,23 +71,23 @@ class DocumentationNavigatorController extends ChangeNotifier {
       sectionIndex: _currentSectionIndex,
       decisionIndex: _currentDecisionIndex,
     );
-    
+
     // If this is the first entry, simply add it
     if (_history.isEmpty) {
       _history.add(entry);
       _historyPosition = 0;
       return;
     }
-    
+
     // If we're in the middle of the history stack, remove all forward entries
     if (_historyPosition < _history.length - 1) {
       _history.removeRange(_historyPosition + 1, _history.length);
     }
-    
+
     // Add the new entry
     _history.add(entry);
     _historyPosition = _history.length - 1;
-    
+
     // Limit history size
     if (_history.length > _maxHistorySize) {
       _history.removeAt(0);
@@ -101,11 +101,11 @@ class DocumentationNavigatorController extends ChangeNotifier {
     if (index < 0) {
       return;
     }
-    
+
     _currentSectionIndex = index;
     _viewMode = DocumentationViewMode.documentation;
-    
-    // Initialize history on first navigation 
+
+    // Initialize history on first navigation
     if (_history.isEmpty) {
       _addToHistory();
     } else {
@@ -120,11 +120,11 @@ class DocumentationNavigatorController extends ChangeNotifier {
     if (index < 0) {
       return;
     }
-    
+
     _currentDecisionIndex = index;
     _viewMode = DocumentationViewMode.decisions;
-    
-    // Initialize history on first navigation 
+
+    // Initialize history on first navigation
     if (_history.isEmpty) {
       _addToHistory();
     } else {
@@ -163,7 +163,7 @@ class DocumentationNavigatorController extends ChangeNotifier {
   /// Switches between documentation and decisions view.
   void toggleDecisionsView() {
     DocumentationViewMode newMode;
-    
+
     if (_viewMode == DocumentationViewMode.documentation) {
       newMode = DocumentationViewMode.decisions;
       // Ensure decision index is valid
@@ -176,7 +176,7 @@ class DocumentationNavigatorController extends ChangeNotifier {
       // From other views, go back to documentation
       newMode = DocumentationViewMode.documentation;
     }
-    
+
     if (_viewMode != newMode) {
       _viewMode = newMode;
       _addToHistory();
@@ -189,47 +189,48 @@ class DocumentationNavigatorController extends ChangeNotifier {
     _contentExpanded = !_contentExpanded;
     notifyListeners();
   }
-  
+
   /// Navigate back in history
   bool goBack() {
     if (!canGoBack) {
       return false;
     }
-    
+
     _historyPosition--;
     _applyHistoryEntry(_history[_historyPosition]);
     notifyListeners();
     return true;
   }
-  
+
   /// Navigate forward in history
   bool goForward() {
     if (!canGoForward) {
       return false;
     }
-    
+
     _historyPosition++;
     _applyHistoryEntry(_history[_historyPosition]);
     notifyListeners();
     return true;
   }
-  
+
   /// Apply a history entry to the current state
   void _applyHistoryEntry(_NavigationHistoryEntry entry) {
     _viewMode = entry.viewMode;
     _currentSectionIndex = entry.sectionIndex;
     _currentDecisionIndex = entry.decisionIndex;
   }
-  
+
   /// Validate that section and decision indices are within range
   void validateIndices(int sectionCount, int decisionCount) {
     bool changed = false;
-    
+
     // Validate section index
     if (sectionCount > 0 && _currentSectionIndex >= sectionCount) {
       _currentSectionIndex = sectionCount - 1;
       changed = true;
-    } else if (sectionCount == 0 && _viewMode == DocumentationViewMode.documentation) {
+    } else if (sectionCount == 0 &&
+        _viewMode == DocumentationViewMode.documentation) {
       // No sections available, switch to a different view
       if (decisionCount > 0) {
         _viewMode = DocumentationViewMode.decisions;
@@ -240,12 +241,13 @@ class DocumentationNavigatorController extends ChangeNotifier {
       }
       changed = true;
     }
-    
+
     // Validate decision index
     if (decisionCount > 0 && _currentDecisionIndex >= decisionCount) {
       _currentDecisionIndex = decisionCount - 1;
       changed = true;
-    } else if (decisionCount == 0 && _viewMode == DocumentationViewMode.decisions) {
+    } else if (decisionCount == 0 &&
+        _viewMode == DocumentationViewMode.decisions) {
       // No decisions available, switch to documentation view
       if (sectionCount > 0) {
         _viewMode = DocumentationViewMode.documentation;
@@ -255,12 +257,12 @@ class DocumentationNavigatorController extends ChangeNotifier {
       }
       changed = true;
     }
-    
+
     if (changed) {
       notifyListeners();
     }
   }
-  
+
   /// Initialize the controller with the first history entry
   void initialize() {
     if (_history.isEmpty) {
@@ -274,7 +276,7 @@ class _NavigationHistoryEntry {
   final DocumentationViewMode viewMode;
   final int sectionIndex;
   final int decisionIndex;
-  
+
   _NavigationHistoryEntry({
     required this.viewMode,
     required this.sectionIndex,
@@ -331,14 +333,14 @@ class _DocumentationNavigatorState extends State<DocumentationNavigator> {
     if (widget.initialSectionIndex != 0) {
       _controller.navigateToSection(widget.initialSectionIndex);
     }
-    
+
     // Initialize controller with first history entry
     _controller.initialize();
-    
+
     // Validate indices based on available content
     _validateIndices();
   }
-  
+
   void _validateIndices() {
     final documentation = widget.workspace.documentation;
     if (documentation != null) {
@@ -378,83 +380,103 @@ class _DocumentationNavigatorState extends State<DocumentationNavigator> {
 
     if (!hasSections && !hasDecisions) {
       return const Center(
-        child: Text('No documentation or decisions available for this workspace.'),
+        child:
+            Text('No documentation or decisions available for this workspace.'),
       );
     }
 
     // Initialize the search controller if needed
     final searchController = DocumentationSearchController();
-    if (documentation != null) {
-      searchController.setDocumentation(documentation);
-    }
+    searchController.setDocumentation(documentation);
 
-    return KeyboardListener(
-      focusNode: _keyboardFocusNode,
-      onKeyEvent: _handleKeyEvent,
-      autofocus: true,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, _) {
-        final viewMode = _controller.viewMode;
-        final currentSection = viewMode == DocumentationViewMode.documentation && hasSections
-            ? sections[_controller.currentSectionIndex]
-            : null;
-        final currentDecision = viewMode == DocumentationViewMode.decisions && hasDecisions
-            ? decisions[_controller.currentDecisionIndex]
-            : null;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final mainContent = KeyboardListener(
+          focusNode: _keyboardFocusNode,
+          onKeyEvent: _handleKeyEvent,
+          autofocus: true,
+          child: AnimatedBuilder(
+            animation: _controller,
+            builder: (context, _) {
+              final viewMode = _controller.viewMode;
+              final currentSection =
+                  viewMode == DocumentationViewMode.documentation && hasSections
+                      ? sections[_controller.currentSectionIndex]
+                      : null;
+              final currentDecision =
+                  viewMode == DocumentationViewMode.decisions && hasDecisions
+                      ? decisions[_controller.currentDecisionIndex]
+                      : null;
 
-        final bool showToc = !_controller.contentExpanded &&
-            (hasSections || hasDecisions) &&
-            viewMode != DocumentationViewMode.decisionGraph &&
-            viewMode != DocumentationViewMode.decisionTimeline;
+              final bool showToc = !_controller.contentExpanded &&
+                  (hasSections || hasDecisions) &&
+                  viewMode != DocumentationViewMode.decisionGraph &&
+                  viewMode != DocumentationViewMode.decisionTimeline;
 
-        return Column(
-          children: [
-            // Optional toolbar
-            if (widget.showToolbar)
-              _buildToolbar(hasSections, hasDecisions),
-
-            // Main content area
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              return Column(
                 children: [
-                  // Left sidebar with table of contents
-                  if (showToc)
-                    SizedBox(
-                      width: 280,
-                      child: TableOfContents(
-                        sections: sections,
-                        decisions: decisions,
-                        currentSectionIndex: _controller.currentSectionIndex,
-                        currentDecisionIndex: _controller.currentDecisionIndex,
-                        viewingDecisions: _controller.viewingDecisions,
-                        onSectionSelected: _controller.navigateToSection,
-                        onDecisionSelected: _controller.navigateToDecision,
-                        onToggleView: _controller.toggleDecisionsView,
-                        isDarkMode: widget.isDarkMode,
-                      ),
-                    ),
+                  // Optional toolbar
+                  if (widget.showToolbar)
+                    _buildToolbar(hasSections, hasDecisions),
 
-                    // Divider
-                    if (showToc)
-                      VerticalDivider(
-                        width: 1,
-                        thickness: 1,
-                        color: widget.isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300,
-                      ),
+                  // Main content area
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Left sidebar with table of contents
+                      if (showToc)
+                        SizedBox(
+                          width: 280,
+                          child: TableOfContents(
+                            sections: sections,
+                            decisions: decisions,
+                            currentSectionIndex:
+                                _controller.currentSectionIndex,
+                            currentDecisionIndex:
+                                _controller.currentDecisionIndex,
+                            viewingDecisions: _controller.viewingDecisions,
+                            onSectionSelected: _controller.navigateToSection,
+                            onDecisionSelected: _controller.navigateToDecision,
+                            onToggleView: _controller.toggleDecisionsView,
+                            isDarkMode: widget.isDarkMode,
+                          ),
+                        ),
 
-                    // Main content
-                    Expanded(
-                      child: _buildMainContent(viewMode, currentSection, currentDecision, searchController),
-                    )
+                      // Divider
+                      if (showToc)
+                        VerticalDivider(
+                          width: 1,
+                          thickness: 1,
+                          color: widget.isDarkMode
+                              ? Colors.grey.shade800
+                              : Colors.grey.shade300,
+                        ),
+
+                      // Main content
+                      Expanded(
+                        child: _buildMainContent(viewMode, currentSection,
+                            currentDecision, searchController),
+                      )
+                    ],
+                  ),
                 ],
-              ),
-            ),
-          ],
+              );
+            },
+          ),
         );
+        if (constraints.maxHeight == double.infinity) {
+          // Defensive: wrap in scroll view with min height for unbounded constraints (e.g. in tests)
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 600),
+              child: mainContent,
+            ),
+          );
+        } else {
+          return mainContent;
+        }
       },
-    ));
+    );
   }
 
   /// Builds the toolbar with navigation and view controls.
@@ -464,14 +486,11 @@ class _DocumentationNavigatorState extends State<DocumentationNavigator> {
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: widget.isDarkMode
-                ? Colors.grey.shade800
-                : Colors.grey.shade300,
+            color:
+                widget.isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300,
           ),
         ),
-        color: widget.isDarkMode
-            ? Colors.grey.shade900
-            : Colors.grey.shade50,
+        color: widget.isDarkMode ? Colors.grey.shade900 : Colors.grey.shade50,
       ),
       child: Row(
         children: [
@@ -482,14 +501,14 @@ class _DocumentationNavigatorState extends State<DocumentationNavigator> {
             color: widget.isDarkMode ? Colors.white70 : Colors.black54,
             onPressed: _controller.canGoBack ? _controller.goBack : null,
           ),
-          
+
           IconButton(
             icon: const Icon(Icons.arrow_forward),
             tooltip: 'Forward',
             color: widget.isDarkMode ? Colors.white70 : Colors.black54,
             onPressed: _controller.canGoForward ? _controller.goForward : null,
           ),
-          
+
           // Navigation breadcrumbs
           Expanded(
             child: _buildBreadcrumbs(),
@@ -517,15 +536,16 @@ class _DocumentationNavigatorState extends State<DocumentationNavigator> {
                   : (widget.isDarkMode ? Colors.white70 : Colors.black54),
               onPressed: () {
                 final documentation = widget.workspace.documentation;
-                final hasDecisions = documentation?.decisions.isNotEmpty == true;
+                final hasDecisions =
+                    documentation?.decisions.isNotEmpty == true;
                 if (_controller.currentDecisionIndex < 0 && hasDecisions) {
                   _controller.navigateToDecision(0);
                 } else {
-                  _controller.navigateToDecision(_controller.currentDecisionIndex);
+                  _controller
+                      .navigateToDecision(_controller.currentDecisionIndex);
                 }
               },
             ),
-
             IconButton(
               icon: const Icon(Icons.account_tree),
               tooltip: 'Decision Graph',
@@ -536,13 +556,13 @@ class _DocumentationNavigatorState extends State<DocumentationNavigator> {
                 _controller.showDecisionGraph();
               },
             ),
-
             IconButton(
               icon: const Icon(Icons.timeline),
               tooltip: 'Decision Timeline',
-              color: _controller.viewMode == DocumentationViewMode.decisionTimeline
-                  ? (widget.isDarkMode ? Colors.blue.shade300 : Colors.blue)
-                  : (widget.isDarkMode ? Colors.white70 : Colors.black54),
+              color:
+                  _controller.viewMode == DocumentationViewMode.decisionTimeline
+                      ? (widget.isDarkMode ? Colors.blue.shade300 : Colors.blue)
+                      : (widget.isDarkMode ? Colors.white70 : Colors.black54),
               onPressed: () {
                 _controller.showDecisionTimeline();
               },
@@ -561,14 +581,18 @@ class _DocumentationNavigatorState extends State<DocumentationNavigator> {
           ),
 
           IconButton(
-            icon: Icon(_controller.contentExpanded ? Icons.fullscreen_exit : Icons.fullscreen),
-            tooltip: _controller.contentExpanded ? 'Show navigation' : 'Expand content',
+            icon: Icon(_controller.contentExpanded
+                ? Icons.fullscreen_exit
+                : Icons.fullscreen),
+            tooltip: _controller.contentExpanded
+                ? 'Show navigation'
+                : 'Expand content',
             color: widget.isDarkMode ? Colors.white70 : Colors.black54,
             onPressed: () {
               _controller.toggleContentExpansion();
             },
           ),
-          
+
           // Help button
           IconButton(
             icon: const Icon(Icons.help_outline),
@@ -615,7 +639,8 @@ class _DocumentationNavigatorState extends State<DocumentationNavigator> {
     switch (viewMode) {
       case DocumentationViewMode.documentation:
         if (widget.workspace.documentation?.sections.isNotEmpty == true) {
-          final section = widget.workspace.documentation!.sections[_controller.currentSectionIndex];
+          final section = widget.workspace.documentation!
+              .sections[_controller.currentSectionIndex];
           crumbs.add(
             Expanded(
               child: Text(
@@ -660,7 +685,8 @@ class _DocumentationNavigatorState extends State<DocumentationNavigator> {
           );
 
           // Add current decision
-          final decision = widget.workspace.documentation!.decisions[_controller.currentDecisionIndex];
+          final decision = widget.workspace.documentation!
+              .decisions[_controller.currentDecisionIndex];
           crumbs.add(
             Expanded(
               child: Text(
@@ -861,7 +887,9 @@ class _DocumentationNavigatorState extends State<DocumentationNavigator> {
             child: Text(
               'Source: ${section.filename}',
               style: TextStyle(
-                color: widget.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700,
+                color: widget.isDarkMode
+                    ? Colors.grey.shade400
+                    : Colors.grey.shade700,
                 fontSize: 14,
               ),
             ),
@@ -872,7 +900,9 @@ class _DocumentationNavigatorState extends State<DocumentationNavigator> {
             child: Text(
               'Related to: ${section.elementId}',
               style: TextStyle(
-                color: widget.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700,
+                color: widget.isDarkMode
+                    ? Colors.grey.shade400
+                    : Colors.grey.shade700,
                 fontSize: 14,
               ),
             ),
@@ -954,10 +984,12 @@ class _DocumentationNavigatorState extends State<DocumentationNavigator> {
                 vertical: 6.0,
               ),
               decoration: BoxDecoration(
-                color: statusColor.withOpacity(widget.isDarkMode ? 0.2 : 0.1),
+                color: statusColor.withValues(
+                    alpha: widget.isDarkMode ? 0.2 : 0.1),
                 borderRadius: BorderRadius.circular(16.0),
                 border: Border.all(
-                  color: statusColor.withOpacity(widget.isDarkMode ? 0.5 : 0.3),
+                  color: statusColor.withValues(
+                      alpha: widget.isDarkMode ? 0.5 : 0.3),
                 ),
               ),
               child: Text(
@@ -974,7 +1006,8 @@ class _DocumentationNavigatorState extends State<DocumentationNavigator> {
         Text(
           'ID: ${decision.id} • Date: ${_formatDate(decision.date)}',
           style: TextStyle(
-            color: widget.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700,
+            color:
+                widget.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700,
             fontSize: 14,
           ),
         ),
@@ -984,7 +1017,9 @@ class _DocumentationNavigatorState extends State<DocumentationNavigator> {
             child: Text(
               'Related to: ${decision.elementId}',
               style: TextStyle(
-                color: widget.isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700,
+                color: widget.isDarkMode
+                    ? Colors.grey.shade400
+                    : Colors.grey.shade700,
                 fontSize: 14,
               ),
             ),
@@ -1032,26 +1067,32 @@ class _DocumentationNavigatorState extends State<DocumentationNavigator> {
                   spacing: 8.0,
                   runSpacing: 8.0,
                   children: decision.links.map((link) {
-                    final linkedDecision = widget.workspace.documentation?.decisions
-                        .firstWhere((d) => d.id == link, orElse: () => Decision(
-                          id: link,
-                          date: DateTime.now(),
-                          status: 'Unknown',
-                          title: link,
-                          content: '',
-                        ));
+                    final linkedDecision = widget
+                        .workspace.documentation?.decisions
+                        .firstWhere((d) => d.id == link,
+                            orElse: () => Decision(
+                                  id: link,
+                                  date: DateTime.now(),
+                                  status: 'Unknown',
+                                  title: link,
+                                  content: '',
+                                ));
 
                     return ActionChip(
                       avatar: Icon(
                         Icons.link,
                         size: 16,
-                        color: widget.isDarkMode ? Colors.blue.shade300 : Colors.blue,
+                        color: widget.isDarkMode
+                            ? Colors.blue.shade300
+                            : Colors.blue,
                       ),
                       label: Text(linkedDecision?.title ?? link),
                       onPressed: () {
                         if (linkedDecision != null) {
-                          final index = widget.workspace.documentation?.decisions
-                              .indexWhere((d) => d.id == link) ?? -1;
+                          final index = widget
+                                  .workspace.documentation?.decisions
+                                  .indexWhere((d) => d.id == link) ??
+                              -1;
                           if (index >= 0) {
                             _controller.navigateToDecision(index);
                           }
@@ -1078,7 +1119,7 @@ class _DocumentationNavigatorState extends State<DocumentationNavigator> {
           isDarkMode: widget.isDarkMode,
           enableSectionNumbering: false,
         ),
-        
+
         // Add linked decisions if any
         if (decision.links.isNotEmpty)
           Column(
@@ -1100,26 +1141,31 @@ class _DocumentationNavigatorState extends State<DocumentationNavigator> {
                 spacing: 8.0,
                 runSpacing: 8.0,
                 children: decision.links.map((link) {
-                  final linkedDecision = widget.workspace.documentation?.decisions
-                      .firstWhere((d) => d.id == link, orElse: () => Decision(
-                        id: link, 
-                        date: DateTime.now(), 
-                        status: 'Unknown', 
-                        title: link, 
-                        content: '',
-                      ));
-                  
+                  final linkedDecision = widget
+                      .workspace.documentation?.decisions
+                      .firstWhere((d) => d.id == link,
+                          orElse: () => Decision(
+                                id: link,
+                                date: DateTime.now(),
+                                status: 'Unknown',
+                                title: link,
+                                content: '',
+                              ));
+
                   return ActionChip(
                     avatar: Icon(
                       Icons.link,
                       size: 16,
-                      color: widget.isDarkMode ? Colors.blue.shade300 : Colors.blue,
+                      color: widget.isDarkMode
+                          ? Colors.blue.shade300
+                          : Colors.blue,
                     ),
                     label: Text(linkedDecision?.title ?? link),
                     onPressed: () {
                       if (linkedDecision != null) {
                         final index = widget.workspace.documentation?.decisions
-                            .indexWhere((d) => d.id == link) ?? -1;
+                                .indexWhere((d) => d.id == link) ??
+                            -1;
                         if (index >= 0) {
                           _controller.navigateToDecision(index);
                         }
@@ -1137,34 +1183,35 @@ class _DocumentationNavigatorState extends State<DocumentationNavigator> {
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
-  
+
   /// Handle keyboard events for navigation
   /// Show keyboard shortcuts help dialog
   void _showKeyboardShortcutsHelp() {
     showDialog(
       context: context,
-      builder: (context) => KeyboardShortcutsHelp(isDarkMode: widget.isDarkMode),
+      builder: (context) =>
+          KeyboardShortcutsHelp(isDarkMode: widget.isDarkMode),
     );
   }
-  
+
   void _handleKeyEvent(KeyEvent event) {
     // Only handle key down events to prevent duplicate handling
     if (event is! KeyDownEvent) {
       return;
     }
-    
+
     // Helper variables to check modifier keys
     bool isAltPressed = false;
     bool isControlPressed = false;
     bool isShiftPressed = false;
-    
+
     // In tests, these values may not be set correctly, so we'll use a simpler approach
     // that just checks the event.logicalKey directly instead of using HardwareKeyboard
-    
+
     // Get current state
     final documentation = widget.workspace.documentation;
     if (documentation == null) return;
-    
+
     final sections = List<DocumentationSection>.from(documentation.sections)
       ..sort((a, b) => a.order.compareTo(b.order));
     final decisions = documentation.decisions;
@@ -1173,7 +1220,7 @@ class _DocumentationNavigatorState extends State<DocumentationNavigator> {
     final viewMode = _controller.viewMode;
     final sectionIndex = _controller.currentSectionIndex;
     final decisionIndex = _controller.currentDecisionIndex;
-    
+
     // Handle navigation shortcuts
     switch (event.logicalKey.keyLabel) {
       // Back/forward navigation
@@ -1182,101 +1229,105 @@ class _DocumentationNavigatorState extends State<DocumentationNavigator> {
           _controller.goBack();
         }
         break;
-      
+
       case 'Arrow Right':
         if (isAltPressed) {
           _controller.goForward();
         }
         break;
-        
+
       // Navigation between sections/decisions
       case 'Arrow Up':
         if (viewMode == DocumentationViewMode.documentation && hasSections) {
           if (sectionIndex > 0) {
             _controller.navigateToSection(sectionIndex - 1);
           }
-        } else if (viewMode == DocumentationViewMode.decisions && hasDecisions) {
+        } else if (viewMode == DocumentationViewMode.decisions &&
+            hasDecisions) {
           if (decisionIndex > 0) {
             _controller.navigateToDecision(decisionIndex - 1);
           }
         }
         break;
-        
+
       case 'Arrow Down':
         if (viewMode == DocumentationViewMode.documentation && hasSections) {
           if (sectionIndex < sections.length - 1) {
             _controller.navigateToSection(sectionIndex + 1);
           }
-        } else if (viewMode == DocumentationViewMode.decisions && hasDecisions) {
+        } else if (viewMode == DocumentationViewMode.decisions &&
+            hasDecisions) {
           if (decisionIndex < decisions.length - 1) {
             _controller.navigateToDecision(decisionIndex + 1);
           }
         }
         break;
-      
+
       // Switch between documentation and decisions
       case 'd':
         if (isControlPressed) {
           _controller.toggleDecisionsView();
         }
         break;
-        
+
       // View controls
       case 'g':
         if (isControlPressed && hasDecisions) {
           _controller.showDecisionGraph();
         }
         break;
-        
+
       case 't':
         if (isControlPressed && hasDecisions) {
           _controller.showDecisionTimeline();
         }
         break;
-        
+
       case 's':
         if (isControlPressed) {
           _controller.showSearch();
         }
         break;
-        
+
       // Home/End navigation
       case 'Home':
         if (viewMode == DocumentationViewMode.documentation && hasSections) {
           _controller.navigateToSection(0);
-        } else if (viewMode == DocumentationViewMode.decisions && hasDecisions) {
+        } else if (viewMode == DocumentationViewMode.decisions &&
+            hasDecisions) {
           _controller.navigateToDecision(0);
         }
         break;
-        
+
       case 'End':
         if (viewMode == DocumentationViewMode.documentation && hasSections) {
           _controller.navigateToSection(sections.length - 1);
-        } else if (viewMode == DocumentationViewMode.decisions && hasDecisions) {
+        } else if (viewMode == DocumentationViewMode.decisions &&
+            hasDecisions) {
           _controller.navigateToDecision(decisions.length - 1);
         }
         break;
-        
+
       // Fullscreen toggle
       case 'f':
         if (isControlPressed) {
           _controller.toggleContentExpansion();
         }
         break;
-        
+
       // Help dialog
       case '/':
         if (isShiftPressed && isControlPressed) {
           _showKeyboardShortcutsHelp();
         }
         break;
-      
+
       case '?':
         if (isControlPressed) {
           _showKeyboardShortcutsHelp();
         }
         break;
-        
+
       // Numbers 1-9 for quick navigation to sections/decisions
       case '1':
       case '2':
@@ -1289,9 +1340,13 @@ class _DocumentationNavigatorState extends State<DocumentationNavigator> {
       case '9':
         if (isAltPressed) {
           final index = int.parse(event.logicalKey.keyLabel) - 1;
-          if (viewMode == DocumentationViewMode.documentation && hasSections && index < sections.length) {
+          if (viewMode == DocumentationViewMode.documentation &&
+              hasSections &&
+              index < sections.length) {
             _controller.navigateToSection(index);
-          } else if (viewMode == DocumentationViewMode.decisions && hasDecisions && index < decisions.length) {
+          } else if (viewMode == DocumentationViewMode.decisions &&
+              hasDecisions &&
+              index < decisions.length) {
             _controller.navigateToDecision(index);
           }
         }
