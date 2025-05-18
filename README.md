@@ -285,9 +285,27 @@ lib/
 ## Installation
 
 ### Prerequisites
-- Flutter SDK 3.10.0 or higher
+- Flutter SDK 3.19.0 or higher (Dart SDK 3.4.0+)
+- Git
+- For Linux: clang, cmake, ninja-build, gtk3-devel
+- For macOS: Xcode command line tools
 
-### Environment Setup
+### Quick Setup
+We provide a setup script that automatically installs all dependencies:
+
+```bash
+./setup_dev_env.sh
+```
+
+This script will:
+- Check and install the correct Flutter version (3.19.0+)
+- Install required system packages
+- Set up development environment
+- Run initial builds and tests
+
+**Note:** The script handles offline environments and provides manual instructions when needed.
+
+### Manual Environment Setup
 1. Copy the environment example file:
    ```bash
    cp .env.example .env
