@@ -4,6 +4,13 @@ set -e
 
 echo "=== Flutter Structurizr Development Environment Setup ==="
 
+# Detect if running as root
+if [ "$EUID" -eq 0 ]; then 
+    echo "Warning: Running as root. Flutter should be installed as a regular user."
+    echo "Consider running this script as a non-root user for better security."
+    echo ""
+fi
+
 # Detect OS
 OS="unknown"
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -24,6 +31,14 @@ fi
 
 echo "Detected OS: $OS"
 
+# Fix Flutter git safe directory if running as root
+fix_flutter_git_safe_directory() {
+    if [ "$EUID" -eq 0 ] && [ -d "$1" ]; then
+        echo "Fixing Flutter git repository permissions..."
+        git config --global --add safe.directory "$1" || true
+    fi
+}
+
 # 1. Install Flutter if not present
 if ! command -v flutter &> /dev/null; then
     echo "Flutter not found. Installing Flutter..."
@@ -32,53 +47,69 @@ if ! command -v flutter &> /dev/null; then
         if command -v snap &> /dev/null; then
             echo "Installing Flutter via snap..."
             sudo snap install flutter --classic
+            FLUTTER_PATH="/snap/bin/flutter"
         else
             echo "Installing Flutter manually..."
             # Download and install Flutter
             FLUTTER_VERSION="3.19.0"  # Latest stable as of now
+            FLUTTER_DIR="${HOME}/development/flutter"
+            if [ "$EUID" -eq 0 ]; then
+                FLUTTER_DIR="/opt/flutter"
+            fi
+            
+            mkdir -p "$(dirname "$FLUTTER_DIR")"
             curl -L "https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz" -o flutter.tar.xz
-            mkdir -p "$HOME/development"
-            tar xf flutter.tar.xz -C "$HOME/development"
+            tar xf flutter.tar.xz -C "$(dirname "$FLUTTER_DIR")"
             rm flutter.tar.xz
             
+            FLUTTER_PATH="${FLUTTER_DIR}/bin/flutter"
+            
             # Add to PATH
-            export PATH="$PATH:$HOME/development/flutter/bin"
+            export PATH="$PATH:${FLUTTER_DIR}/bin"
             
             # Add to shell profile
             if [[ -f "$HOME/.bashrc" ]]; then
-                echo 'export PATH="$PATH:$HOME/development/flutter/bin"' >> "$HOME/.bashrc"
+                echo "export PATH=\"\$PATH:${FLUTTER_DIR}/bin\"" >> "$HOME/.bashrc"
             fi
             if [[ -f "$HOME/.zshrc" ]]; then
-                echo 'export PATH="$PATH:$HOME/development/flutter/bin"' >> "$HOME/.zshrc"
+                echo "export PATH=\"\$PATH:${FLUTTER_DIR}/bin\"" >> "$HOME/.zshrc"
             fi
             
-            echo "Flutter installed to $HOME/development/flutter"
+            # Fix git safe directory if needed
+            fix_flutter_git_safe_directory "$FLUTTER_DIR"
+            
+            echo "Flutter installed to $FLUTTER_DIR"
             echo "Please restart your terminal or run: source ~/.bashrc"
         fi
     elif [[ "$OS" == "macos" ]]; then
         if command -v brew &> /dev/null; then
             echo "Installing Flutter via Homebrew..."
             brew install flutter
+            FLUTTER_PATH="flutter"
         else
             echo "Installing Flutter manually..."
             # Download and install Flutter
             FLUTTER_VERSION="3.19.0"  # Latest stable as of now
+            FLUTTER_DIR="${HOME}/development/flutter"
+            
+            mkdir -p "$(dirname "$FLUTTER_DIR")"
             curl -L "https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_${FLUTTER_VERSION}-stable.zip" -o flutter.zip
-            mkdir -p "$HOME/development"
-            unzip flutter.zip -d "$HOME/development"
+            unzip flutter.zip -d "$(dirname "$FLUTTER_DIR")"
             rm flutter.zip
             
+            FLUTTER_PATH="${FLUTTER_DIR}/bin/flutter"
+            
             # Add to PATH
-            export PATH="$PATH:$HOME/development/flutter/bin"
+            export PATH="$PATH:${FLUTTER_DIR}/bin"
             
             # Add to shell profile
             if [[ -f "$HOME/.zshrc" ]]; then
-                echo 'export PATH="$PATH:$HOME/development/flutter/bin"' >> "$HOME/.zshrc"
+                echo "export PATH=\"\$PATH:${FLUTTER_DIR}/bin\"" >> "$HOME/.zshrc"
             elif [[ -f "$HOME/.bash_profile" ]]; then
-                echo 'export PATH="$PATH:$HOME/development/flutter/bin"' >> "$HOME/.bash_profile"
+                echo "export PATH=\"\$PATH:${FLUTTER_DIR}/bin\"" >> "$HOME/.bash_profile"
             fi
             
-            echo "Flutter installed to $HOME/development/flutter"
+            echo "Flutter installed to $FLUTTER_DIR"
             echo "Please restart your terminal or run: source ~/.zshrc"
         fi
     else
@@ -86,11 +117,16 @@ if ! command -v flutter &> /dev/null; then
         echo "Please visit: https://flutter.dev/docs/get-started/install"
         exit 1
     fi
+else
+    FLUTTER_PATH="flutter"
 fi
 
 # Update PATH for current session if Flutter was just installed
-if [[ -d "$HOME/development/flutter/bin" ]] && [[ ":$PATH:" != *":$HOME/development/flutter/bin:"* ]]; then
-    export PATH="$PATH:$HOME/development/flutter/bin"
+if [[ -d "${HOME}/development/flutter/bin" ]] && [[ ":$PATH:" != *":${HOME}/development/flutter/bin:"* ]]; then
+    export PATH="$PATH:${HOME}/development/flutter/bin"
+fi
+if [[ -d "/opt/flutter/bin" ]] && [[ ":$PATH:" != *":/opt/flutter/bin:"* ]]; then
+    export PATH="$PATH:/opt/flutter/bin"
 fi
 
 # 2. Verify Flutter installation
@@ -100,6 +136,12 @@ if ! command -v flutter &> /dev/null; then
 fi
 
 echo "Flutter is installed ✓"
+
+# Fix git safe directory for existing Flutter installations
+if command -v flutter &> /dev/null; then
+    FLUTTER_DIR=$(dirname $(dirname $(which flutter)))
+    fix_flutter_git_safe_directory "$FLUTTER_DIR"
+fi
 
 # 3. Accept Android licenses and install dependencies
 echo "Running flutter doctor to check environment..."
@@ -116,17 +158,23 @@ echo "Installing system dependencies..."
 
 if [[ "$OS" == "linux" && "$DISTRO" == "debian" ]]; then
     echo "Installing Linux dependencies..."
-    sudo apt-get update
-    sudo apt-get install -y \
-        clang \
-        cmake \
-        git \
-        ninja-build \
-        pkg-config \
-        libgtk-3-dev \
-        libblkid-dev \
-        liblzma-dev \
-        lcov
+    # Check for apt network connectivity
+    if ! apt-get update 2>/dev/null; then
+        echo "Warning: Unable to update package lists. Network connectivity issue?"
+        echo "Skipping system dependency installation. You may need to install manually:"
+        echo "  sudo apt-get install -y clang cmake git ninja-build pkg-config libgtk-3-dev libblkid-dev liblzma-dev lcov"
+    else
+        sudo apt-get install -y \
+            clang \
+            cmake \
+            git \
+            ninja-build \
+            pkg-config \
+            libgtk-3-dev \
+            libblkid-dev \
+            liblzma-dev \
+            lcov || echo "Some packages failed to install. Continuing..."
+    fi
 elif [[ "$OS" == "linux" && "$DISTRO" == "fedora" ]]; then
     echo "Installing Linux dependencies..."
     sudo dnf install -y \
@@ -135,14 +183,14 @@ elif [[ "$OS" == "linux" && "$DISTRO" == "fedora" ]]; then
         git \
         ninja-build \
         gtk3-devel \
-        lcov
+        lcov || echo "Some packages failed to install. Continuing..."
 elif [[ "$OS" == "macos" ]]; then
     echo "Installing macOS dependencies..."
     if ! command -v brew &> /dev/null; then
         echo "Installing Homebrew..."
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     fi
-    brew install lcov cmake ninja
+    brew install lcov cmake ninja || echo "Some packages failed to install. Continuing..."
 fi
 
 # 5. Install Flutter dependencies
