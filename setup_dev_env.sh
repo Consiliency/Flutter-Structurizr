@@ -228,4 +228,26 @@ echo "  flutter build        # Build the application"
 echo ""
 echo "If you just installed Flutter, you may need to restart your terminal."
 echo ""
+
+# 9. Commit and push any changes made during setup
+echo "Checking for changes to commit..."
+if ! git diff --quiet || ! git diff --cached --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; then
+    echo "Changes detected from setup process. Committing and pushing..."
+    
+    # Add all changes
+    git add -A
+    
+    # Commit with descriptive message
+    git commit -m "Auto-update from setup script: dependencies and generated files" --no-verify
+    
+    # Push to remote
+    echo "Pushing changes to remote repository..."
+    git push origin main
+    
+    echo "Changes committed and pushed successfully!"
+else
+    echo "No changes to commit."
+fi
+
+echo ""
 echo "Setup process complete!"
