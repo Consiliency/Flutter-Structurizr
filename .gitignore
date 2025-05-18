@@ -1,104 +1,163 @@
-# Dart/Flutter
+# Flutter installations (NEVER commit these)
+flutter/
+.flutter-env/
+flutter.tar.xz
+
+# Build artifacts
+build/
 .dart_tool/
+*.dill
+*.dill.track.dill
+cache.dill.*
+
+# Debug outputs (keep tools, remove outputs)
+debug_output*.txt
+analysis_output.txtdart
+test_results/
+!test_results/README.md
+logs/
+*.log
+
+# Generated files
+*.g.dart
+*.freezed.dart
+
+# Lock files (debatable - you might want to keep pubspec.lock)
+pubspec.lock
+.packages
 .flutter-plugins
 .flutter-plugins-dependencies
-.packages
-.pub-cache/
-.pub/
-build/
-pubspec.lock
-coverage/
-.test_coverage.dart
-*.freezed.dart
-*.g.dart
 
-# IDE
-.idea/
-.vscode/
-.vs/
-.classpath
-.project
-.settings/
+# IDE files
 *.iml
 *.iws
 *.ipr
+.idea/
+.vscode/settings.json
+.vscode/launch.json
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+*.swn
 *.swp
 *.swo
+*~
+*.bak
+*.backup
+.#*
 
-# macOS
+# Keep debug tools
+!bfg.jar
+
+# Cache files
+.aider.tags.cache.v4/
+.pub-preload-cache/
+incremental_kernel.*
+
+# Large archives
+*.tar.gz
+*.tar.xz
+*.zip
+!assets/**/*.tar.gz  # Allow if needed in assets
+
+# Binary files (except gradle wrapper which is needed)
+*.exe
+*.dll
+*.so
+*.dylib
+
+# OS files
 .DS_Store
-.AppleDouble
-.LSOverride
-Icon
-._*
-
-# Windows
 Thumbs.db
 ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 
-# Linux
-*~
-.directory
+# Gradle (keep wrapper jars as they're needed)
+.gradle/
+**/build/
+!gradle-wrapper.jar
 
-# Example application generated files
-/example/.dart_tool/
-/example/build/
-/example/.packages
-/example/pubspec.lock
-/example/.flutter-plugins
-/example/.flutter-plugins-dependencies
+# Test coverage
+coverage/
+.test_coverage.dart
+lcov.info
 
-# Android
-/android/app/debug.keystore
-/android/app/key.properties
-**/android/**/gradle-wrapper.jar
-**/android/.gradle
-**/android/captures/
-**/android/gradlew
-**/android/gradlew.bat
-**/android/local.properties
-**/android/**/GeneratedPluginRegistrant.*
+# Documentation build
+docs/api/
+generated_docs/
 
-# iOS
-**/ios/**/*.mode1v3
-**/ios/**/*.mode2v3
-**/ios/**/*.moved-aside
-**/ios/**/*.pbxuser
-**/ios/**/*.perspectivev3
-**/ios/**/*sync/
-**/ios/**/.sconsign.dblite
-**/ios/**/.tags*
-**/ios/**/.vagrant/
-**/ios/**/DerivedData/
-**/ios/**/Icon?
-**/ios/**/Pods/
-**/ios/**/.symlinks/
-**/ios/**/profile
-**/ios/**/xcuserdata
-**/ios/.generated/
-**/ios/Flutter/App.framework
-**/ios/Flutter/Flutter.framework
-**/ios/Flutter/Flutter.podspec
-**/ios/Flutter/Generated.xcconfig
-**/ios/Flutter/app.flx
-**/ios/Flutter/app.zip
-**/ios/Flutter/flutter_assets/
-**/ios/ServiceDefinitions.json
-**/ios/Runner/GeneratedPluginRegistrant.*
+# Environment and Secret Files
+.env
+.env.*
+!.env.example
+*.env
+!*.env.example
+.env.local
+.env.production
+.env.development
 
-# Web
-**/web/**/lib/generated_plugin_registrant.dart
+# MCP (Model Context Protocol) files
+.mcp.json
+*.mcp.md
+!.mcp.example.json
 
-# Exclude original Structurizr code (Java, UI, JSON schema, etc.)
-lite/
-ui/
-json/
-**/CLAUDE.local.md
+# Personal/Local Configuration
+CLAUDE.local.md
+.claude/settings.local.json
+.cursor/settings.local.json
 
-**/.claude/settings.local.json
-flutter.tar.xz
-test_results/last_run.txt
-flutter.tar.xz
-test_results/last_run.txt
+# Security
+api_keys.json
+secrets.json
+credentials.json
+*.pem
+*.key
+*.cert
+*.p12
+
+# Python Virtual Environments
+venv/
+env/
+*.pyc
+__pycache__/
+.pytest_cache/
+
+# Analytics and Tracking
+.analytics/
+.tracking/
+
+# Keep These Files
+!.claude/
+!.claude/commands/
+!.cursor/
+!.cursor/rules/
+!README.md
+!CLAUDE.md
+!LICENSE
+!docs/
+!specs/
+!scripts/
+!test/
+!example/
+!demo_app/
+!test_app/
+!pubspec.yaml
+!analysis_options.yaml
+!.gitignore
+
+# Large Files That Should Be Handled Separately
+# Add instructions in README for obtaining these
+analysis_output.txtdart
+replacements.txt
+
+# OS-specific
+.Spotlight-V100
+.Trashes
+ehthumbs_vista.db
+Network Trash Folder
+Temporary Items
+.apdisk
