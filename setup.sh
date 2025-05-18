@@ -1,26 +1,13 @@
 #!/bin/bash
-echo "Setting up dart-structurizr development environment..."
-
-# Ensure Flutter is installed
-if ! command -v flutter &> /dev/null; then
-    echo "Flutter is not installed. Please install Flutter first."
-    exit 1
-fi
-
-# Get dependencies
-echo "Getting dependencies..."
-flutter pub get
-
-# Generate code
-echo "Generating code..."
-flutter pub run build_runner build --delete-conflicting-outputs
-
-echo "Setup complete!"
-echo "Note: Default branch is now 'main' (not 'master')"
+# This script has been replaced with a more comprehensive setup script
+echo "This script has been replaced. Please use:"
+echo "  ./setup_dev_env.sh"
 echo ""
-echo "To run the demo app:"
-echo "  cd demo_app"
-echo "  flutter pub get"
-echo "  flutter run -d [device]"
+echo "The new script handles:"
+echo "- Flutter version checking and installation"
+echo "- System dependency installation" 
+echo "- Network connectivity issues"
+echo "- Complete environment setup"
 echo ""
-echo "For more examples, see the example/ directory"
+echo "Redirecting to the new setup script..."
+exec ./setup_dev_env.sh "$@"
