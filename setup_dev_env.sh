@@ -228,46 +228,4 @@ echo "  flutter build        # Build the application"
 echo ""
 echo "If you just installed Flutter, you may need to restart your terminal."
 echo ""
-
-# 9. Optional: Commit and push changes
-echo -n "Would you like to commit and push any changes? (y/n): "
-read -r COMMIT_CHANGES
-
-if [[ "$COMMIT_CHANGES" == "y" || "$COMMIT_CHANGES" == "Y" ]]; then
-    echo "Checking for changes..."
-    
-    # Check if there are any changes to commit
-    if ! git diff --quiet || ! git diff --cached --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; then
-        echo "Changes detected. Preparing to commit..."
-        
-        # Show status
-        git status
-        
-        echo ""
-        echo -n "Enter commit message (or press Enter for default): "
-        read -r COMMIT_MESSAGE
-        
-        if [ -z "$COMMIT_MESSAGE" ]; then
-            COMMIT_MESSAGE="Update project after running setup script"
-        fi
-        
-        # Add all changes
-        git add -A
-        
-        # Commit
-        git commit -m "$COMMIT_MESSAGE"
-        
-        # Push to origin
-        echo "Pushing to remote repository..."
-        git push origin main
-        
-        echo "Changes committed and pushed successfully!"
-    else
-        echo "No changes to commit."
-    fi
-else
-    echo "Skipping commit/push."
-fi
-
-echo ""
 echo "Setup process complete!"
