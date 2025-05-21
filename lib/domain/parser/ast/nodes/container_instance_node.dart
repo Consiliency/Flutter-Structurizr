@@ -10,6 +10,9 @@ class ContainerInstanceNode extends AstNode {
   List<AstNode> relationships;
   List<AstNode> healthChecks;
   List<AstNode> children;
+  
+  // Alias for id to match workspace builder usage
+  String get containerId => id;
 
   ContainerInstanceNode({
     required this.id,

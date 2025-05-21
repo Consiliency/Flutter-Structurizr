@@ -118,7 +118,7 @@ class WorkspaceMapper implements AstVisitor {
     _builder.createWorkspace(
       name: node.name,
       description: node.description,
-      configuration: node.configuration,
+      configuration: _convertMapToStringMap(node.configuration),
     );
 
     // Process the model section
@@ -428,4 +428,10 @@ class WorkspaceMapper implements AstVisitor {
 
   @override
   void visitViewPropertyNode(dynamic node) {}
+
+  /// Helper method to convert Map<String, dynamic> to Map<String, String>
+  Map<String, String>? _convertMapToStringMap(Map<String, dynamic>? input) {
+    if (input == null) return null;
+    return input.map((k, v) => MapEntry(k, v.toString()));
+  }
 }

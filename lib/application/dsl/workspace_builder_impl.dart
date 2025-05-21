@@ -144,7 +144,7 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       name: node.name,
       description: node.description,
       tags: node.tags,
-      properties: node.properties,
+      properties: node.properties ?? {},
       location: node.location ?? 'Internal',
     );
 
@@ -177,7 +177,7 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       name: node.name,
       description: node.description,
       tags: node.tags,
-      properties: node.properties,
+      properties: node.properties ?? {},
       location: node.location ?? 'Internal',
     );
 
@@ -470,10 +470,10 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
     final instance = ContainerInstance(
       id: node.id,
       containerId: container.id, // Use the resolved container ID
+      name: node.identifier, // Use identifier as name
       parentId: _currentParentId!,
-      instanceId: node.instanceCount,
       tags: node.tags,
-      properties: node.properties,
+      properties: node.properties ?? {},
     );
 
     // Add the container instance to our element map

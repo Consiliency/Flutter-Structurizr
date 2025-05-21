@@ -128,6 +128,16 @@ class Styles with _$Styles {
     // Get the merged style for all tags
     return getRelationshipStyle(relationship.tags);
   }
+
+  /// Checks if there is an element style defined for the given tag.
+  bool hasElementStyle(String tag) {
+    return elements.any((style) => style.tag == tag);
+  }
+
+  /// Checks if there is a relationship style defined for the given tag.
+  bool hasRelationshipStyle(String tag) {
+    return relationships.any((style) => style.tag == tag);
+  }
 }
 
 /// Styles for architecture elements.

@@ -10,6 +10,9 @@ class SystemContextViewNode extends AstNode {
   final List<dynamic> animations;
   final List<dynamic> includes;
   final List<dynamic> excludes;
+  
+  // Alias for systemId to match workspace builder usage
+  String get softwareSystemId => systemId;
 
   SystemContextViewNode({
     required this.key,

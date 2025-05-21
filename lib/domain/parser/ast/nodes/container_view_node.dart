@@ -6,13 +6,22 @@ class ContainerViewNode extends AstNode {
   final String systemId;
   final String? title;
   final String? description;
-  ContainerViewNode(
-      {required this.key,
-      required this.systemId,
-      this.title,
-      this.description,
-      SourcePosition? sourcePosition})
-      : super(sourcePosition);
+  final dynamic autoLayout;
+  final List<dynamic> animations;
+  final List<dynamic> includes;
+  final List<dynamic> excludes;
+  
+  ContainerViewNode({
+    required this.key,
+    required this.systemId,
+    this.title,
+    this.description,
+    this.autoLayout,
+    this.animations = const [],
+    this.includes = const [],
+    this.excludes = const [],
+    SourcePosition? sourcePosition,
+  }) : super(sourcePosition);
 
   @override
   void accept(AstVisitor visitor) => visitor.visitContainerViewNode(this);
