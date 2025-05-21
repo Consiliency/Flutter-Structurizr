@@ -12,7 +12,7 @@ void main() {
     
     setUp(() {
       groupNode = GroupNode(
-        const SourcePosition(line: 0, column: 0),
+        const SourcePosition(0, 0),
         name: 'TestGroup',
         elements: [],
         children: [],
@@ -23,7 +23,7 @@ void main() {
     group('addElement method', () {
       test('adds person element to empty group', () {
         final personNode = PersonNode(
-          const SourcePosition(line: 0, column: 0),
+          const SourcePosition(0, 0),
           id: 'person1',
           name: 'Person1',
           relationships: [],
@@ -37,7 +37,7 @@ void main() {
 
       test('adds software system element to group', () {
         final systemNode = SoftwareSystemNode(
-          const SourcePosition(line: 0, column: 0),
+          const SourcePosition(0, 0),
           id: 'system1',
           name: 'System1',
           containers: [],
@@ -52,14 +52,14 @@ void main() {
 
       test('adds multiple elements to group', () {
         final person = PersonNode(
-          const SourcePosition(line: 0, column: 0),
+          const SourcePosition(0, 0),
           id: 'person1',
           name: 'Person1',
           relationships: [],
         );
         
         final system = SoftwareSystemNode(
-          const SourcePosition(line: 1, column: 0),
+          const SourcePosition(1, 0),
           id: 'system1',
           name: 'System1',
           containers: [],
@@ -76,16 +76,16 @@ void main() {
 
       test('preserves other group properties when adding element', () {
         final groupWithProperties = GroupNode(
-          const SourcePosition(line: 0, column: 0),
+          const SourcePosition(0, 0),
           name: 'GroupWithProps',
           elements: [],
           children: [],
           relationships: [],
           properties: PropertiesNode(
-            const SourcePosition(line: 0, column: 0),
+            const SourcePosition(0, 0),
             properties: [
               PropertyNode(
-                const SourcePosition(line: 0, column: 0),
+                const SourcePosition(0, 0),
                 name: 'key',
                 value: 'value',
               ),
@@ -94,7 +94,7 @@ void main() {
         );
         
         final person = PersonNode(
-          const SourcePosition(line: 1, column: 0),
+          const SourcePosition(1, 0),
           id: 'person1',
           name: 'Person1',
           relationships: [],
@@ -112,14 +112,14 @@ void main() {
 
       test('handles adding element with same ID by adding a duplicate', () {
         final person1 = PersonNode(
-          const SourcePosition(line: 0, column: 0),
+          const SourcePosition(0, 0),
           id: 'duplicate',
           name: 'Person1',
           relationships: [],
         );
         
         final person2 = PersonNode(
-          const SourcePosition(line: 1, column: 0),
+          const SourcePosition(1, 0),
           id: 'duplicate',
           name: 'Person2',
           relationships: [],
@@ -221,7 +221,7 @@ void main() {
 
       test('preserves other group data when setting property', () {
         final element = PersonNode(
-          const SourcePosition(line: 0, column: 0),
+          const SourcePosition(0, 0),
           id: 'person1',
           name: 'Person1',
           relationships: [],

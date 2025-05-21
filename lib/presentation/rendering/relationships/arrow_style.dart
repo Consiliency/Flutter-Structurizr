@@ -171,7 +171,9 @@ class ArrowStyle {
     // Default to standard arrowhead
     // In a real implementation, you would examine style properties to determine
     // the appropriate arrowhead type
-    final color = style.color ?? Colors.black;
-    return createStandardArrowhead(endPoint, angle, backgroundColor);
+    final Color color = style.color != null 
+        ? Color(int.parse(style.color!.replaceFirst('#', ''), radix: 16) + 0xFF000000)
+        : Colors.black;
+    return createStandardArrowhead(endPoint, angle, color);
   }
 }

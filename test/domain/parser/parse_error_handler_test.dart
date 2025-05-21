@@ -84,7 +84,7 @@ void main() {
       final token = Token(
           type: TokenType.identifier,
           lexeme: 'test',
-          position: const SourcePosition(line: 10, column: 5, offset: 42));
+          position: const SourcePosition(10, 5, 42));
 
       final error = ParseError('Test error with location', token: token);
 
@@ -115,7 +115,7 @@ void main() {
       final token = Token(
           type: TokenType.identifier,
           lexeme: 'component',
-          position: const SourcePosition(line: 15, column: 3, offset: 250));
+          position: const SourcePosition(15, 3, 250));
 
       final error = ParseError('Invalid component declaration', token: token);
 
@@ -242,7 +242,7 @@ void main() {
       final token = Token(
           type: TokenType.leftBrace,
           lexeme: '{',
-          position: const SourcePosition(line: 1, column: 17, offset: 16));
+          position: const SourcePosition(1, 17, 16));
 
       final error = ParseError('Expected name', token: token);
 
@@ -265,12 +265,12 @@ void main() {
       final found = Token(
           type: TokenType.identifier,
           lexeme: 'workspace',
-          position: const SourcePosition(line: 1, column: 1, offset: 0));
+          position: const SourcePosition(1, 1, 0));
 
       final expected = Token(
           type: TokenType.string,
           lexeme: 'string',
-          position: const SourcePosition(line: 1, column: 1, offset: 0));
+          position: const SourcePosition(1, 1, 0));
 
       final error = ParseError.expected(
           'Expected string literal as workspace name',

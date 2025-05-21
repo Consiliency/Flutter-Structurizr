@@ -1,6 +1,7 @@
 import 'package:flutter_structurizr/domain/parser/ast/ast.dart';
 import 'package:flutter_structurizr/domain/parser/ast/nodes/documentation/documentation_node.dart';
 import 'package:flutter_structurizr/domain/parser/lexer/token.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/source_position.dart';
 import 'package:test/test.dart';
 import 'package:flutter_structurizr/domain/parser/ast/nodes/model_element_node.dart';
 
@@ -11,7 +12,7 @@ void main() {
       content: 'Test documentation',
       format: DocumentationFormat.markdown,
       sections: [],
-      sourcePosition: SourcePosition(1, 1, 0),
+      sourcePosition: const SourcePosition(1, 1, 0),
     );
 
     // Create a workspace node with the documentation
@@ -28,7 +29,7 @@ void main() {
       configuration: {},
       documentation: docNode,
       decisions: [],
-      sourcePosition: SourcePosition(1, 1, 0),
+      sourcePosition: const SourcePosition(1, 1, 0),
     );
 
     // Check that the documentation is properly stored

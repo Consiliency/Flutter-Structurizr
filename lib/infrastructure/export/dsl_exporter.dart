@@ -4,6 +4,10 @@ import 'package:flutter/material.dart' hide Element, Container, View, Border;
 import 'package:flutter_structurizr/domain/documentation/documentation.dart';
 import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/model.dart';
+import 'package:flutter_structurizr/domain/model/container.dart';
+import 'package:flutter_structurizr/domain/model/component.dart';
+import 'package:flutter_structurizr/domain/model/deployment_node.dart';
+import 'package:flutter_structurizr/domain/model/infrastructure_node.dart';
 import 'package:flutter_structurizr/domain/model/workspace.dart';
 import 'package:flutter_structurizr/domain/view/view.dart';
 import 'package:flutter_structurizr/domain/style/styles.dart';
@@ -461,7 +465,7 @@ class DslExporter implements DiagramExporter<String> {
 
   /// Generates a deployment node definition in DSL
   void _generateDeploymentNodeDefinition(StringBuffer buffer, DeploymentNode node, String indentation) {
-    buffer.write('${indentation}deploymentNode "${_escapeString(node.environment)}" ');
+    buffer.write('${indentation}deploymentNode "${_escapeString(node.environment ?? '')}" ');
     
     buffer.write('"${_escapeString(node.name)}"');
     

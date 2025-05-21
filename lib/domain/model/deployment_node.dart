@@ -29,6 +29,8 @@ class DeploymentNode with _$DeploymentNode implements Element {
     @Default({}) Map<String, String> properties,
     @Default([]) List<Relationship> relationships,
     String? parentId,
+    String? environment,
+    String? technology,
     @Default([]) List<DeploymentNode> children,
     @Default([]) List<InfrastructureNode> infrastructureNodes,
     @Default([]) List<ContainerInstance> containerInstances,

@@ -22,7 +22,7 @@ void main() {
         Token(
           type: TokenType.string,
           lexeme: '"Service123"',
-          position: const SourcePosition(line: 1, column: 1),
+          position: const SourcePosition(1, 1),
           value: 'Service123',
         ),
       ];
@@ -37,7 +37,7 @@ void main() {
         Token(
           type: TokenType.string,
           lexeme: '"API-Gateway_Service"',
-          position: const SourcePosition(line: 1, column: 1),
+          position: const SourcePosition(1, 1),
           value: 'API-Gateway_Service',
         ),
       ];
@@ -52,7 +52,7 @@ void main() {
         Token(
           type: TokenType.string,
           lexeme: '"Payment Processing Service"',
-          position: const SourcePosition(line: 1, column: 1),
+          position: const SourcePosition(1, 1),
           value: 'Payment Processing Service',
         ),
       ];
@@ -67,7 +67,7 @@ void main() {
         Token(
           type: TokenType.string,
           lexeme: '""',
-          position: const SourcePosition(line: 1, column: 1),
+          position: const SourcePosition(1, 1),
           value: '',
         ),
       ];
@@ -83,7 +83,7 @@ void main() {
         Token(
           type: TokenType.number,
           lexeme: '123',
-          position: const SourcePosition(line: 1, column: 1),
+          position: const SourcePosition(1, 1),
         ),
       ];
 
@@ -98,7 +98,7 @@ void main() {
         Token(
           type: TokenType.string,
           lexeme: '"Multi-line\nIdentifier"',
-          position: const SourcePosition(line: 1, column: 1),
+          position: const SourcePosition(1, 1),
           value: 'Multi-line\nIdentifier',
         ),
       ];
@@ -113,7 +113,7 @@ void main() {
         Token(
           type: TokenType.string,
           lexeme: '"Identifier with \\"quotes\\""',
-          position: const SourcePosition(line: 1, column: 1),
+          position: const SourcePosition(1, 1),
           value: 'Identifier with "quotes"',
         ),
       ];
@@ -129,7 +129,7 @@ void main() {
         Token(
           type: TokenType.string,
           lexeme: '"$veryLongIdentifier"',
-          position: const SourcePosition(line: 1, column: 1),
+          position: const SourcePosition(1, 1),
           value: veryLongIdentifier,
         ),
       ];
@@ -145,7 +145,7 @@ void main() {
         Token(
           type: TokenType.string,
           lexeme: '"Café☕App"',
-          position: const SourcePosition(line: 1, column: 1),
+          position: const SourcePosition(1, 1),
           value: 'Café☕App',
         ),
       ];
@@ -160,7 +160,7 @@ void main() {
         Token(
           type: TokenType.string,
           lexeme: '"person"',
-          position: const SourcePosition(line: 1, column: 1),
+          position: const SourcePosition(1, 1),
           value: 'person',
         ),
       ];
@@ -301,7 +301,7 @@ void main() {
         Token(
           type: TokenType.identifier,
           lexeme: 'myIdentifier',
-          position: const SourcePosition(line: 1, column: 1),
+          position: const SourcePosition(1, 1),
         ),
       ];
 
@@ -321,7 +321,7 @@ void main() {
         Token(
           type: TokenType.string,
           lexeme: '"stringIdentifier"',
-          position: const SourcePosition(line: 1, column: 1),
+          position: const SourcePosition(1, 1),
           value: 'stringIdentifier',
         ),
       ];

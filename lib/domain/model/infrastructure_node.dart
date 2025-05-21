@@ -23,6 +23,7 @@ class InfrastructureNode with _$InfrastructureNode implements Element {
     @Default({}) Map<String, String> properties,
     @Default([]) List<Relationship> relationships,
     String? parentId,
+    String? technology,
     @ElementListConverter() @Default([]) List<Element> children,
   }) = _InfrastructureNode;
 

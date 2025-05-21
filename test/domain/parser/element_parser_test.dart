@@ -21,7 +21,7 @@ void main() {
         Token(
           type: TokenType.identifier,
           lexeme: 'myIdentifier',
-          position: SourcePosition(line: 1, column: 1, offset: 0),
+          position: SourcePosition(1, 1, 0),
         ),
       ];
 
@@ -38,7 +38,7 @@ void main() {
         Token(
           type: TokenType.string,
           lexeme: '"myStringIdentifier"',
-          position: SourcePosition(line: 1, column: 1, offset: 0),
+          position: SourcePosition(1, 1, 0),
           value: 'myStringIdentifier',
         ),
       ];
@@ -67,7 +67,7 @@ void main() {
         Token(
           type: TokenType.leftBrace,
           lexeme: '{',
-          position: SourcePosition(line: 1, column: 1, offset: 0),
+          position: SourcePosition(1, 1, 0),
         ),
       ];
 
@@ -93,17 +93,17 @@ void main() {
         Token(
           type: TokenType.identifier,
           lexeme: 'description',
-          position: SourcePosition(line: 1, column: 1, offset: 0),
+          position: SourcePosition(1, 1, 0),
         ),
         Token(
           type: TokenType.equals,
           lexeme: '=',
-          position: SourcePosition(line: 1, column: 12, offset: 11),
+          position: SourcePosition(1, 12, 11),
         ),
         Token(
           type: TokenType.string,
           lexeme: '"A test person"',
-          position: SourcePosition(line: 1, column: 14, offset: 13),
+          position: SourcePosition(1, 14, 13),
           value: 'A test person',
         ),
       ];
@@ -138,17 +138,17 @@ void main() {
         Token(
           type: TokenType.identifier,
           lexeme: 'description',
-          position: SourcePosition(line: 1, column: 1, offset: 0),
+          position: SourcePosition(1, 1, 0),
         ),
         Token(
           type: TokenType.equals,
           lexeme: '=',
-          position: SourcePosition(line: 1, column: 12, offset: 11),
+          position: SourcePosition(1, 12, 11),
         ),
         Token(
           type: TokenType.string,
           lexeme: '"A test person"',
-          position: SourcePosition(line: 1, column: 14, offset: 13),
+          position: SourcePosition(1, 14, 13),
           value: 'A test person',
         ),
       ];
@@ -171,12 +171,12 @@ void main() {
         Token(
           type: TokenType.person,
           lexeme: 'person',
-          position: SourcePosition(line: 1, column: 1, offset: 0),
+          position: SourcePosition(1, 1, 0),
         ),
         Token(
           type: TokenType.string,
           lexeme: '"User"',
-          position: SourcePosition(line: 1, column: 8, offset: 7),
+          position: SourcePosition(1, 8, 7),
           value: 'User',
         ),
       ];
@@ -197,18 +197,18 @@ void main() {
         Token(
           type: TokenType.person,
           lexeme: 'person',
-          position: SourcePosition(line: 1, column: 1, offset: 0),
+          position: SourcePosition(1, 1, 0),
         ),
         Token(
           type: TokenType.string,
           lexeme: '"User"',
-          position: SourcePosition(line: 1, column: 8, offset: 7),
+          position: SourcePosition(1, 8, 7),
           value: 'User',
         ),
         Token(
           type: TokenType.string,
           lexeme: '"A standard user"',
-          position: SourcePosition(line: 1, column: 15, offset: 14),
+          position: SourcePosition(1, 15, 14),
           value: 'A standard user',
         ),
       ];
@@ -229,24 +229,24 @@ void main() {
         Token(
           type: TokenType.person,
           lexeme: 'person',
-          position: SourcePosition(line: 1, column: 1, offset: 0),
+          position: SourcePosition(1, 1, 0),
         ),
         Token(
           type: TokenType.string,
           lexeme: '"User"',
-          position: SourcePosition(line: 1, column: 8, offset: 7),
+          position: SourcePosition(1, 8, 7),
           value: 'User',
         ),
         Token(
           type: TokenType.string,
           lexeme: '"A standard user"',
-          position: SourcePosition(line: 1, column: 15, offset: 14),
+          position: SourcePosition(1, 15, 14),
           value: 'A standard user',
         ),
         Token(
           type: TokenType.string,
           lexeme: '"external,user"',
-          position: SourcePosition(line: 1, column: 32, offset: 31),
+          position: SourcePosition(1, 32, 31),
           value: 'external,user',
         ),
       ];
@@ -267,7 +267,7 @@ void main() {
         Token(
           type: TokenType.person,
           lexeme: 'person',
-          position: SourcePosition(line: 1, column: 1, offset: 0),
+          position: SourcePosition(1, 1, 0),
         ),
       ];
 
@@ -284,39 +284,39 @@ void main() {
         Token(
           type: TokenType.person,
           lexeme: 'person',
-          position: SourcePosition(line: 1, column: 1, offset: 0),
+          position: SourcePosition(1, 1, 0),
         ),
         Token(
           type: TokenType.string,
           lexeme: '"User"',
-          position: SourcePosition(line: 1, column: 8, offset: 7),
+          position: SourcePosition(1, 8, 7),
           value: 'User',
         ),
         Token(
           type: TokenType.leftBrace,
           lexeme: '{',
-          position: SourcePosition(line: 1, column: 15, offset: 14),
+          position: SourcePosition(1, 15, 14),
         ),
         Token(
           type: TokenType.identifier,
           lexeme: 'description',
-          position: SourcePosition(line: 2, column: 3, offset: 18),
+          position: SourcePosition(2, 3, 18),
         ),
         Token(
           type: TokenType.equals,
           lexeme: '=',
-          position: SourcePosition(line: 2, column: 15, offset: 30),
+          position: SourcePosition(2, 15, 30),
         ),
         Token(
           type: TokenType.string,
           lexeme: '"A standard user"',
-          position: SourcePosition(line: 2, column: 17, offset: 32),
+          position: SourcePosition(2, 17, 32),
           value: 'A standard user',
         ),
         Token(
           type: TokenType.rightBrace,
           lexeme: '}',
-          position: SourcePosition(line: 3, column: 1, offset: 49),
+          position: SourcePosition(3, 1, 49),
         ),
       ];
 
@@ -341,12 +341,12 @@ void main() {
         Token(
           type: TokenType.softwareSystem,
           lexeme: 'softwareSystem',
-          position: SourcePosition(line: 1, column: 1, offset: 0),
+          position: SourcePosition(1, 1, 0),
         ),
         Token(
           type: TokenType.string,
           lexeme: '"PaymentSystem"',
-          position: SourcePosition(line: 1, column: 15, offset: 14),
+          position: SourcePosition(1, 15, 14),
           value: 'PaymentSystem',
         ),
       ];
@@ -367,18 +367,18 @@ void main() {
         Token(
           type: TokenType.softwareSystem,
           lexeme: 'softwareSystem',
-          position: SourcePosition(line: 1, column: 1, offset: 0),
+          position: SourcePosition(1, 1, 0),
         ),
         Token(
           type: TokenType.string,
           lexeme: '"PaymentSystem"',
-          position: SourcePosition(line: 1, column: 15, offset: 14),
+          position: SourcePosition(1, 15, 14),
           value: 'PaymentSystem',
         ),
         Token(
           type: TokenType.string,
           lexeme: '"Handles all payments"',
-          position: SourcePosition(line: 1, column: 31, offset: 30),
+          position: SourcePosition(1, 31, 30),
           value: 'Handles all payments',
         ),
       ];
@@ -399,24 +399,24 @@ void main() {
         Token(
           type: TokenType.softwareSystem,
           lexeme: 'softwareSystem',
-          position: SourcePosition(line: 1, column: 1, offset: 0),
+          position: SourcePosition(1, 1, 0),
         ),
         Token(
           type: TokenType.string,
           lexeme: '"PaymentSystem"',
-          position: SourcePosition(line: 1, column: 15, offset: 14),
+          position: SourcePosition(1, 15, 14),
           value: 'PaymentSystem',
         ),
         Token(
           type: TokenType.string,
           lexeme: '"Handles all payments"',
-          position: SourcePosition(line: 1, column: 31, offset: 30),
+          position: SourcePosition(1, 31, 30),
           value: 'Handles all payments',
         ),
         Token(
           type: TokenType.string,
           lexeme: '"external,payments"',
-          position: SourcePosition(line: 1, column: 53, offset: 52),
+          position: SourcePosition(1, 53, 52),
           value: 'external,payments',
         ),
       ];
@@ -437,7 +437,7 @@ void main() {
         Token(
           type: TokenType.softwareSystem,
           lexeme: 'softwareSystem',
-          position: SourcePosition(line: 1, column: 1, offset: 0),
+          position: SourcePosition(1, 1, 0),
         ),
       ];
 
@@ -454,39 +454,39 @@ void main() {
         Token(
           type: TokenType.softwareSystem,
           lexeme: 'softwareSystem',
-          position: SourcePosition(line: 1, column: 1, offset: 0),
+          position: SourcePosition(1, 1, 0),
         ),
         Token(
           type: TokenType.string,
           lexeme: '"PaymentSystem"',
-          position: SourcePosition(line: 1, column: 15, offset: 14),
+          position: SourcePosition(1, 15, 14),
           value: 'PaymentSystem',
         ),
         Token(
           type: TokenType.leftBrace,
           lexeme: '{',
-          position: SourcePosition(line: 1, column: 30, offset: 29),
+          position: SourcePosition(1, 30, 29),
         ),
         Token(
           type: TokenType.identifier,
           lexeme: 'description',
-          position: SourcePosition(line: 2, column: 3, offset: 33),
+          position: SourcePosition(2, 3, 33),
         ),
         Token(
           type: TokenType.equals,
           lexeme: '=',
-          position: SourcePosition(line: 2, column: 15, offset: 45),
+          position: SourcePosition(2, 15, 45),
         ),
         Token(
           type: TokenType.string,
           lexeme: '"Handles all payments"',
-          position: SourcePosition(line: 2, column: 17, offset: 47),
+          position: SourcePosition(2, 17, 47),
           value: 'Handles all payments',
         ),
         Token(
           type: TokenType.rightBrace,
           lexeme: '}',
-          position: SourcePosition(line: 3, column: 1, offset: 69),
+          position: SourcePosition(3, 1, 69),
         ),
       ];
 

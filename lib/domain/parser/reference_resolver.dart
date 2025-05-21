@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/model.dart';
 import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/source_position.dart';
 
 /// A general purpose reference resolver for the Structurizr DSL.
 ///

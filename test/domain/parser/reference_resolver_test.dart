@@ -73,7 +73,7 @@ void main() {
       // Skip type validation in tests as it requires runtime type information
 
       // Test error reporting
-      const sourcePosition = SourcePosition(line: 1, column: 1, offset: 0);
+      const sourcePosition = SourcePosition(1, 1, 0);
       expect(
           resolver.resolveReference('nonexistent',
               sourcePosition: sourcePosition),

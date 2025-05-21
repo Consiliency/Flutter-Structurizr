@@ -320,4 +320,157 @@ if [ "$FLUTTER_NEEDS_UPDATE" = true ]; then
     echo "IMPORTANT: Flutter was updated. Please restart your terminal for PATH changes to take effect."
 fi
 
-echo "Setup process complete!"
+echo "Setup process complete!" (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+diff --git a/CODEX_WORKFLOW.md b/CODEX_WORKFLOW.md
+index 37e6bae..c78828b 100644
+--- a/CODEX_WORKFLOW.md
++++ b/CODEX_WORKFLOW.md
+@@ -2,52 +2,53 @@
+ 
+ This document explains the workflow for setting up and using this repository in Codex's environment.
+ 
+ ## Overview
+ 
+ Dart Structurizr is a Flutter project that requires the Flutter SDK and various dependencies. In Codex, we leverage network access during the initial setup phase to install these dependencies. After setup, development continues in offline mode.
+ 
+ ## Codex Environment Setup
+ 
+ When working with this repository in Codex, follow these steps:
+ 
+ 1. **Clone the repository:**
+    ```bash
+    git clone https://github.com/yourusername/dart-structurizr.git
+    cd dart-structurizr
+    ```
+ 
+ 2. **Run the Codex setup script:**
+    ```bash
+    ./setup_for_codex.sh
+    ```
+    
+    This script will:
+    - Install any required system dependencies
+    - Install the Flutter SDK from the official source
+-   - Install all dart/flutter package dependencies
++   - Install all dart/flutter package dependencies for every sub-project
+    - Run initial code generation
++   - Pre-cache Flutter artifacts for desktop targets
+    - Create convenient wrapper scripts for Flutter and Dart commands
+    
+    **Note:** This script requires network access, which is available during the setup phase in Codex.
+ 
+ 3. **Verify the setup:**
+    ```bash
+    ./flutter doctor
+    ```
+ 
+ ## Development in Codex (Offline Mode)
+ 
+ After the initial setup, Codex operates in offline mode (no network access). Use these commands for development:
+ 
+ ```bash
+ # Use the wrapper scripts for all Flutter/Dart commands
+ ./flutter run        # Run the application
+ ./flutter test       # Run tests
+ ./flutter analyze    # Analyze code
+ ./dart analyze       # Dart-specific commands
+ ```
+ 
+ ## File Structure
+ 
+ ```
+ dart-structurizr/
+diff --git a/setup_for_codex.sh b/setup_for_codex.sh
+index d667754..34b11bb 100755
+--- a/setup_for_codex.sh
++++ b/setup_for_codex.sh
+@@ -145,73 +145,79 @@ if [ "$FLUTTER_NEEDS_UPDATE" = true ]; then
+         exit 1
+     fi
+ fi
+ 
+ # Update PATH for current session
+ if [[ -d "${HOME}/development/flutter/bin" ]] && [[ ":$PATH:" != *":${HOME}/development/flutter/bin:"* ]]; then
+     export PATH="$PATH:${HOME}/development/flutter/bin"
+ fi
+ 
+ # 3. Verify Flutter installation
+ if ! command -v flutter &> /dev/null; then
+     echo "ERROR: Flutter installation failed or not in PATH."
+     echo "Please install manually following the instructions at:"
+     echo "https://docs.flutter.dev/get-started/install"
+     exit 1
+ fi
+ 
+ echo "Flutter is installed ✓"
+ 
+ # Verify Dart SDK version
+ DART_VERSION=$(dart --version | grep -o 'version: [0-9]\+\.[0-9]\+\.[0-9]\+' | awk '{print $2}' || echo "0.0.0")
+ echo "Dart SDK version: $DART_VERSION"
+ 
+ # 4. Install Flutter dependencies
+ echo "Installing Flutter dependencies..."
+-flutter pub get
++flutter pub get || { echo "ERROR: flutter pub get failed at repo root"; exit 1; }
+ 
+-# 5. Install dependencies for sub-projects
+-for dir in demo_app example test_app; do
+-    if [ -d "$dir" ]; then
++# 5. Install dependencies for all sub-projects
++echo "Scanning for additional pubspec.yaml files..."
++while IFS= read -r pubspec; do
++    dir="$(dirname "$pubspec")"
++    if [[ "$dir" != "$REPO_ROOT" ]]; then
+         echo "Installing dependencies in $dir/..."
+-        (cd "$dir" && flutter pub get) || echo "Warning: Failed to install dependencies in $dir"
++        (cd "$dir" && flutter pub get) || { echo "ERROR: flutter pub get failed in $dir"; exit 1; }
+     fi
+-done
++done < <(find "$REPO_ROOT" \( -path '*/build' -o -path '*/.dart_tool' \) -prune -o -name pubspec.yaml -print)
+ 
+ # 6. Run code generation
+ echo "Running code generation (build_runner)..."
+ flutter pub run build_runner build --delete-conflicting-outputs || echo "Warning: Code generation had issues"
+ 
+ # 7. Run Flutter doctor for verification
+ echo "Running flutter doctor to check environment..."
+ flutter doctor -v
+ 
+ # 8. Run Flutter analyze (for initial verification)
+ echo "Running flutter analyze..."
+ flutter analyze || echo "Warning: Some analysis issues found"
+ 
+-# 9. Create a simple wrapper for Flutter and Dart
++# 9. Pre-cache Flutter artifacts for offline use
++echo "Pre-caching Flutter artifacts..."
++flutter precache --linux --macos --windows
++
++# 10. Create a simple wrapper for Flutter and Dart
+ # These wrappers will help ensure consistent command usage after setup
+ cat > "$REPO_ROOT/flutter" << 'EOF'
+ #!/usr/bin/env bash
+ REPO_ROOT="$(dirname "$0")"
+ exec flutter "$@"
+ EOF
+ chmod +x "$REPO_ROOT/flutter"
+ 
+ cat > "$REPO_ROOT/dart" << 'EOF'
+ #!/usr/bin/env bash
+ REPO_ROOT="$(dirname "$0")"
+ exec dart "$@"
+ EOF
+ chmod +x "$REPO_ROOT/dart"
+ 
+ # Mark setup as complete
+ touch "$REPO_ROOT/.codex_setup_complete"
+ 
+ echo ""
+ echo "=== Setup Complete! ==="
+ echo ""
+ echo "Your Flutter Structurizr development environment for Codex is ready."
+ echo ""
+ echo "Current versions:"
+ echo "  Flutter: $(flutter --version | grep -o 'Flutter [0-9]\+\.[0-9]\+\.[0-9]\+' | awk '{print $2}')"
+ 
+EOF
+)

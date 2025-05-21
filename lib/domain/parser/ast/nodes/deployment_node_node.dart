@@ -1,5 +1,8 @@
 import '../ast_node.dart' show AstNode, AstVisitor;
 import 'source_position.dart' show SourcePosition;
+import 'infrastructure_node_node.dart' show InfrastructureNodeNode;
+import 'container_instance_node.dart' show ContainerInstanceNode;
+import 'relationship_node.dart' show RelationshipNode;
 
 class DeploymentNodeNode extends AstNode {
   final String id;
@@ -10,9 +13,11 @@ class DeploymentNodeNode extends AstNode {
   String? url;
   Map<String, String>? properties;
   List<String>? perspectives;
-  List<AstNode> relationships;
+  List<RelationshipNode> relationships;
   String? group;
   String? instances;
+  List<InfrastructureNodeNode> infrastructureNodes;
+  List<ContainerInstanceNode> containerInstances;
   List<AstNode> children;
 
   DeploymentNodeNode({
@@ -27,6 +32,8 @@ class DeploymentNodeNode extends AstNode {
     this.relationships = const [],
     this.group,
     this.instances,
+    this.infrastructureNodes = const [],
+    this.containerInstances = const [],
     this.children = const [],
     SourcePosition? sourcePosition,
   }) : super(sourcePosition);

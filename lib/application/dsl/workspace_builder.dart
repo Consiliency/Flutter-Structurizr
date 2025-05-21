@@ -4,6 +4,30 @@ import 'package:flutter_structurizr/domain/model/relationship.dart';
 import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 import 'package:flutter_structurizr/domain/parser/reference_resolver.dart';
 
+// AST node imports
+import 'package:flutter_structurizr/domain/parser/ast/nodes/person_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/software_system_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/container_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/component_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/deployment_environment_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/deployment_node_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/infrastructure_node_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/container_instance_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/relationship_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/system_landscape_view_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/system_context_view_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/container_view_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/component_view_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/dynamic_view_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/deployment_view_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/filtered_view_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/custom_view_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/image_view_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/styles_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/theme_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/branding_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/terminology_node.dart';
+
 /// Interface for building a workspace model from AST nodes.
 ///
 /// This separates the concerns of tree traversal (done by the [WorkspaceMapper])

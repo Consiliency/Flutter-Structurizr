@@ -20,10 +20,11 @@ export 'nodes/container_instance_node.dart';
 export 'nodes/container_node.dart';
 export 'nodes/container_view_node.dart';
 export 'nodes/custom_view_node.dart';
+export 'nodes/decision_node.dart';
 export 'nodes/deployment_environment_node.dart';
-// Comment out duplicate export (export only one version of DeploymentNodeNode)
+// Export both deployment node types (they serve different purposes)
 export 'nodes/deployment_node.dart';
-// export 'nodes/deployment_node_node.dart'; 
+export 'nodes/deployment_node_node.dart'; 
 export 'nodes/deployment_view_node.dart';
 export 'nodes/directive_node.dart';
 // Comment out duplicate export (use only documentation/documentation_node.dart)
@@ -42,8 +43,7 @@ export 'nodes/model_node.dart';
 export 'nodes/person_node.dart';
 export 'nodes/properties_node.dart';
 export 'nodes/property_node.dart';
-// Comment out duplicate export (relationship_node is already exported above)
-// export 'nodes/relationship_node.dart';
+export 'nodes/relationship_node.dart';
 export 'nodes/software_system_instance_node.dart'; 
 export 'nodes/software_system_node.dart';
 export 'nodes/source_position.dart';

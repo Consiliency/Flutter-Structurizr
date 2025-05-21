@@ -31,7 +31,7 @@ void main() {
       final token = Token(
         type: TokenType.identifier, 
         lexeme: 'test',
-        position: SourcePosition(line: 10, column: 5, offset: 42)
+        position: SourcePosition(10, 5, 42)
       );
       
       final error = ParseError('Test error with location', token: token);
@@ -85,7 +85,7 @@ void main() {
       final token = Token(
         type: TokenType.identifier,
         lexeme: 'invalid',
-        position: SourcePosition(line: 1, column: 10, offset: 10)
+        position: SourcePosition(1, 10, 10)
       );
       
       final error = ParseError('Invalid syntax', token: token);
@@ -133,13 +133,13 @@ void main() {
       final token = Token(
         type: TokenType.leftBrace, 
         lexeme: '{',
-        position: SourcePosition(line: 1, column: 15, offset: 15)
+        position: SourcePosition(1, 15, 15)
       );
       
       final expectedToken = Token(
         type: TokenType.string,
         lexeme: '""',
-        position: SourcePosition(line: 1, column: 15, offset: 15)
+        position: SourcePosition(1, 15, 15)
       );
       
       final error = ParseError.expected(
@@ -196,7 +196,7 @@ void main() {
       final token = Token(
         type: TokenType.identifier,
         lexeme: 'test',
-        position: SourcePosition(line: 1, column: 1, offset: 0)
+        position: SourcePosition(1, 1, 0)
       );
       
       final error = ParseError('Test with token', token: token);
@@ -209,13 +209,13 @@ void main() {
       final found = Token(
         type: TokenType.identifier,
         lexeme: 'identifier',
-        position: SourcePosition(line: 1, column: 1, offset: 0)
+        position: SourcePosition(1, 1, 0)
       );
       
       final expected = Token(
         type: TokenType.string,
         lexeme: 'string',
-        position: SourcePosition(line: 1, column: 1, offset: 0)
+        position: SourcePosition(1, 1, 0)
       );
       
       final error = ParseError.expected(
@@ -242,7 +242,7 @@ void main() {
       final token = Token(
         type: TokenType.identifier,
         lexeme: 'test',
-        position: SourcePosition(line: 5, column: 10, offset: 42)
+        position: SourcePosition(5, 10, 42)
       );
       
       final error = ParseError('Test error', token: token);

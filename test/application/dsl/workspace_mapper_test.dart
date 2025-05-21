@@ -20,7 +20,7 @@ void main() {
       final workspaceNode = WorkspaceNode(
         name: 'Test Workspace',
         description: 'A test workspace',
-        sourcePosition: SourcePosition(line: 1, column: 1, offset: 0),
+        sourcePosition: SourcePosition(1, 1, 0),
       );
 
       // Act
@@ -39,19 +39,19 @@ void main() {
         id: 'user',
         name: 'User',
         description: 'A user of the system',
-        sourcePosition: SourcePosition(line: 2, column: 1, offset: 0),
+        sourcePosition: SourcePosition(2, 1, 0),
       );
 
       final modelNode = ModelNode(
         people: [personNode],
-        sourcePosition: SourcePosition(line: 1, column: 5, offset: 0),
+        sourcePosition: SourcePosition(1, 5, 0),
       );
 
       final workspaceNode = WorkspaceNode(
         name: 'Test Workspace',
         description: 'A test workspace',
         model: modelNode,
-        sourcePosition: SourcePosition(line: 1, column: 1, offset: 0),
+        sourcePosition: SourcePosition(1, 1, 0),
       );
 
       // Act
@@ -73,7 +73,7 @@ void main() {
         id: 'system',
         name: 'System',
         description: 'A software system',
-        sourcePosition: SourcePosition(line: 2, column: 1, offset: 0),
+        sourcePosition: SourcePosition(2, 1, 0),
         properties: null,
         relationships: [],
         containers: [],
