@@ -5,8 +5,10 @@ import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 import 'package:flutter_structurizr/domain/parser/reference_resolver.dart';
 import 'package:flutter_structurizr/domain/view/view.dart';
 import 'package:flutter_structurizr/application/dsl/workspace_builder.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/system_context_view_node.dart'
+    show SystemContextViewNode;
 import 'package:flutter_structurizr/domain/parser/ast/nodes/model_element_node.dart'
-    show SystemContextViewNode, ElementNode;
+    show ElementNode;
 
 /// Parser for system context views in the DSL.
 class SystemContextViewParser {
@@ -156,8 +158,8 @@ class SystemContextViewParser {
       relationships: relationshipViews,
       automaticLayout: automaticLayout,
       animations: animationSteps,
-      includeTags: includes,
-      excludeTags: excludes,
+      includeTags: includes?.cast<String>() ?? [],
+      excludeTags: excludes?.cast<String>() ?? [],
     );
   }
 

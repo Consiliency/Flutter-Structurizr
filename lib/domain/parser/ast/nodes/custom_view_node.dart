@@ -5,12 +5,21 @@ class CustomViewNode extends AstNode {
   final String key;
   final String? title;
   final String? description;
-  CustomViewNode(
-      {required this.key,
-      this.title,
-      this.description,
-      SourcePosition? sourcePosition})
-      : super(sourcePosition);
+  final dynamic autoLayout;
+  final List<dynamic> animations;
+  final List<dynamic> includes;
+  final List<dynamic> excludes;
+  
+  CustomViewNode({
+    required this.key,
+    this.title,
+    this.description,
+    this.autoLayout,
+    this.animations = const [],
+    this.includes = const [],
+    this.excludes = const [],
+    SourcePosition? sourcePosition,
+  }) : super(sourcePosition);
 
   @override
   void accept(AstVisitor visitor) => visitor.visitCustomViewNode(this);

@@ -13,6 +13,9 @@ class ContainerInstanceNode extends AstNode {
   
   // Alias for id to match workspace builder usage
   String get containerId => id;
+  
+  // Properties for workspace builder compatibility
+  Map<String, String> get properties => const {};
 
   ContainerInstanceNode({
     required this.id,

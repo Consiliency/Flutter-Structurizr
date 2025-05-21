@@ -40,6 +40,8 @@ import 'package:flutter_structurizr/domain/parser/ast/nodes/filtered_view_node.d
 import 'package:flutter_structurizr/domain/parser/ast/nodes/custom_view_node.dart';
 import 'package:flutter_structurizr/domain/parser/ast/nodes/image_view_node.dart';
 import 'package:flutter_structurizr/domain/parser/ast/nodes/styles_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/tags_node.dart';
+import 'package:flutter_structurizr/domain/parser/ast/nodes/properties_node.dart';
 import 'package:flutter_structurizr/domain/parser/ast/nodes/theme_node.dart';
 import 'package:flutter_structurizr/domain/parser/ast/nodes/branding_node.dart';
 import 'package:flutter_structurizr/domain/parser/ast/nodes/terminology_node.dart';
@@ -152,7 +154,9 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
 
     // Queue relationships for later processing
     for (final relationship in node.relationships) {
-      _pendingRelationships.add(relationship);
+      if (relationship is RelationshipNode) {
+        _pendingRelationships.add(relationship);
+      }
     }
 
     // Restore previous context
@@ -199,7 +203,9 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
 
     // Queue relationships for later processing
     for (final relationship in node.relationships) {
-      _pendingRelationships.add(relationship);
+      if (relationship is RelationshipNode) {
+        _pendingRelationships.add(relationship);
+      }
     }
 
     // Restore previous parent ID and context ID
@@ -232,7 +238,7 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       technology: node.technology,
       parentId: _currentParentId!,
       tags: node.tags,
-      properties: node.properties,
+      properties: node.properties ?? {},
     );
 
     // Add to model
@@ -248,7 +254,9 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
 
     // Queue relationships for later processing
     for (final relationship in node.relationships) {
-      _pendingRelationships.add(relationship);
+      if (relationship is RelationshipNode) {
+        _pendingRelationships.add(relationship);
+      }
     }
 
     // Restore previous parent ID and context ID
@@ -280,7 +288,7 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       technology: node.technology,
       parentId: _currentParentId!,
       tags: node.tags,
-      properties: node.properties,
+      properties: node.properties ?? {},
     );
 
     // Add to model
@@ -288,7 +296,9 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
 
     // Queue relationships for later processing
     for (final relationship in node.relationships) {
-      _pendingRelationships.add(relationship);
+      if (relationship is RelationshipNode) {
+        _pendingRelationships.add(relationship);
+      }
     }
 
     // Restore previous context ID
@@ -311,7 +321,7 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       description: node.description,
       parentId: _currentParentId,
       tags: node.tags,
-      properties: node.properties,
+      properties: node.properties ?? {},
     );
 
     // Add to our element map for reference resolution
@@ -327,7 +337,9 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
 
     // Queue relationships for later processing
     for (final relationship in node.relationships) {
-      _pendingRelationships.add(relationship);
+      if (relationship is RelationshipNode) {
+        _pendingRelationships.add(relationship);
+      }
     }
 
     // Restore previous parent ID and context ID
@@ -361,7 +373,7 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       parentId: _currentParentId!,
       environment: _findEnvironmentForDeploymentNode(_currentParentId!),
       tags: node.tags,
-      properties: node.properties,
+      properties: node.properties ?? {},
     );
 
     // Add the new node to our element map
@@ -372,7 +384,9 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
 
     // Process child deployment nodes
     for (final childNode in node.children) {
-      addDeploymentNode(childNode);
+      if (childNode is DeploymentNodeNode) {
+        addDeploymentNode(childNode);
+      }
     }
 
     // Process infrastructure nodes
@@ -387,7 +401,9 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
 
     // Queue relationships for later processing
     for (final relationship in node.relationships) {
-      _pendingRelationships.add(relationship);
+      if (relationship is RelationshipNode) {
+        _pendingRelationships.add(relationship);
+      }
     }
 
     // Restore previous parent ID and context ID
@@ -419,7 +435,7 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       technology: node.technology,
       parentId: _currentParentId!,
       tags: node.tags,
-      properties: node.properties,
+      properties: node.properties ?? {},
     );
 
     // Add the infrastructure node to our element map
@@ -427,7 +443,9 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
 
     // Queue relationships for later processing
     for (final relationship in node.relationships) {
-      _pendingRelationships.add(relationship);
+      if (relationship is RelationshipNode) {
+        _pendingRelationships.add(relationship);
+      }
     }
 
     // Restore previous context ID
@@ -481,7 +499,9 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
 
     // Queue relationships for later processing
     for (final relationship in node.relationships) {
-      _pendingRelationships.add(relationship);
+      if (relationship is RelationshipNode) {
+        _pendingRelationships.add(relationship);
+      }
     }
 
     // Restore previous context ID
@@ -531,8 +551,8 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       relationships: [], // Relationships will be computed
       automaticLayout: automaticLayout,
       animations: animationSteps,
-      includeTags: includes,
-      excludeTags: excludes,
+      includeTags: includes?.cast<String>() ?? [],
+      excludeTags: excludes?.cast<String>() ?? [],
     );
 
     // Add to views collection
@@ -683,8 +703,8 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       const defaultElementStyle = ElementStyle(
         tag: 'Element',
         shape: Shape.box,
-        color: Color.fromARGB(255, 51, 51, 51), // Dark grey text
-        background: Color.fromARGB(255, 250, 250, 250), // Light background
+        color: '#333333', // Dark grey text
+        background: '#FAFAFA', // Light background
         fontSize: 24,
         border: Border.solid,
       );
@@ -698,7 +718,7 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       const defaultRelationshipStyle = RelationshipStyle(
         tag: 'Relationship',
         thickness: 2,
-        color: Color.fromARGB(255, 85, 85, 85), // Dark grey line
+        color: '#555555', // Dark grey line
         style: LineStyle.solid,
         routing: StyleRouting.direct,
         fontSize: 22,
@@ -728,8 +748,8 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       const personStyle = ElementStyle(
         tag: 'Person',
         shape: Shape.person,
-        background: Color.fromARGB(255, 179, 229, 252), // Light blue
-        color: Color.fromARGB(255, 51, 51, 51), // Dark grey text
+        background: '#B3E5FC', // Light blue
+        color: '#333333', // Dark grey text
         fontSize: 22,
         border: Border.solid,
       );
@@ -742,8 +762,8 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       const softwareSystemStyle = ElementStyle(
         tag: 'SoftwareSystem',
         shape: Shape.box,
-        background: Color.fromARGB(255, 253, 226, 147), // Light yellow
-        color: Color.fromARGB(255, 51, 51, 51), // Dark grey text
+        background: '#FDE293', // Light yellow
+        color: '#333333', // Dark grey text
         fontSize: 22,
         border: Border.solid,
       );
@@ -814,8 +834,8 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       relationships: [], // Relationships will be computed
       automaticLayout: automaticLayout,
       animations: animationSteps,
-      includeTags: includes,
-      excludeTags: excludes,
+      includeTags: includes?.cast<String>() ?? [],
+      excludeTags: excludes?.cast<String>() ?? [],
     );
 
     // Add to views collection
@@ -898,8 +918,8 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       relationships: [], // Relationships will be computed
       automaticLayout: automaticLayout,
       animations: animationSteps,
-      includeTags: includes,
-      excludeTags: excludes,
+      includeTags: includes?.cast<String>() ?? [],
+      excludeTags: excludes?.cast<String>() ?? [],
     );
 
     // Add to views collection
@@ -920,11 +940,13 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
     Element? scopeElement;
     String description = 'Dynamic View';
 
-    scopeElement = referenceResolver.resolveReference(
-      scopeId,
-      sourcePosition: node.sourcePosition,
-      searchByName: true,
-    );
+    if (scopeId != null) {
+      scopeElement = referenceResolver.resolveReference(
+        scopeId,
+        sourcePosition: node.sourcePosition,
+        searchByName: true,
+      );
+    }
 
     if (scopeElement == null) {
       errorReporter.reportStandardError(
@@ -979,8 +1001,8 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       relationships: [], // Relationships will be computed from animation steps
       automaticLayout: automaticLayout,
       animations: animationSteps,
-      includeTags: includes,
-      excludeTags: excludes,
+      includeTags: includes?.cast<String>() ?? [],
+      excludeTags: excludes?.cast<String>() ?? [],
     );
 
     // Add to views collection
@@ -997,12 +1019,12 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
     logger.info(
         'DEBUG: addDeploymentView called with key: \\${node.key}, title: \\${node.title}');
     // Resolve the system reference
-    final softwareSystem = referenceResolver.resolveReference(
-      node.systemId,
+    final softwareSystem = node.systemId != null ? referenceResolver.resolveReference(
+      node.systemId!,
       sourcePosition: node.sourcePosition,
       searchByName: true,
       expectedType: SoftwareSystem,
-    ) as SoftwareSystem?;
+    ) as SoftwareSystem? : null;
 
     if (softwareSystem == null) {
       errorReporter.reportStandardError(
@@ -1050,8 +1072,8 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       relationships: [], // Relationships will be computed
       automaticLayout: automaticLayout,
       animations: animationSteps,
-      includeTags: includes,
-      excludeTags: excludes,
+      includeTags: includes?.cast<String>() ?? [],
+      excludeTags: excludes?.cast<String>() ?? [],
     );
 
     // Add to views collection
@@ -1117,8 +1139,8 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       baseViewKey: node.baseViewKey,
       title: node.title ?? 'Filtered: ${baseView.title}',
       description: node.description,
-      includeTags: includes,
-      excludeTags: excludes,
+      includeTags: includes?.cast<String>() ?? [],
+      excludeTags: excludes?.cast<String>() ?? [],
     );
 
     // Add to views collection
@@ -1170,8 +1192,8 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       paperSize: 'A4_Landscape', // Default
       automaticLayout: automaticLayout,
       animations: animationSteps,
-      includeTags: includes,
-      excludeTags: excludes,
+      includeTags: includes?.cast<String>() ?? [],
+      excludeTags: excludes?.cast<String>() ?? [],
     );
 
     // Add to views collection
@@ -1240,7 +1262,9 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
     Styles styles = workspace?.styles ?? const Styles();
 
     // Add the theme URL to the styles
-    styles = styles.addTheme(node.url);
+    if (node.url != null) {
+      styles = styles.addTheme(node.url!);
+    }
 
     // Update workspace with the styles
     if (workspace != null) {
@@ -1361,12 +1385,19 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
     return workspace;
   }
 
-  /// Helper method to convert a String of tags to a List of tag strings.
-  List<String> _mapTags(TagsNode tagsNode) => tagsNode.tags;
+  /// Helper method to convert tags to a List of tag strings.
+  List<String> _mapTags(dynamic tags) {
+    if (tags is List<String>) return tags;
+    if (tags is TagsNode) return tags.tags;
+    return [];
+  }
 
-  /// Helper method to convert a properties node to a Map<String, String>.
-  Map<String, String> _mapProperties(PropertiesNode propertiesNode) =>
-      propertiesNode.properties;
+  /// Helper method to convert properties to a Map<String, String>.
+  Map<String, String> _mapProperties(dynamic properties) {
+    if (properties is Map<String, String>) return properties;
+    if (properties is PropertiesNode) return properties.properties;
+    return {};
+  }
 
   /// Finds the environment name for a deployment node by traversing up the hierarchy.
   String _findEnvironmentForDeploymentNode(String nodeId) {
@@ -2055,11 +2086,11 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       tag: node.tag,
       shape: shape,
       icon: node.icon,
-      width: node.width,
-      height: node.height,
-      background: colorScheme.background,
-      stroke: strokeColor,
-      color: textColor,
+      width: _parseStringToInt(node.width),
+      height: _parseStringToInt(node.height),
+      background: _colorToHex(backgroundColor),
+      stroke: _colorToHex(strokeColor),
+      color: _colorToHex(textColor),
       fontSize: node.fontSize,
       border: border,
       opacity: node.opacity != null ? (node.opacity! * 100).toInt() : 100,
@@ -2115,8 +2146,8 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
     // Create the relationship style
     final relationshipStyle = RelationshipStyle(
       tag: node.tag,
-      thickness: node.thickness,
-      color: lineColor,
+      thickness: node.thickness ?? 2,
+      color: _colorToHex(lineColor),
       style: lineStyle,
       routing: routing,
       fontSize: node.fontSize,
@@ -2133,5 +2164,17 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       hexColor = 'FF$hexColor';
     }
     return Color(int.parse(hexColor, radix: 16));
+  }
+
+  // Utility method for Color to hex conversion
+  String? _colorToHex(Color? color) {
+    if (color == null) return null;
+    return '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}';
+  }
+
+  // Utility method for String to int conversion
+  int? _parseStringToInt(String? value) {
+    if (value == null) return null;
+    return int.tryParse(value);
   }
 }
