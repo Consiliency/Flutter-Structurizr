@@ -429,3 +429,42 @@ This systematic approach proved highly effective and established proven methodol
 - Complete functional implementation of remaining stubbed domain model methods
 - Expand comprehensive test coverage following infrastructure-first methodology
 - Apply proven fix methodologies to widget and UI component tests
+
+#### 🚀 **Main Application Compilation Fixes (January 2025):**
+
+**Status: IN PROGRESS (Phases 1 & 2 Complete)**
+
+Following the test suite stabilization, a comprehensive effort to fix the main Flutter application compilation issues is underway:
+
+- ✅ **Phase 1 - Critical AST Node Property Fixes (24 errors reduced)**:
+  - Added missing `softwareSystemId` getter to SystemContextViewNode for workspace builder compatibility  
+  - Added missing `containerId` getter to ContainerInstanceNode to match expected property access
+  - Enhanced view nodes with missing properties (autoLayout, animations, includes, excludes):
+    - SystemLandscapeViewNode, ContainerViewNode, ComponentViewNode
+  - All view-related AST nodes now have consistent property structure
+
+- ✅ **Phase 2 - Type Safety and Model Enhancements (570→546 errors)**:
+  - Fixed ContainerInstance constructor parameter issues (removed invalid instanceId parameter)
+  - Added comprehensive null safety handling for Map<String, String> properties in workspace builder
+  - Enhanced Styles class with missing `hasElementStyle` and `hasRelationshipStyle` methods
+  - Added Map type conversion helper for workspace configuration (Map<String, dynamic> → Map<String, String>)
+  - Fixed nullable properties throughout workspace builder implementation
+
+- 📦 **Created Comprehensive Implementation Plan**:
+  - Documented systematic 7-day fix plan in `/specs/main_app_fix_plan.md`
+  - Categorized 570+ compilation errors into 5 priority groups by impact
+  - Identified critical path: AST nodes → type safety → model enhancement → view parsers → integration
+  - Risk assessment and mitigation strategies documented
+
+- 🧪 **Minimal Application Success**:
+  - Created working `lib/main_minimal.dart` that compiles and runs successfully on Pop!_OS
+  - Verified core infrastructure works properly with basic C4 model elements
+  - Provides foundation for manual testing while full parsing is completed
+
+- 🎯 **Remaining Work (546 errors)**:
+  - Phase 3: Complete model class enhancements (missing properties in style nodes)
+  - Phase 4: Fix view parser implementations and type casting issues  
+  - Phase 5: Integration testing and cleanup
+  - Target: Full compilation success for `lib/main.dart` with complete DSL parsing
+
+**Progress**: Reduced compilation errors from 570 to 546 through systematic infrastructure-first approach. The minimal application demonstrates that core architecture is sound and main compilation issues are in parser integration details.
