@@ -36,11 +36,22 @@ class Container with _$Container implements Element {
       _$ContainerFromJson(json);
 
   @override
-  Container addTag(String tag) => this;
+  Container addTag(String tag) {
+    return copyWith(tags: [...tags, tag]);
+  }
+  
   @override
-  Container addTags(List<String> newTags) => this;
+  Container addTags(List<String> newTags) {
+    return copyWith(tags: [...tags, ...newTags]);
+  }
+  
   @override
-  Container addProperty(String key, String value) => this;
+  Container addProperty(String key, String value) {
+    final updatedProperties = Map<String, String>.from(properties);
+    updatedProperties[key] = value;
+    return copyWith(properties: updatedProperties);
+  }
+  
   @override
   Container addRelationship({
     required String destinationId,
@@ -48,8 +59,18 @@ class Container with _$Container implements Element {
     String? technology,
     List<String> tags = const [],
     Map<String, String> properties = const {},
-  }) =>
-      this;
+  }) {
+    final newRelationship = Relationship(
+      id: '$id-to-$destinationId', // Generate a relationship ID
+      sourceId: id,
+      destinationId: destinationId,
+      description: description,
+      technology: technology,
+      tags: tags,
+      properties: properties,
+    );
+    return copyWith(relationships: [...relationships, newRelationship]);
+  }
   @override
   Relationship? getRelationshipById(String relationshipId) => null;
   @override
@@ -58,12 +79,29 @@ class Container with _$Container implements Element {
   Container addChild(Element childNode) => this;
   @override
   Container setIdentifier(String identifier) => this;
+  
+  /// Add a component to this container
+  Container addComponent(Component component) {
+    return copyWith(
+      components: [...components, component],
+    );
+  }
+  
+  /// Get a component by its ID
+  Component? getComponentById(String componentId) {
+    try {
+      return components.firstWhere((component) => component.id == componentId);
+    } catch (e) {
+      return null;
+    }
+  }
 
   // Add this factory for test compatibility
   static Container create({
     required String name,
     String? parentId,
     String? description,
+    String? technology,
     List<String>? tags,
   }) {
     return Container(
@@ -71,7 +109,8 @@ class Container with _$Container implements Element {
       name: name,
       parentId: parentId ?? '',
       description: description,
-      tags: tags ?? [],
+      technology: technology,
+      tags: [...(tags ?? []), 'Container'], // Add default Container tag
     );
   }
 }

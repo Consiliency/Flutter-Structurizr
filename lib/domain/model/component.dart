@@ -34,11 +34,22 @@ class Component with _$Component implements Element {
       _$ComponentFromJson(json);
 
   @override
-  Component addTag(String tag) => this;
+  Component addTag(String tag) {
+    return copyWith(tags: [...tags, tag]);
+  }
+  
   @override
-  Component addTags(List<String> newTags) => this;
+  Component addTags(List<String> newTags) {
+    return copyWith(tags: [...tags, ...newTags]);
+  }
+  
   @override
-  Component addProperty(String key, String value) => this;
+  Component addProperty(String key, String value) {
+    final updatedProperties = Map<String, String>.from(properties);
+    updatedProperties[key] = value;
+    return copyWith(properties: updatedProperties);
+  }
+  
   @override
   Component addRelationship({
     required String destinationId,
@@ -46,8 +57,18 @@ class Component with _$Component implements Element {
     String? technology,
     List<String> tags = const [],
     Map<String, String> properties = const {},
-  }) =>
-      this;
+  }) {
+    final newRelationship = Relationship(
+      id: '$id-to-$destinationId', // Generate a relationship ID
+      sourceId: id,
+      destinationId: destinationId,
+      description: description,
+      technology: technology,
+      tags: tags,
+      properties: properties,
+    );
+    return copyWith(relationships: [...relationships, newRelationship]);
+  }
   @override
   Relationship? getRelationshipById(String relationshipId) => null;
   @override
@@ -61,6 +82,7 @@ class Component with _$Component implements Element {
     required String name,
     String? parentId,
     String? description,
+    String? technology,
     List<String>? tags,
   }) {
     return Component(
@@ -68,6 +90,7 @@ class Component with _$Component implements Element {
       name: name,
       parentId: parentId ?? '',
       description: description,
+      technology: technology,
       tags: tags ?? [],
     );
   }

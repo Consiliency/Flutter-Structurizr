@@ -1,5 +1,7 @@
 import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/model.dart';
+import 'package:flutter_structurizr/domain/model/container.dart';
+import 'package:flutter_structurizr/domain/model/component.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

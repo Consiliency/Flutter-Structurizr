@@ -3,6 +3,14 @@ import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/model.dart';
 import 'package:flutter_structurizr/domain/model/workspace.dart';
 import 'package:flutter_structurizr/domain/style/styles.dart';
+import 'package:flutter_structurizr/domain/model/person.dart';
+import 'package:flutter_structurizr/domain/model/software_system.dart';
+import 'package:flutter_structurizr/domain/model/container.dart';
+import 'package:flutter_structurizr/domain/model/component.dart';
+import 'package:flutter_structurizr/domain/model/deployment_node.dart';
+import 'package:flutter_structurizr/domain/model/infrastructure_node.dart';
+import 'package:flutter_structurizr/domain/model/container_instance.dart';
+import 'package:flutter_structurizr/domain/model/software_system_instance.dart';
 
 /// Utility class for JSON serialization and deserialization of Structurizr models.
 class JsonSerialization {

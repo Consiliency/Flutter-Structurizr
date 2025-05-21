@@ -1,5 +1,9 @@
 import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/model.dart';
+import 'package:flutter_structurizr/domain/model/deployment_node.dart';
+import 'package:flutter_structurizr/domain/model/container_instance.dart';
+import 'package:flutter_structurizr/domain/model/software_system_instance.dart';
+import 'package:flutter_structurizr/domain/model/infrastructure_node.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

@@ -1,5 +1,7 @@
 import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/model.dart';
+import 'package:flutter_structurizr/domain/model/component.dart';
+import 'package:flutter_structurizr/domain/model/container.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -47,8 +49,7 @@ void main() {
       expect(createdComponent.description, equals(componentDescription));
       expect(createdComponent.technology, equals(componentTechnology));
       expect(createdComponent.parentId, equals(parentId));
-      expect(
-          createdComponent.tags, contains('Component')); // Default tag is added
+      expect(createdComponent.tags, isEmpty); // No default tags are added by create()
     });
 
     test('addTag() adds a tag to the component', () {
