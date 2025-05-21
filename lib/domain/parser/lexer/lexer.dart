@@ -607,7 +607,11 @@ class Lexer {
   }
 
   /// Consumes the current character and returns it.
+  /// If we're at the end of the source, returns null character.
   String _advance() {
+    if (_isAtEnd()) {
+      return '\0';
+    }
     _column++;
     return source[_current++];
   }

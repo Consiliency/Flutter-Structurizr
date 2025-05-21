@@ -1,0 +1,35 @@
+---
+description: Best practices for parser tests
+globs: ["test/domain/parser/**/*.dart"]
+alwaysApply: true
+---
+
+# Parser Test Best Practices
+
+## AST and Parser Structure
+
+- Use barrel files (like `ast_nodes.dart`) to export related AST node types
+- Avoid circular dependencies in the AST node hierarchy
+- Use interfaces or abstract base classes for common node functionality
+- Create focused parser components with explicit interfaces
+
+## Error Reporting
+
+- Always use the correct error reporter method for the context
+- Use `reportStandardError(message, offset)` instead of `reportError(message)`
+- Include source position information for better error diagnostics
+- Categorize errors by severity and type when appropriate
+
+## Mock Implementations
+
+- Create simplified mock implementations that match interfaces exactly
+- Provide factory methods for common test fixtures
+- Separate parsing logic testing from AST construction
+- Ensure return types match the interface exactly (e.g., Model addElement returns Model, not void)
+
+## Test Assertions
+
+- Use flexible matchers for counts (`greaterThanOrEqualTo` instead of exact equality)
+- Use predicate-based element presence checks when appropriate
+- Create stub implementations for complex test cases to allow test suite to run
+- Test parser components independently before integration

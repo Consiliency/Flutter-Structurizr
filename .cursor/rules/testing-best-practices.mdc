@@ -1,14 +1,34 @@
 ---
-description: 
-globs: 
-alwaysApply: false
+description: General testing best practices for the project
+globs: ["test/**/*.dart"]
+alwaysApply: true
 ---
 # Testing Best Practices
 
-- Use mock implementations for abstract classes and platform interfaces (e.g., WebViewPlatform) in tests.
-- For WebView tests, inject a mock platform and use a test controller wrapper if needed for delegate/callback wiring.
-- Use `findsWidgets` instead of `findsOneWidget` for components that may have multiple instances.
-- Use ancestor finders for specific widget hierarchy checks.
-- For context menu and right-click, verify structure rather than simulating clicks.
-- For golden tests, plan for future visual regression coverage.
-- Clean up unused imports and test helpers after refactors.
+## Widget Testing
+
+- Always use `flutter test` (not `dart test`) for widget tests
+- Use mock implementations for abstract classes and platform interfaces
+- For WebView tests, inject a mock platform and use a test controller wrapper
+- Use `findsWidgets` instead of `findsOneWidget` for components that may have multiple instances
+- Use ancestor finders for specific widget hierarchy checks
+- For context menu and right-click, verify structure rather than simulating clicks
+- Always provide bounded constraints (e.g., wrap in SizedBox) to avoid RenderBox layout errors
+- Clean up unused imports and test helpers after refactors
+
+## Parser Testing
+
+- Use barrel files to export related types, especially for AST nodes
+- For error reporting, always use the appropriate method (e.g., reportStandardError vs reportError)
+- Create mock implementations that match interfaces exactly
+- Update assertions to use flexible matchers when appropriate
+- Test parser components independently before integration testing
+
+## General Testing
+
+- Follow the test categories in specs/testing_plan.md
+- Use the appropriate test runner script from the scripts/ directory
+- Generate necessary code before running tests (scripts/generate_code.sh)
+- For import conflicts, use explicit import prefixes or hide directives
+- Ensure test mocks match the interface exactly (return types, parameters, etc.)
+- For golden tests, always specify the platform to ensure consistency

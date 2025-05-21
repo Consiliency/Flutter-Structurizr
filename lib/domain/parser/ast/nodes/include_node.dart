@@ -19,8 +19,11 @@ class IncludeNode extends AstNode {
     this.isFileInclude = true,
     this.expression = '',
     this.type = IncludeType.file,
+    WorkspaceNode? workspace,
     SourcePosition? sourcePosition,
-  }) : super(sourcePosition);
+  }) : super(sourcePosition) {
+    _workspace = workspace;
+  }
 
   @override
   void accept(AstVisitor visitor) => visitor.visitIncludeNode(this);

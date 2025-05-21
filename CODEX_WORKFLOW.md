@@ -24,8 +24,9 @@ When working with this repository in Codex, follow these steps:
    This script will:
    - Install any required system dependencies
    - Install the Flutter SDK from the official source
-   - Install all dart/flutter package dependencies
+   - Install all dart/flutter package dependencies for every sub-project
    - Run initial code generation
+   - Pre-cache Flutter artifacts for desktop targets
    - Create convenient wrapper scripts for Flutter and Dart commands
    
    **Note:** This script requires network access, which is available during the setup phase in Codex.

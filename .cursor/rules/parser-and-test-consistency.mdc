@@ -1,5 +1,38 @@
 ---
-description:
-globs:
-alwaysApply: false
+description: Guidelines for maintaining parser and test consistency
+globs: ["lib/domain/parser/**/*.dart", "test/domain/parser/**/*.dart"]
+alwaysApply: true
 ---
+
+# Parser and Test Consistency Guidelines
+
+## Import Organization
+
+- Always use explicit imports and avoid wildcards
+- Use barrel files (like `ast_nodes.dart`) to export related types
+- Avoid circular dependencies in import structure
+- For imports that conflict with Flutter types, use explicit hiding:
+  ```dart
+  import 'package:flutter/material.dart' hide Element, Container, View;
+  ```
+
+## Error Reporter Usage
+
+- Use consistent error reporting methods across all parser components
+- Prefer `reportStandardError(message, offset)` over deprecated methods
+- Include source position information for better diagnostics
+- Maintain consistent error message formatting
+
+## Method Signatures
+
+- Maintain consistent signatures across implementation and test mocks
+- Ensure return types match exactly (e.g., Model addElement returns Model, not void)
+- Use factory methods for test fixtures to ensure consistent object creation
+- Follow the method relationship tables in specs/ for proper dependencies
+
+## AST Structure
+
+- Maintain a clean hierarchy of AST node types
+- Use interfaces or abstract classes for shared functionality
+- Avoid redundant node types and favor composition
+- Properly document node relationships and hierarchy

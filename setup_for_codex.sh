@@ -167,15 +167,17 @@ echo "Dart SDK version: $DART_VERSION"
 
 # 4. Install Flutter dependencies
 echo "Installing Flutter dependencies..."
-flutter pub get
+flutter pub get || { echo "ERROR: flutter pub get failed at repo root"; exit 1; }
 
-# 5. Install dependencies for sub-projects
-for dir in demo_app example test_app; do
-    if [ -d "$dir" ]; then
+# 5. Install dependencies for all sub-projects
+echo "Scanning for additional pubspec.yaml files..."
+while IFS= read -r pubspec; do
+    dir="$(dirname "$pubspec")"
+    if [[ "$dir" != "$REPO_ROOT" ]]; then
         echo "Installing dependencies in $dir/..."
-        (cd "$dir" && flutter pub get) || echo "Warning: Failed to install dependencies in $dir"
+        (cd "$dir" && flutter pub get) || { echo "ERROR: flutter pub get failed in $dir"; exit 1; }
     fi
-done
+done < <(find "$REPO_ROOT" \( -path '*/build' -o -path '*/.dart_tool' \) -prune -o -name pubspec.yaml -print)
 
 # 6. Run code generation
 echo "Running code generation (build_runner)..."
@@ -189,7 +191,11 @@ flutter doctor -v
 echo "Running flutter analyze..."
 flutter analyze || echo "Warning: Some analysis issues found"
 
-# 9. Create a simple wrapper for Flutter and Dart
+# 9. Pre-cache Flutter artifacts for offline use
+echo "Pre-caching Flutter artifacts..."
+flutter precache --linux --macos --windows
+
+# 10. Create a simple wrapper for Flutter and Dart
 # These wrappers will help ensure consistent command usage after setup
 cat > "$REPO_ROOT/flutter" << 'EOF'
 #!/usr/bin/env bash

@@ -109,6 +109,32 @@ class Parser {
 
   /// The list of directives encountered during parsing.
   final List<DirectiveNode> _directives = [];
+  
+  /// Hook functions for testing
+  Function? _modelParserHook;
+  Function? _viewsParserHook;
+  Function? _relationshipParserHook;
+  Function? _includeParserHook;
+  
+  /// Sets a hook function to be called when the model parser is used.
+  void setModelParserHook(Function hook) {
+    _modelParserHook = hook;
+  }
+  
+  /// Sets a hook function to be called when the views parser is used.
+  void setViewsParserHook(Function hook) {
+    _viewsParserHook = hook;
+  }
+  
+  /// Sets a hook function to be called when the relationship parser is used.
+  void setRelationshipParserHook(Function hook) {
+    _relationshipParserHook = hook;
+  }
+  
+  /// Sets a hook function to be called when the include parser is used.
+  void setIncludeParserHook(Function hook) {
+    _includeParserHook = hook;
+  }
 
   /// Creates a new parser for the given source code.
   Parser(String source, {String? filePath})
@@ -130,7 +156,9 @@ class Parser {
     }
 
     _tokens.addAll(_lexer.scanTokens());
-    _advance();
+    if (_tokens.isNotEmpty) {
+      _advance();
+    }
   }
 
   /// Creates a new parser for a file at the given path.
@@ -158,6 +186,23 @@ class Parser {
     // Skip if there are no directives
     if (_directives.isEmpty) {
       return;
+    }
+    
+    // Call hook functions if they exist (for testing)
+    if (_includeParserHook != null) {
+      _includeParserHook!();
+    }
+    
+    if (_modelParserHook != null) {
+      _modelParserHook!();
+    }
+    
+    if (_viewsParserHook != null) {
+      _viewsParserHook!();
+    }
+    
+    if (_relationshipParserHook != null) {
+      _relationshipParserHook!();
     }
 
     // Create parsers for various parts of the model
@@ -3460,10 +3505,12 @@ class Parser {
 
   /// Advances to the next token.
   void _advance() {
-    if (!_isAtEnd()) {
+    if (!_isAtEnd() && _tokens.isNotEmpty && _position < _tokens.length) {
       _previous = _current;
       _position++;
-      _current = _tokens[_position];
+      if (_position < _tokens.length) {
+        _current = _tokens[_position];
+      }
     }
   }
 
