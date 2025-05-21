@@ -1,138 +1,127 @@
-# Complete Codex Offline Development Workflow
+# Codex Development Workflow
 
-This document explains the complete workflow for setting up and using this repository in Codex's offline environment.
+This document explains the workflow for setting up and using this repository in Codex's environment.
 
 ## Overview
 
-We provide a complete Flutter SDK and all dependencies in the repository for offline development in Codex. Due to GitHub's file size limitations, the archives are split into smaller chunks in the `.codex/` directory:
-- `flutter-sdk.tar.gz.part.*` - Complete Flutter SDK (704MB, split into 95MB chunks)
-- `pub-cache.tar.gz.part.*` - All Dart/Flutter packages (387MB, split into 95MB chunks)
+Dart Structurizr is a Flutter project that requires the Flutter SDK and various dependencies. In Codex, we leverage network access during the initial setup phase to install these dependencies. After setup, development continues in offline mode.
 
-The setup script automatically reassembles these files before extraction.
+## Codex Environment Setup
 
-## Initial Setup (One-time, by repository maintainer)
+When working with this repository in Codex, follow these steps:
 
-1. **Prepare the offline cache:**
-   ```bash
-   ./prepare_codex_cache_full.sh
-   ```
-   This creates compressed archives of the complete Flutter SDK and all dependencies in `.codex/`
-
-2. **Commit with Git LFS:**
-   ```bash
-   git add -A
-   git commit -m "Add Git LFS offline cache for Codex"
-   git lfs push origin main --all
-   git push origin main
-   ```
-
-## Codex Environment Setup (For each Codex session)
-
-1. **Clone with LFS support (if using Git LFS):**
-   ```bash
-   git lfs clone https://github.com/yourusername/dart-structurizr.git
-   cd dart-structurizr
-   ```
-   
-   Or regular clone if LFS not available:
+1. **Clone the repository:**
    ```bash
    git clone https://github.com/yourusername/dart-structurizr.git
    cd dart-structurizr
    ```
 
-2. **Run the offline setup:**
+2. **Run the Codex setup script:**
    ```bash
-   ./codex_offline_setup_split.sh
+   ./setup_for_codex.sh
    ```
    
    This script will:
-   - Reassemble the split archive files
-   - Extract the Flutter SDK and packages
-   - Configure the offline environment
+   - Install any required system dependencies
+   - Install the Flutter SDK from the official source
+   - Install all dart/flutter package dependencies
+   - Run initial code generation
+   - Create convenient wrapper scripts for Flutter and Dart commands
+   
+   **Note:** This script requires network access, which is available during the setup phase in Codex.
 
-3. **Use offline commands:**
+3. **Verify the setup:**
    ```bash
-   ./flutter test      # Run tests (full Flutter SDK)
-   ./flutter analyze   # Analyze code
-   ./flutter run -d linux    # Run on Linux desktop
-   ./flutter build linux     # Build for Linux
-   ./dart analyze      # Dart-specific commands
+   ./flutter doctor
    ```
+
+## Development in Codex (Offline Mode)
+
+After the initial setup, Codex operates in offline mode (no network access). Use these commands for development:
+
+```bash
+# Use the wrapper scripts for all Flutter/Dart commands
+./flutter run        # Run the application
+./flutter test       # Run tests
+./flutter analyze    # Analyze code
+./dart analyze       # Dart-specific commands
+```
 
 ## File Structure
 
 ```
 dart-structurizr/
-├── .codex/                          # Offline cache directory
-│   ├── flutter-sdk.tar.gz.part.*   # Flutter SDK split files (8 parts)
-│   ├── pub-cache.tar.gz.part.*     # Package cache split files (5 parts)
-│   ├── reassemble.sh               # Script to reassemble split files
-│   ├── .flutter-sdk-packed         # Extraction marker
-│   └── .pub-cache-packed           # Extraction marker
-├── codex_offline_setup_split.sh    # Codex setup script (handles split files)
-├── setup_dev_env.sh                # Regular dev setup (requires internet)
-├── prepare_codex_cache_full.sh     # Cache preparation script
-└── split_large_files.sh            # Script to split large archives
+├── lib/                          # Main source code
+├── test/                         # Test suite
+├── example/                      # Example applications
+├── specs/                        # Implementation specifications
+├── AGENTS.md                     # AI agent instructions (for post-setup)
+├── setup_for_codex.sh            # Codex setup script (uses network)
+└── clean_codex_cache.sh          # Script to clean offline cache files
 ```
 
-## How It Works
+## Best Practices for Codex
 
-1. **Repository includes** compressed archives via Git LFS
-2. **Setup script extracts** archives on first run
-3. **Creates wrappers** for dart/pub/flutter commands
-4. **Configures environment** for offline operation
-5. **All subsequent operations** work without internet
+1. **Always use the wrapper scripts:**
+   ```bash
+   ./flutter [command]
+   ./dart [command]
+   ```
+
+2. **Run the full test suite before committing:**
+   ```bash
+   ./flutter test
+   ```
+
+3. **Check code quality:**
+   ```bash
+   ./flutter analyze
+   ```
+
+4. **Follow import conflict resolution guidance in AGENTS.md**
 
 ## Troubleshooting
 
-### LFS files not found
+### Flutter command not found
+
+If Flutter commands fail, ensure the setup script completed successfully:
+
 ```bash
-git lfs pull
-./codex_offline_setup.sh
+test -f .codex_setup_complete && echo "Setup complete" || echo "Setup incomplete"
+```
+
+If setup is incomplete, run the setup script again:
+
+```bash
+./setup_for_codex.sh
 ```
 
 ### Dependencies missing
+
+If dependencies are missing after setup:
+
 ```bash
-# Re-run cache preparation (requires internet)
-./prepare_codex_cache.sh
-git add .codex/
-git commit -m "Update offline cache"
-git push
+# Manually install dependencies
+./flutter pub get
 ```
 
-### Command not found
-```bash
-# Ensure setup completed
-./codex_offline_setup.sh
-# Use wrapper commands
-./dart --version
-```
+## Updating the Project
 
-## Updating Dependencies
+For repository maintainers, when updating the project for Codex:
 
-When dependencies change:
-
-1. **On a machine with internet:**
+1. **Update the setup script if needed:**
    ```bash
-   ./prepare_codex_cache.sh
-   git add .codex/
-   git commit -m "Update offline dependencies"
-   git lfs push origin main --all
-   git push origin main
+   # Edit setup_for_codex.sh with any new setup requirements
    ```
 
-2. **In Codex:**
+2. **Update AGENTS.md for new development guidance:**
    ```bash
-   git pull
-   git lfs pull
-   ./codex_offline_setup.sh
+   # Edit AGENTS.md with new instructions for AI agents
    ```
 
-## Best Practices
-
-1. Always use `./dart`, `./pub`, `./flutter` wrappers in Codex
-2. Run setup script after each clone
-3. Keep dependencies up to date with prepare script
-4. Use Git LFS for all large binary files
-
-This workflow ensures seamless offline development in Codex while maintaining a reasonable repository size.
+3. **Commit the changes:**
+   ```bash
+   git add setup_for_codex.sh AGENTS.md
+   git commit -m "Update Codex setup and guidance"
+   git push
+   ```
