@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart' hide Element;
 import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/style/styles.dart';
@@ -154,22 +153,22 @@ abstract class BaseRenderer {
   /// to the point intersects with the rectangle's edge.
   Offset findIntersectionPoint(Rect rect, Offset point) {
     final center = rect.center;
-    
+
     // If the point is inside the rectangle, return the point
     if (rect.contains(point)) {
       return point;
     }
-    
+
     // Calculate the slope of the line connecting the center and the point
     final dx = point.dx - center.dx;
     final dy = point.dy - center.dy;
-    
+
     // Avoid division by zero
     final slope = dx != 0 ? dy / dx : double.infinity;
-    
+
     // Find intersection with each edge of the rectangle
     final List<Offset> intersections = [];
-    
+
     // Top edge
     if (dy < 0) {
       final x = center.dx + (rect.top - center.dy) / slope;
@@ -177,7 +176,7 @@ abstract class BaseRenderer {
         intersections.add(Offset(x, rect.top));
       }
     }
-    
+
     // Bottom edge
     if (dy > 0) {
       final x = center.dx + (rect.bottom - center.dy) / slope;
@@ -185,7 +184,7 @@ abstract class BaseRenderer {
         intersections.add(Offset(x, rect.bottom));
       }
     }
-    
+
     // Left edge
     if (dx < 0) {
       final y = slope * (rect.left - center.dx) + center.dy;
@@ -193,7 +192,7 @@ abstract class BaseRenderer {
         intersections.add(Offset(rect.left, y));
       }
     }
-    
+
     // Right edge
     if (dx > 0) {
       final y = slope * (rect.right - center.dx) + center.dy;
@@ -201,15 +200,15 @@ abstract class BaseRenderer {
         intersections.add(Offset(rect.right, y));
       }
     }
-    
+
     // Find the intersection that is closest to the external point
     if (intersections.isEmpty) {
       return center; // Fallback
     }
-    
+
     double minDistance = double.infinity;
     Offset closestIntersection = intersections.first;
-    
+
     for (final intersection in intersections) {
       final distance = (intersection - point).distance;
       if (distance < minDistance) {
@@ -217,10 +216,10 @@ abstract class BaseRenderer {
         closestIntersection = intersection;
       }
     }
-    
+
     return closestIntersection;
   }
-  
+
   /// Calculates the distance from a point to a line segment.
   ///
   /// This is useful for hit testing relationships.
@@ -235,14 +234,14 @@ abstract class BaseRenderer {
     final b = lineEnd - lineStart;
     final projection = a.dx * b.dx + a.dy * b.dy;
     final bLengthSquared = b.dx * b.dx + b.dy * b.dy;
-    
+
     // Avoid division by zero
     if (bLengthSquared == 0) {
       return a.distance;
     }
-    
+
     final t = projection / bLengthSquared;
-    
+
     if (t < 0) {
       return a.distance;
     } else if (t > 1) {

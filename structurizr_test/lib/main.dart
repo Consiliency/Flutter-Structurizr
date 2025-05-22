@@ -32,18 +32,19 @@ class TestPage extends StatefulWidget {
   State<TestPage> createState() => _TestPageState();
 }
 
-class _TestPageState extends State<TestPage> with SingleTickerProviderStateMixin {
+class _TestPageState extends State<TestPage>
+    with SingleTickerProviderStateMixin {
   late Workspace workspace;
   late DynamicView dynamicView;
   late TabController _tabController;
-  
+
   late DynamicViewDiagramConfig _config;
-  
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    
+
     _config = const DynamicViewDiagramConfig(
       autoPlay: false,
       animationMode: AnimationMode.loop,
@@ -56,75 +57,64 @@ class _TestPageState extends State<TestPage> with SingleTickerProviderStateMixin
         showRelationshipDescriptions: true,
       ),
     );
-    
+
     _initializeSampleModel();
   }
-  
+
   void _initializeSampleModel() {
     workspace = const Workspace(
       name: 'Sample Workspace',
       description: 'Sample workspace for testing',
     );
-    
+
     // Create a simple model
-    final user = workspace.model.addPerson(
-      'user', 
-      'User',
-      description: 'End User'
-    );
-    
+    final user =
+        workspace.model.addPerson('user', 'User', description: 'End User');
+
     final webApp = workspace.model.addSoftwareSystem(
-      'webapp', 
-      'Web Application',
-      description: 'Frontend Application'
-    );
-    
-    final apiSystem = workspace.model.addSoftwareSystem(
-      'api', 
-      'API Service',
-      description: 'Backend API'
-    );
-    
-    final database = workspace.model.addSoftwareSystem(
-      'db', 
-      'Database',
-      description: 'Data Storage'
-    );
-    
+        'webapp', 'Web Application',
+        description: 'Frontend Application');
+
+    final apiSystem = workspace.model
+        .addSoftwareSystem('api', 'API Service', description: 'Backend API');
+
+    final database = workspace.model
+        .addSoftwareSystem('db', 'Database', description: 'Data Storage');
+
     // Add relationships
     final userToWebRel = user.uses(webApp, 'Uses');
     final webToApiRel = webApp.uses(apiSystem, 'Calls');
     final apiToDbRel = apiSystem.uses(database, 'Stores data');
-    
+
     // Create a dynamic view
     dynamicView = const DynamicView(
       key: 'main',
       title: 'Main Flow',
       description: 'Main system flow',
     );
-    
+
     // Add elements to view
     dynamicView.addElement(ElementView(id: user.id));
     dynamicView.addElement(ElementView(id: webApp.id));
     dynamicView.addElement(ElementView(id: apiSystem.id));
     dynamicView.addElement(ElementView(id: database.id));
-    
+
     // Add relationships to view
     final rel1 = dynamicView.addRelationship(RelationshipView(
       id: userToWebRel.id,
       order: '1',
     ));
-    
+
     final rel2 = rel1.addRelationship(RelationshipView(
       id: webToApiRel.id,
       order: '2',
     ));
-    
+
     final rel3 = rel2.addRelationship(RelationshipView(
       id: apiToDbRel.id,
       order: '3',
     ));
-    
+
     // Define animation steps
     final animations = [
       // Step 1: Just user and webapp
@@ -133,14 +123,14 @@ class _TestPageState extends State<TestPage> with SingleTickerProviderStateMixin
         elements: [user.id, webApp.id],
         relationships: [userToWebRel.id],
       ),
-      
+
       // Step 2: Add API
       AnimationStep(
         order: 2,
         elements: [user.id, webApp.id, apiSystem.id],
         relationships: [userToWebRel.id, webToApiRel.id],
       ),
-      
+
       // Step 3: Add Database
       AnimationStep(
         order: 3,
@@ -148,20 +138,20 @@ class _TestPageState extends State<TestPage> with SingleTickerProviderStateMixin
         relationships: [userToWebRel.id, webToApiRel.id, apiToDbRel.id],
       ),
     ];
-    
+
     // Set animations on the view
     dynamicView = rel3.copyWith(animations: animations);
-    
+
     // Add view to workspace
     workspace.views.add(dynamicView);
   }
-  
+
   void _updateConfig(DynamicViewDiagramConfig newConfig) {
     setState(() {
       _config = newConfig;
     });
   }
-  
+
   void _onElementSelected(String id, Element element) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -206,7 +196,7 @@ class _TestPageState extends State<TestPage> with SingleTickerProviderStateMixin
               ),
             ],
           ),
-          
+
           // Speed selection
           PopupMenuButton<double>(
             tooltip: 'Animation Speed',
@@ -233,11 +223,14 @@ class _TestPageState extends State<TestPage> with SingleTickerProviderStateMixin
               ),
             ],
           ),
-          
+
           // Auto-play toggle
           IconButton(
-            icon: Icon(_config.autoPlay ? Icons.pause_circle_outline : Icons.play_circle_outline),
-            tooltip: _config.autoPlay ? 'Disable Auto-Play' : 'Enable Auto-Play',
+            icon: Icon(_config.autoPlay
+                ? Icons.pause_circle_outline
+                : Icons.play_circle_outline),
+            tooltip:
+                _config.autoPlay ? 'Disable Auto-Play' : 'Enable Auto-Play',
             onPressed: () {
               _updateConfig(_config.copyWith(autoPlay: !_config.autoPlay));
             },
@@ -254,7 +247,7 @@ class _TestPageState extends State<TestPage> with SingleTickerProviderStateMixin
             config: _config,
             onElementSelected: _onElementSelected,
           ),
-          
+
           // Settings Tab
           SingleChildScrollView(
             child: Padding(
@@ -267,7 +260,7 @@ class _TestPageState extends State<TestPage> with SingleTickerProviderStateMixin
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Element visualization settings
                   SwitchListTile(
                     title: const Text('Show Element Names'),
@@ -280,7 +273,7 @@ class _TestPageState extends State<TestPage> with SingleTickerProviderStateMixin
                       ));
                     },
                   ),
-                  
+
                   SwitchListTile(
                     title: const Text('Show Element Descriptions'),
                     value: _config.diagramConfig.showElementDescriptions,
@@ -292,7 +285,7 @@ class _TestPageState extends State<TestPage> with SingleTickerProviderStateMixin
                       ));
                     },
                   ),
-                  
+
                   SwitchListTile(
                     title: const Text('Show Relationship Descriptions'),
                     value: _config.diagramConfig.showRelationshipDescriptions,
@@ -304,9 +297,9 @@ class _TestPageState extends State<TestPage> with SingleTickerProviderStateMixin
                       ));
                     },
                   ),
-                  
+
                   const Divider(),
-                  
+
                   // Animation settings
                   SwitchListTile(
                     title: const Text('Auto-Play Animation'),
@@ -317,7 +310,7 @@ class _TestPageState extends State<TestPage> with SingleTickerProviderStateMixin
                       ));
                     },
                   ),
-                  
+
                   // FPS Slider
                   Row(
                     children: [
@@ -339,7 +332,7 @@ class _TestPageState extends State<TestPage> with SingleTickerProviderStateMixin
                       Text('${_config.fps}x'),
                     ],
                   ),
-                  
+
                   // Animation mode radio buttons
                   const Text('Animation Mode:'),
                   RadioListTile<AnimationMode>(
@@ -386,7 +379,7 @@ class _TestPageState extends State<TestPage> with SingleTickerProviderStateMixin
       ),
     );
   }
-  
+
   @override
   void dispose() {
     _tabController.dispose();

@@ -9,11 +9,11 @@ class DashedLinePainter extends CustomPainter {
       ..color = Colors.black
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
-    
+
     double startX = 0;
     const double dashWidth = 5;
     const double dashSpace = 3;
-    
+
     while (startX < size.width) {
       canvas.drawLine(
         Offset(startX, size.height / 2),
@@ -23,7 +23,7 @@ class DashedLinePainter extends CustomPainter {
       startX += dashWidth + dashSpace;
     }
   }
-  
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
@@ -36,11 +36,11 @@ class DottedLinePainter extends CustomPainter {
       ..color = Colors.black
       ..strokeWidth = 2
       ..style = PaintingStyle.fill;
-    
+
     double startX = 0;
     const double dotSize = 2;
     const double dotSpace = 3;
-    
+
     while (startX < size.width) {
       canvas.drawCircle(
         Offset(startX + dotSize / 2, size.height / 2),
@@ -50,7 +50,7 @@ class DottedLinePainter extends CustomPainter {
       startX += dotSize + dotSpace;
     }
   }
-  
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
@@ -63,16 +63,16 @@ class OrthogonalRoutingPainter extends CustomPainter {
       ..color = Colors.black
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
-    
+
     final path = Path();
     path.moveTo(0, size.height / 2);
     path.lineTo(size.width / 2, size.height / 2);
     path.lineTo(size.width / 2, size.height / 4);
     path.lineTo(size.width, size.height / 4);
-    
+
     canvas.drawPath(path, paint);
   }
-  
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
@@ -85,17 +85,19 @@ class CurvedRoutingPainter extends CustomPainter {
       ..color = Colors.black
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
-    
+
     final path = Path();
     path.moveTo(0, size.height / 2);
     path.quadraticBezierTo(
-      size.width / 2, size.height,
-      size.width, size.height / 2,
+      size.width / 2,
+      size.height,
+      size.width,
+      size.height / 2,
     );
-    
+
     canvas.drawPath(path, paint);
   }
-  
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
@@ -105,20 +107,20 @@ class LineStylePreviewPainter extends CustomPainter {
   final LineStyle lineStyle;
   final Color color;
   final double thickness;
-  
+
   LineStylePreviewPainter({
     required this.lineStyle,
     required this.color,
     required this.thickness,
   });
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint()
       ..color = color
       ..strokeWidth = thickness
       ..style = PaintingStyle.stroke;
-    
+
     switch (lineStyle) {
       case LineStyle.solid:
         canvas.drawLine(
@@ -131,7 +133,7 @@ class LineStylePreviewPainter extends CustomPainter {
         double startX = 0;
         const double dashWidth = 5;
         const double dashSpace = 3;
-        
+
         while (startX < size.width) {
           canvas.drawLine(
             Offset(startX, size.height / 2),
@@ -145,11 +147,11 @@ class LineStylePreviewPainter extends CustomPainter {
         double startX = 0;
         final double dotSize = thickness;
         final double dotSpace = thickness + 2;
-        
+
         final dotPaint = Paint()
           ..color = color
           ..style = PaintingStyle.fill;
-          
+
         while (startX < size.width) {
           canvas.drawCircle(
             Offset(startX + dotSize / 2, size.height / 2),
@@ -161,10 +163,10 @@ class LineStylePreviewPainter extends CustomPainter {
         break;
     }
   }
-  
+
   @override
-  bool shouldRepaint(covariant LineStylePreviewPainter oldDelegate) => 
-    oldDelegate.lineStyle != lineStyle ||
-    oldDelegate.color != color ||
-    oldDelegate.thickness != thickness;
+  bool shouldRepaint(covariant LineStylePreviewPainter oldDelegate) =>
+      oldDelegate.lineStyle != lineStyle ||
+      oldDelegate.color != color ||
+      oldDelegate.thickness != thickness;
 }

@@ -112,7 +112,8 @@ void main() {
     });
 
     test('Keywords are recognized', () {
-      final lexer = Lexer('workspace model person softwareSystem container component');
+      final lexer =
+          Lexer('workspace model person softwareSystem container component');
       final tokens = lexer.scanTokens();
 
       expect(tokens.length, equals(7)); // 6 keywords + EOF
@@ -125,7 +126,8 @@ void main() {
     });
 
     test('Additional keywords are recognized', () {
-      final lexer = Lexer('group enterprise terminology properties url this location');
+      final lexer =
+          Lexer('group enterprise terminology properties url this location');
       final tokens = lexer.scanTokens();
 
       expect(tokens.length, equals(8)); // 7 keywords + EOF
@@ -139,11 +141,15 @@ void main() {
     });
 
     test('Shape tokens are recognized', () {
-      final lexer = Lexer('shape "Box" shape "Circle" shape "Cylinder" shape "Person"');
+      final lexer =
+          Lexer('shape "Box" shape "Circle" shape "Cylinder" shape "Person"');
       final tokens = lexer.scanTokens();
 
       // Check for shape keywords (should be tokenized as strings first, then referenced by value)
-      final strings = tokens.where((t) => t.type == TokenType.string).map((t) => t.value).toList();
+      final strings = tokens
+          .where((t) => t.type == TokenType.string)
+          .map((t) => t.value)
+          .toList();
       expect(strings, contains('Box'));
       expect(strings, contains('Circle'));
       expect(strings, contains('Cylinder'));
@@ -185,7 +191,8 @@ void main() {
     });
 
     test('Error reporting for invalid characters', () {
-      final lexer = Lexer('valid \$ ~'); // $ and ~ are not valid in the language
+      final lexer =
+          Lexer('valid \$ ~'); // $ and ~ are not valid in the language
       final tokens = lexer.scanTokens();
 
       expect(lexer.errorReporter.hasErrors, isTrue);
@@ -197,7 +204,8 @@ void main() {
       final tokens = lexer.scanTokens();
 
       expect(lexer.errorReporter.hasErrors, isTrue);
-      expect(lexer.errorReporter.errors[0].message, contains('Unterminated string'));
+      expect(lexer.errorReporter.errors[0].message,
+          contains('Unterminated string'));
     });
 
     test('Complex DSL example', () {
@@ -295,7 +303,8 @@ void main() {
       ''';
 
       final lexer = Lexer(source);
-      final tokens = lexer.scanTokens().where((t) => t.type != TokenType.eof).toList();
+      final tokens =
+          lexer.scanTokens().where((t) => t.type != TokenType.eof).toList();
 
       // Check for specific tokens
       expect(tokens.any((t) => t.type == TokenType.workspace), isTrue);
@@ -306,7 +315,8 @@ void main() {
       expect(tokens.any((t) => t.type == TokenType.softwareSystem), isTrue);
       expect(tokens.any((t) => t.type == TokenType.container), isTrue);
       expect(tokens.any((t) => t.type == TokenType.component), isTrue);
-      expect(tokens.any((t) => t.type == TokenType.deploymentEnvironment), isTrue);
+      expect(
+          tokens.any((t) => t.type == TokenType.deploymentEnvironment), isTrue);
       expect(tokens.any((t) => t.type == TokenType.deploymentNode), isTrue);
       expect(tokens.any((t) => t.type == TokenType.infrastructureNode), isTrue);
       expect(tokens.any((t) => t.type == TokenType.containerInstance), isTrue);
@@ -321,7 +331,10 @@ void main() {
       expect(tokens.any((t) => t.type == TokenType.branding), isTrue);
 
       // Check for string literals
-      final strings = tokens.where((t) => t.type == TokenType.string).map((t) => t.value).toList();
+      final strings = tokens
+          .where((t) => t.type == TokenType.string)
+          .map((t) => t.value)
+          .toList();
       expect(strings, contains('Banking System'));
       expect(strings, contains('This is a banking system'));
       expect(strings, contains('Acme Corp'));

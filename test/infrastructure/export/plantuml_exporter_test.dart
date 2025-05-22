@@ -14,12 +14,12 @@ void main() {
       name: 'User',
       description: 'A user of the system',
     );
-    
+
     final system = SoftwareSystem.create(
       name: 'System',
       description: 'The software system',
     );
-    
+
     // Add components to the system
     final container = Container.create(
       name: 'Web Application',
@@ -27,31 +27,31 @@ void main() {
       parentId: system.id,
       technology: 'Flutter',
     );
-    
+
     final component = Component.create(
       name: 'Login Controller',
       description: 'Handles user authentication',
       parentId: container.id,
       technology: 'Dart',
     );
-    
+
     // Add containers to system
     final updatedSystem = system.addContainer(container);
-    
+
     // Create deployment nodes
     final deploymentNode = DeploymentNode.create(
       name: 'AWS EC2',
       environment: 'Production',
       technology: 'Amazon EC2',
     );
-    
+
     // Create a model with all elements
     final model = Model(
       people: [person],
       softwareSystems: [updatedSystem],
       deploymentNodes: [deploymentNode],
     );
-    
+
     // Create a System Context view
     final systemContextView = SystemContextView(
       key: 'SystemContext',
@@ -66,7 +66,7 @@ void main() {
         const RelationshipView(id: 'rel1'),
       ],
     );
-    
+
     // Create container view
     final containerView = ContainerView(
       key: 'Containers',
@@ -79,7 +79,7 @@ void main() {
         ElementView(id: container.id),
       ],
     );
-    
+
     // Create component view
     final componentView = ComponentView(
       key: 'Components',
@@ -92,7 +92,7 @@ void main() {
         ElementView(id: component.id),
       ],
     );
-    
+
     // Create deployment view
     final deploymentView = DeploymentView(
       key: 'Deployment',
@@ -103,18 +103,18 @@ void main() {
         ElementView(id: deploymentNode.id),
       ],
     );
-    
+
     // Add a relationship
     final updatedPerson = person.addRelationship(
       destinationId: system.id,
       description: 'Uses',
       technology: 'HTTPS',
     );
-    
+
     final updatedModel = model.copyWith(
       people: [updatedPerson],
     );
-    
+
     // Create and return the workspace
     return Workspace(
       id: 1,
@@ -131,33 +131,32 @@ void main() {
         workspace: workspace,
         viewKey: 'SystemContext',
       );
-      
+
       // Create the exporter
       const exporter = PlantUmlExporter();
-      
+
       // Export the diagram
       // Note: Since the implementation is incomplete, we're testing the interface behavior
       // rather than the actual PlantUML output structure
       try {
         final plantUml = await exporter.export(diagram);
-        
+
         // The output should be a string
         expect(plantUml, isA<String>());
-        
+
         // The result should contain standard PlantUML elements
         expect(plantUml, contains('@startuml'));
         expect(plantUml, contains('@enduml'));
-        
+
         // Verify diagram title
         expect(plantUml, contains('title System Context Diagram'));
-        
       } catch (e) {
         // Since our implementation has placeholders, we should expect failures
         // in a real test, we'd verify the actual output
         expect(e, isA<Exception>());
       }
     });
-    
+
     test('exports container diagram to PlantUML format', () async {
       // Create test workspace and diagram reference
       final workspace = createTestWorkspace();
@@ -165,30 +164,29 @@ void main() {
         workspace: workspace,
         viewKey: 'Containers',
       );
-      
+
       // Create the exporter
       const exporter = PlantUmlExporter();
-      
+
       // Export the diagram
       try {
         final plantUml = await exporter.export(diagram);
-        
+
         // The output should be a string
         expect(plantUml, isA<String>());
-        
+
         // The result should contain standard PlantUML elements
         expect(plantUml, contains('@startuml'));
         expect(plantUml, contains('@enduml'));
-        
+
         // Verify diagram title
         expect(plantUml, contains('title Container Diagram'));
-        
       } catch (e) {
         // Since our implementation has placeholders, we should expect failures
         expect(e, isA<Exception>());
       }
     });
-    
+
     test('exports component diagram to PlantUML format', () async {
       // Create test workspace and diagram reference
       final workspace = createTestWorkspace();
@@ -196,30 +194,29 @@ void main() {
         workspace: workspace,
         viewKey: 'Components',
       );
-      
+
       // Create the exporter
       const exporter = PlantUmlExporter();
-      
+
       // Export the diagram
       try {
         final plantUml = await exporter.export(diagram);
-        
+
         // The output should be a string
         expect(plantUml, isA<String>());
-        
+
         // The result should contain standard PlantUML elements
         expect(plantUml, contains('@startuml'));
         expect(plantUml, contains('@enduml'));
-        
+
         // Verify diagram title
         expect(plantUml, contains('title Component Diagram'));
-        
       } catch (e) {
         // Since our implementation has placeholders, we should expect failures
         expect(e, isA<Exception>());
       }
     });
-    
+
     test('exports deployment diagram to PlantUML format', () async {
       // Create test workspace and diagram reference
       final workspace = createTestWorkspace();
@@ -227,31 +224,30 @@ void main() {
         workspace: workspace,
         viewKey: 'Deployment',
       );
-      
+
       // Create the exporter
       const exporter = PlantUmlExporter();
-      
+
       // Export the diagram
       try {
         final plantUml = await exporter.export(diagram);
-        
+
         // The output should be a string
         expect(plantUml, isA<String>());
-        
+
         // The result should contain standard PlantUML elements
         expect(plantUml, contains('@startuml'));
         expect(plantUml, contains('@enduml'));
-        
+
         // Verify diagram title and environment
         expect(plantUml, contains('title Deployment Diagram'));
         expect(plantUml, contains('Production'));
-        
       } catch (e) {
         // Since our implementation has placeholders, we should expect failures
         expect(e, isA<Exception>());
       }
     });
-    
+
     test('supports different PlantUML styles', () async {
       // Create test workspace and diagram reference
       final workspace = createTestWorkspace();
@@ -259,57 +255,57 @@ void main() {
         workspace: workspace,
         viewKey: 'SystemContext',
       );
-      
+
       // Create exporters with different styles
       const standardExporter = PlantUmlExporter(
         style: PlantUmlStyle.standard,
       );
-      
+
       const c4Exporter = PlantUmlExporter(
         style: PlantUmlStyle.c4,
       );
-      
+
       const c4pumlExporter = PlantUmlExporter(
         style: PlantUmlStyle.c4puml,
       );
-      
+
       // Export with different styles
       try {
         final standardPlantUml = await standardExporter.export(diagram);
-        
+
         // Check for standard PlantUML style
         expect(standardPlantUml, isA<String>());
         expect(standardPlantUml, contains('@startuml'));
         expect(standardPlantUml, isNot(contains('!include <C4/')));
-        
       } catch (e) {
         // Ignore exceptions from the placeholder implementation
       }
-      
+
       try {
         final c4PlantUml = await c4Exporter.export(diagram);
-        
+
         // Check for C4 style includes
         expect(c4PlantUml, isA<String>());
         expect(c4PlantUml, contains('!include <C4/C4_Context>'));
-        
       } catch (e) {
         // Ignore exceptions from the placeholder implementation
       }
-      
+
       try {
         final c4pumlPlantUml = await c4pumlExporter.export(diagram);
-        
+
         // Check for C4-PlantUML style includes
         expect(c4pumlPlantUml, isA<String>());
         expect(c4pumlPlantUml, contains('!include <C4/C4_Context>'));
-        expect(c4pumlPlantUml, contains('!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/skinparam.puml'));
-        
+        expect(
+            c4pumlPlantUml,
+            contains(
+                '!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/skinparam.puml'));
       } catch (e) {
         // Ignore exceptions from the placeholder implementation
       }
     });
-    
+
     test('includes or excludes legend based on setting', () async {
       // Create test workspace and diagram reference
       final workspace = createTestWorkspace();
@@ -317,42 +313,40 @@ void main() {
         workspace: workspace,
         viewKey: 'SystemContext',
       );
-      
+
       // Create exporters with different legend settings
       const withLegendExporter = PlantUmlExporter(
         includeLegend: true,
       );
-      
+
       const noLegendExporter = PlantUmlExporter(
         includeLegend: false,
       );
-      
+
       // Export with different settings
       try {
         final withLegendPlantUml = await withLegendExporter.export(diagram);
-        
+
         // Check for legend
         expect(withLegendPlantUml, isA<String>());
         expect(withLegendPlantUml, contains('legend right'));
         expect(withLegendPlantUml, contains('endlegend'));
-        
       } catch (e) {
         // Ignore exceptions from the placeholder implementation
       }
-      
+
       try {
         final noLegendPlantUml = await noLegendExporter.export(diagram);
-        
+
         // Check for no legend
         expect(noLegendPlantUml, isA<String>());
         expect(noLegendPlantUml, isNot(contains('legend right')));
         expect(noLegendPlantUml, isNot(contains('endlegend')));
-        
       } catch (e) {
         // Ignore exceptions from the placeholder implementation
       }
     });
-    
+
     test('reports export progress', () async {
       // Create test workspace and diagram reference
       final workspace = createTestWorkspace();
@@ -360,7 +354,7 @@ void main() {
         workspace: workspace,
         viewKey: 'SystemContext',
       );
-      
+
       // Create exporter with progress tracking
       double exportProgress = 0.0;
       final exporter = PlantUmlExporter(
@@ -368,19 +362,19 @@ void main() {
           exportProgress = progress;
         },
       );
-      
+
       // Export the diagram
       try {
         await exporter.export(diagram);
       } catch (_) {
         // Ignore exceptions from the placeholder implementation
       }
-      
+
       // Progress should be updated
       // In the real implementation, it should reach 1.0
       expect(exportProgress, greaterThan(0.0));
     });
-    
+
     test('exports batch of diagrams', () async {
       // Create test workspace and multiple diagram references
       final workspace = createTestWorkspace();
@@ -398,7 +392,7 @@ void main() {
           viewKey: 'Components',
         ),
       ];
-      
+
       // Create the exporter with progress tracking
       double batchProgress = 0.0;
       final exporter = PlantUmlExporter(
@@ -406,15 +400,16 @@ void main() {
           batchProgress = progress;
         },
       );
-      
+
       // Export the diagrams in batch
       try {
         final results = await exporter.exportBatch(diagrams);
-        
+
         // Verify the results
         expect(results, isA<List<String>>());
-        expect(results.length, lessThanOrEqualTo(3)); // May be less if some exports fail
-        
+        expect(results.length,
+            lessThanOrEqualTo(3)); // May be less if some exports fail
+
         // Check each successful result
         for (final plantUml in results) {
           expect(plantUml, isA<String>());
@@ -424,7 +419,7 @@ void main() {
       } catch (_) {
         // Ignore exceptions from the placeholder implementation
       }
-      
+
       // Progress should be updated
       expect(batchProgress, greaterThan(0.0));
     });

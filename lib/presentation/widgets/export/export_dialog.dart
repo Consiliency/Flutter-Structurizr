@@ -11,25 +11,26 @@ import 'package:flutter_structurizr/infrastructure/export/export_manager.dart';
 import 'package:flutter_structurizr/infrastructure/export/png_exporter.dart';
 import 'package:flutter_structurizr/infrastructure/export/svg_exporter.dart';
 import 'package:flutter/material.dart' as flutter;
-import 'package:flutter_structurizr/infrastructure/export/diagram_exporter.dart' show DiagramReference;
+import 'package:flutter_structurizr/infrastructure/export/diagram_exporter.dart'
+    show DiagramReference;
 
 /// A dialog for exporting a diagram to various formats
 class ExportDialog extends StatefulWidget {
   /// The workspace containing the diagram
   final Workspace workspace;
-  
+
   /// The key of the view to export
   final String viewKey;
-  
+
   /// Currently selected view
   final ModelView? currentView;
-  
+
   /// On export complete callback - receives the exported data
   final void Function(Uint8List, String)? onExportComplete;
-  
+
   /// Title for the exported diagram (optional)
   final String? title;
-  
+
   /// Creates a new export dialog
   const ExportDialog({
     Key? key,
@@ -82,7 +83,7 @@ class _ExportDialogState extends State<ExportDialog> {
   bool _transparentBackground = false;
   Color _backgroundColor = Colors.white;
   bool _useMemoryEfficientRendering = true;
-  
+
   // Preview options
   bool _showPreview = true;
   Uint8List? _previewData;
@@ -104,51 +105,51 @@ class _ExportDialogState extends State<ExportDialog> {
     super.initState();
     // Initialize with the current view if provided
     _selectedView = widget.currentView;
-    
+
     // Generate a preview if possible
     _generatePreview();
-    
+
     // Set up a debouncer for preview updates
     _debounceTimer = Timer(Duration.zero, () {});
   }
-  
+
   @override
   void dispose() {
     _debounceTimer.cancel();
     super.dispose();
   }
-  
+
   /// Generates a preview of the export with debounce
   void _generatePreviewDebounced() {
     // Cancel existing timer
     _debounceTimer.cancel();
-    
+
     // Set a new timer to generate preview after delay
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
       _generatePreview();
     });
   }
-  
+
   /// Generates a preview of the export
   Future<void> _generatePreview() async {
     if (_selectedView == null || !_showPreview) return;
     if (_isGeneratingPreview) return; // Prevent concurrent generations
-    
+
     try {
       setState(() {
         _isGeneratingPreview = true;
         _progress = 0.0;
         _error = null;
       });
-      
+
       // Determine the format based on selected export format
       _previewFormat = _selectedFormat == ExportFormat.svg ? 'svg' : 'png';
-      
+
       final diagramRef = DiagramReference(
         workspace: widget.workspace,
         viewKey: widget.viewKey,
       );
-      
+
       // Create render parameters
       final renderParams = DiagramRenderParameters(
         width: 400, // Small preview size
@@ -156,21 +157,23 @@ class _ExportDialogState extends State<ExportDialog> {
         includeLegend: _includeLegend,
         includeTitle: _includeTitle,
         includeMetadata: _includeMetadata,
-        backgroundColor: _transparentBackground ? Colors.transparent : _backgroundColor,
+        backgroundColor:
+            _transparentBackground ? Colors.transparent : _backgroundColor,
         includeElementNames: true,
         includeElementDescriptions: false,
         includeRelationshipDescriptions: true,
         elementScaleFactor: _scale,
       );
-      
+
       // Configure progress callback
       final progressCallback = (double progress) {
         setState(() {
           _progress = progress;
-          _progressMessage = 'Generating preview... ${(progress * 100).toInt()}%';
+          _progressMessage =
+              'Generating preview... ${(progress * 100).toInt()}%';
         });
       };
-      
+
       // Generate the preview based on format
       if (_previewFormat == 'svg') {
         final exporter = SvgExporter(
@@ -179,7 +182,7 @@ class _ExportDialogState extends State<ExportDialog> {
           interactive: false, // Non-interactive for preview
           onProgress: progressCallback,
         );
-        
+
         final svgString = await exporter.export(diagramRef);
         setState(() {
           _previewData = Uint8List.fromList(svgString.codeUnits);
@@ -193,9 +196,9 @@ class _ExportDialogState extends State<ExportDialog> {
           transparentBackground: _transparentBackground,
           onProgress: progressCallback,
         );
-        
+
         final previewData = await exporter.export(diagramRef);
-        
+
         setState(() {
           _previewData = previewData;
           _isGeneratingPreview = false;
@@ -210,12 +213,12 @@ class _ExportDialogState extends State<ExportDialog> {
       });
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
-    
+
     return AlertDialog(
       title: const Text('Export Diagram'),
       content: SizedBox(
@@ -226,7 +229,7 @@ class _ExportDialogState extends State<ExportDialog> {
           children: [
             _buildViewSelector(),
             const SizedBox(height: 16),
-            
+
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -235,9 +238,9 @@ class _ExportDialogState extends State<ExportDialog> {
                   flex: 3,
                   child: _buildExportOptions(isDarkMode),
                 ),
-                
+
                 const SizedBox(width: 16),
-                
+
                 // Right column: preview
                 Expanded(
                   flex: 4,
@@ -245,7 +248,7 @@ class _ExportDialogState extends State<ExportDialog> {
                 ),
               ],
             ),
-            
+
             // Error message
             if (_error != null)
               Padding(
@@ -255,7 +258,7 @@ class _ExportDialogState extends State<ExportDialog> {
                   style: TextStyle(color: theme.colorScheme.error),
                 ),
               ),
-              
+
             // Progress indicator
             if (_exporting || _isGeneratingPreview)
               Padding(
@@ -277,19 +280,15 @@ class _ExportDialogState extends State<ExportDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: _exporting 
-              ? null 
-              : () => Navigator.of(context).pop(),
+          onPressed: _exporting ? null : () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: _exporting || _selectedView == null
-              ? null 
-              : _export,
-          child: _exporting 
+          onPressed: _exporting || _selectedView == null ? null : _export,
+          child: _exporting
               ? const SizedBox(
-                  width: 16, 
-                  height: 16, 
+                  width: 16,
+                  height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : const Text('Export'),
@@ -297,11 +296,11 @@ class _ExportDialogState extends State<ExportDialog> {
       ],
     );
   }
-  
+
   /// Builds the view selector dropdown
   Widget _buildViewSelector() {
     final views = <ModelView>[];
-    
+
     // Collect all views from the workspace
     views.addAll(widget.workspace.views.systemLandscapeViews);
     views.addAll(widget.workspace.views.systemContextViews);
@@ -310,7 +309,7 @@ class _ExportDialogState extends State<ExportDialog> {
     views.addAll(widget.workspace.views.deploymentViews);
     views.addAll(widget.workspace.views.dynamicViews);
     views.addAll(widget.workspace.views.filteredViews);
-      
+
     return Row(
       children: [
         const Text('View:'),
@@ -325,8 +324,9 @@ class _ExportDialogState extends State<ExportDialog> {
             ),
             items: views.map((view) {
               final displayName = view.title ?? view.key;
-              final viewType = view.runtimeType.toString().replaceAll('View', '');
-              
+              final viewType =
+                  view.runtimeType.toString().replaceAll('View', '');
+
               return DropdownMenuItem<ModelView>(
                 value: view,
                 child: Text('$displayName ($viewType)'),
@@ -336,7 +336,7 @@ class _ExportDialogState extends State<ExportDialog> {
               setState(() {
                 _selectedView = newValue;
               });
-              
+
               // Generate a new preview
               _generatePreviewDebounced();
             },
@@ -345,7 +345,7 @@ class _ExportDialogState extends State<ExportDialog> {
       ],
     );
   }
-  
+
   /// Builds the export options panel
   Widget _buildExportOptions(bool isDarkMode) {
     return Card(
@@ -359,7 +359,7 @@ class _ExportDialogState extends State<ExportDialog> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            
+
             // Format selector
             const Text('Format:'),
             const SizedBox(height: 8),
@@ -441,9 +441,10 @@ class _ExportDialogState extends State<ExportDialog> {
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Format-specific options
-            if (_selectedFormat == ExportFormat.png || _selectedFormat == ExportFormat.svg) ...[
+            if (_selectedFormat == ExportFormat.png ||
+                _selectedFormat == ExportFormat.svg) ...[
               // Size controls
               Text('Width: ${_width.toInt()}px'),
               Slider(
@@ -473,7 +474,7 @@ class _ExportDialogState extends State<ExportDialog> {
                   _generatePreviewDebounced();
                 },
               ),
-              
+
               // Scale control
               Text('Scale: ${_scale.toStringAsFixed(1)}x'),
               Slider(
@@ -489,7 +490,7 @@ class _ExportDialogState extends State<ExportDialog> {
                   _generatePreviewDebounced();
                 },
               ),
-              
+
               if (_selectedFormat == ExportFormat.png)
                 CheckboxListTile(
                   title: const Text('Transparent Background'),
@@ -503,7 +504,7 @@ class _ExportDialogState extends State<ExportDialog> {
                     _generatePreviewDebounced();
                   },
                 ),
-              
+
               CheckboxListTile(
                 title: const Text('Memory-Efficient Rendering'),
                 subtitle: const Text('For large diagrams'),
@@ -517,7 +518,7 @@ class _ExportDialogState extends State<ExportDialog> {
                 },
               ),
             ],
-            
+
             // Common options
             CheckboxListTile(
               title: const Text('Include Title'),
@@ -555,9 +556,10 @@ class _ExportDialogState extends State<ExportDialog> {
                 _generatePreviewDebounced();
               },
             ),
-            
+
             // Preview options
-            if (_selectedFormat == ExportFormat.png || _selectedFormat == ExportFormat.svg)
+            if (_selectedFormat == ExportFormat.png ||
+                _selectedFormat == ExportFormat.svg)
               CheckboxListTile(
                 title: const Text('Show Preview'),
                 value: _showPreview,
@@ -577,12 +579,13 @@ class _ExportDialogState extends State<ExportDialog> {
       ),
     );
   }
-  
+
   /// Builds the preview panel
   Widget _buildPreview() {
-    final showablePreview = _showPreview && 
-        (_selectedFormat == ExportFormat.png || _selectedFormat == ExportFormat.svg);
-        
+    final showablePreview = _showPreview &&
+        (_selectedFormat == ExportFormat.png ||
+            _selectedFormat == ExportFormat.svg);
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -594,7 +597,6 @@ class _ExportDialogState extends State<ExportDialog> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            
             Expanded(
               child: Center(
                 child: Builder(
@@ -607,7 +609,7 @@ class _ExportDialogState extends State<ExportDialog> {
                         ),
                       );
                     }
-                    
+
                     if (_selectedView == null) {
                       return const Center(
                         child: Text(
@@ -616,7 +618,7 @@ class _ExportDialogState extends State<ExportDialog> {
                         ),
                       );
                     }
-                    
+
                     if (_exporting || _isGeneratingPreview) {
                       return Center(
                         child: Column(
@@ -625,16 +627,16 @@ class _ExportDialogState extends State<ExportDialog> {
                             const CircularProgressIndicator(),
                             const SizedBox(height: 12),
                             Text(
-                              _exporting 
-                                ? 'Exporting...' 
-                                : 'Generating preview...',
+                              _exporting
+                                  ? 'Exporting...'
+                                  : 'Generating preview...',
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
                           ],
                         ),
                       );
                     }
-                    
+
                     if (_previewData == null) {
                       return Center(
                         child: TextButton.icon(
@@ -644,19 +646,18 @@ class _ExportDialogState extends State<ExportDialog> {
                         ),
                       );
                     }
-                    
+
                     // Display the preview based on format
                     if (_previewFormat == 'svg' && _previewData != null) {
                       // For SVG, we show an image widget with the SVG data
                       return flutter.Container(
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey),
-                          color: _transparentBackground 
-                              ? null 
-                              : Colors.white,
-                          image: _transparentBackground 
+                          color: _transparentBackground ? null : Colors.white,
+                          image: _transparentBackground
                               ? const DecorationImage(
-                                  image: AssetImage('assets/images/transparent_background.png'),
+                                  image: AssetImage(
+                                      'assets/images/transparent_background.png'),
                                   repeat: ImageRepeat.repeat,
                                 )
                               : null,
@@ -670,12 +671,11 @@ class _ExportDialogState extends State<ExportDialog> {
                       return flutter.Container(
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey),
-                          color: _transparentBackground 
-                              ? null 
-                              : Colors.white,
-                          image: _transparentBackground 
+                          color: _transparentBackground ? null : Colors.white,
+                          image: _transparentBackground
                               ? const DecorationImage(
-                                  image: AssetImage('assets/images/transparent_background.png'),
+                                  image: AssetImage(
+                                      'assets/images/transparent_background.png'),
                                   repeat: ImageRepeat.repeat,
                                 )
                               : null,
@@ -686,7 +686,7 @@ class _ExportDialogState extends State<ExportDialog> {
                         ),
                       );
                     }
-                    
+
                     return const SizedBox();
                   },
                 ),
@@ -697,7 +697,7 @@ class _ExportDialogState extends State<ExportDialog> {
       ),
     );
   }
-  
+
   /// Shows a color picker dialog for background color selection
   void _showColorPicker() {
     // Show a simplified color picker
@@ -731,7 +731,7 @@ class _ExportDialogState extends State<ExportDialog> {
       ),
     );
   }
-  
+
   Widget _colorButton(Color color) {
     return InkWell(
       onTap: () {
@@ -752,7 +752,7 @@ class _ExportDialogState extends State<ExportDialog> {
       ),
     );
   }
-  
+
   /// Exports the diagram with the selected options
   Future<void> _export() async {
     setState(() {
@@ -761,7 +761,7 @@ class _ExportDialogState extends State<ExportDialog> {
       _progressMessage = 'Preparing export...';
       _error = null;
     });
-    
+
     try {
       // Configure export options
       final options = ExportOptions(
@@ -777,11 +777,12 @@ class _ExportDialogState extends State<ExportDialog> {
         onProgress: (progress) {
           setState(() {
             _progress = progress;
-            _progressMessage = 'Exporting diagram... ${(progress * 100).toStringAsFixed(0)}%';
+            _progressMessage =
+                'Exporting diagram... ${(progress * 100).toStringAsFixed(0)}%';
           });
         },
       );
-      
+
       // Export the diagram
       final result = await _exportManager.exportDiagram(
         workspace: widget.workspace,
@@ -789,17 +790,17 @@ class _ExportDialogState extends State<ExportDialog> {
         options: options,
         title: widget.title,
       );
-      
+
       // Get save location from user
       final extension = _getFileExtension(_selectedFormat);
       final defaultFileName = widget.title != null
           ? '${widget.title}.$extension'
           : '${widget.workspace.name}_${widget.viewKey}.$extension';
-      
+
       setState(() {
         _progressMessage = 'Saving file...';
       });
-      
+
       if (kIsWeb) {
         // Web download handling would go here
         // Not implementing web download in this version
@@ -810,11 +811,11 @@ class _ExportDialogState extends State<ExportDialog> {
           type: FileType.custom,
           allowedExtensions: [extension],
         );
-        
+
         if (savePath != null) {
           // Save the result to the selected file
           final file = File(savePath);
-          
+
           if (_selectedFormat == ExportFormat.png) {
             // Binary data
             await file.writeAsBytes(result as List<int>);
@@ -822,7 +823,7 @@ class _ExportDialogState extends State<ExportDialog> {
             // Text data
             await file.writeAsString(result as String);
           }
-          
+
           if (mounted) {
             Navigator.of(context).pop(true);
           }
@@ -842,7 +843,7 @@ class _ExportDialogState extends State<ExportDialog> {
       });
     }
   }
-  
+
   /// Gets the appropriate file extension for the selected format
   String _getFileExtension(ExportFormat format) {
     switch (format) {
@@ -870,20 +871,20 @@ class _ExportDialogState extends State<ExportDialog> {
 class SvgPreviewWidget extends StatelessWidget {
   /// SVG data to display
   final String svgData;
-  
+
   /// Creates a new SVG preview widget
   const SvgPreviewWidget({Key? key, required this.svgData}) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
     // We're using a basic approach here for simplicity
     // A full implementation would use a proper SVG rendering package like flutter_svg
-    
+
     // Extract some basic info from the SVG for display
     final width = _extractAttribute(svgData, 'width');
     final height = _extractAttribute(svgData, 'height');
     final elementCount = _countElements(svgData);
-    
+
     return flutter.Container(
       color: Colors.white,
       child: flutter.Center(
@@ -918,14 +919,14 @@ class SvgPreviewWidget extends StatelessWidget {
       ),
     );
   }
-  
+
   /// Extracts an attribute value from SVG markup
   String _extractAttribute(String svg, String attribute) {
     final regex = RegExp('<svg[^>]*$attribute=\"([^\"]*)');
     final match = regex.firstMatch(svg);
     return match?.group(1) ?? 'Unknown';
   }
-  
+
   /// Counts elements in the SVG document
   int _countElements(String svg) {
     final regex = RegExp('<(?!\\/|\\?|!)[a-zA-Z][^>]*>');

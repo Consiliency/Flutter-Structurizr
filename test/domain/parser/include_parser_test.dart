@@ -211,7 +211,7 @@ void main() {
             type: TokenType.string,
             lexeme: '"systems.dsl"',
             value: 'systems.dsl',
-            position: SourcePosition(0, 1, 0),
+            position: const SourcePosition(0, 1, 0),
           )
         ];
 
@@ -227,7 +227,7 @@ void main() {
           Token(
             type: TokenType.identifier,
             lexeme: 'systems.dsl',
-            position: SourcePosition(0, 1, 0),
+            position: const SourcePosition(0, 1, 0),
           )
         ];
 
@@ -243,7 +243,7 @@ void main() {
           Token(
             type: TokenType.identifier,
             lexeme: './systems.dsl',
-            position: SourcePosition(0, 1, 0),
+            position: const SourcePosition(0, 1, 0),
           )
         ];
 
@@ -258,7 +258,7 @@ void main() {
           Token(
             type: TokenType.identifier,
             lexeme: '/absolute/path/to/systems.dsl',
-            position: SourcePosition(0, 1, 0),
+            position: const SourcePosition(0, 1, 0),
           )
         ];
 
@@ -273,17 +273,17 @@ void main() {
           Token(
             type: TokenType.identifier,
             lexeme: 'path/',
-            position: SourcePosition(0, 1, 0),
+            position: const SourcePosition(0, 1, 0),
           ),
           Token(
             type: TokenType.identifier,
             lexeme: 'to/',
-            position: SourcePosition(0, 1, 6),
+            position: const SourcePosition(0, 1, 6),
           ),
           Token(
             type: TokenType.identifier,
             lexeme: 'systems.dsl',
-            position: SourcePosition(0, 1, 9),
+            position: const SourcePosition(0, 1, 9),
           )
         ];
 
@@ -316,7 +316,7 @@ void main() {
             type: TokenType.string,
             lexeme: '"element1"',
             value: 'element1',
-            position: SourcePosition(0, 1, 0),
+            position: const SourcePosition(0, 1, 0),
           )
         ];
 
@@ -332,7 +332,7 @@ void main() {
           Token(
             type: TokenType.star,
             lexeme: '*',
-            position: SourcePosition(0, 1, 0),
+            position: const SourcePosition(0, 1, 0),
           )
         ];
 
@@ -347,7 +347,7 @@ void main() {
           Token(
             type: TokenType.identifier,
             lexeme: 'element1',
-            position: SourcePosition(0, 1, 0),
+            position: const SourcePosition(0, 1, 0),
           )
         ];
 
@@ -363,13 +363,13 @@ void main() {
             type: TokenType.string,
             lexeme: '"element1"',
             value: 'element1',
-            position: SourcePosition(0, 1, 0),
+            position: const SourcePosition(0, 1, 0),
           ),
           Token(
             type: TokenType.string,
             lexeme: '"element2"',
             value: 'element2',
-            position: SourcePosition(0, 1, 12),
+            position: const SourcePosition(0, 1, 12),
           )
         ];
 

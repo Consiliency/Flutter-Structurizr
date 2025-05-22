@@ -30,10 +30,10 @@ class DocumentationExampleScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     // Create a sample workspace with documentation
     final workspace = _createSampleWorkspace();
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Structurizr Documentation'),
@@ -48,7 +48,7 @@ class DocumentationExampleScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   /// Creates a sample workspace with documentation for demonstration.
   Workspace _createSampleWorkspace() {
     final model = Model(
@@ -60,7 +60,7 @@ class DocumentationExampleScreen extends StatelessWidget {
         ),
       ],
     );
-    
+
     final documentation = Documentation(
       sections: [
         const DocumentationSection(
@@ -245,7 +245,7 @@ We considered using GraphQL for the API layer but decided against it.
         ),
       ],
     );
-    
+
     return Workspace(
       id: 1,
       name: 'Banking System',
@@ -254,7 +254,7 @@ We considered using GraphQL for the API layer but decided against it.
       documentation: documentation,
     );
   }
-  
+
   /// Shows a dialog when a diagram is selected.
   void _showDiagramDialog(BuildContext context, String viewKey) {
     showDialog(

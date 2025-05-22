@@ -45,5 +45,208 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	
+	<!-- File Type Associations for Structurizr -->
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Structurizr DSL File</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleTypeIconFiles</key>
+			<array>
+				<string>dsl-icon</string>
+			</array>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.structurizr.dsl</string>
+			</array>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Structurizr JSON File</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleTypeIconFiles</key>
+			<array>
+				<string>json-icon</string>
+			</array>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.json</string>
+			</array>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Markdown File</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>net.daringfireball.markdown</string>
+			</array>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+	</array>
+	
+	<!-- Custom URL Scheme -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.structurizr.flutter.url</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>structurizr</string>
+			</array>
+			<key>CFBundleURLIconFile</key>
+			<string>app-icon</string>
+		</dict>
+	</array>
+	
+	<!-- Universal Type Identifiers -->
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>com.structurizr.dsl</string>
+			<key>UTTypeDescription</key>
+			<string>Structurizr DSL File</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.plain-text</string>
+				<string>public.text</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>dsl</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>text/plain</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
+	
+	<!-- Share Extension Support -->
+	<key>NSExtension</key>
+	<dict>
+		<key>NSExtensionAttributes</key>
+		<dict>
+			<key>NSExtensionActivationRule</key>
+			<dict>
+				<key>NSExtensionActivationSupportsFileWithMaxCount</key>
+				<integer>10</integer>
+				<key>NSExtensionActivationSupportsText</key>
+				<true/>
+				<key>NSExtensionActivationSupportsWebURLWithMaxCount</key>
+				<integer>1</integer>
+			</dict>
+		</dict>
+		<key>NSExtensionMainStoryboard</key>
+		<string>MainInterface</string>
+		<key>NSExtensionPointIdentifier</key>
+		<string>com.apple.share-services</string>
+	</dict>
+	
+	<!-- Files App Integration -->
+	<key>NSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+	
+	<!-- iCloud Support -->
+	<key>NSUbiquitousContainers</key>
+	<dict>
+		<key>iCloud.com.structurizr.flutter</key>
+		<dict>
+			<key>NSUbiquitousContainerIsDocumentScopePublic</key>
+			<true/>
+			<key>NSUbiquitousContainerName</key>
+			<string>Structurizr</string>
+			<key>NSUbiquitousContainerSupportedFolderLevels</key>
+			<string>Any</string>
+		</dict>
+	</dict>
+	
+	<!-- Background Modes for Sync -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>background-processing</string>
+		<string>background-fetch</string>
+	</array>
+	
+	<!-- App Transport Security -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>googleapis.com</key>
+			<dict>
+				<key>NSExceptionRequiresForwardSecrecy</key>
+				<false/>
+				<key>NSExceptionMinimumTLSVersion</key>
+				<string>TLSv1.2</string>
+				<key>NSThirdPartyExceptionRequiresForwardSecrecy</key>
+				<false/>
+			</dict>
+			<key>icloud.com</key>
+			<dict>
+				<key>NSExceptionRequiresForwardSecrecy</key>
+				<false/>
+				<key>NSExceptionMinimumTLSVersion</key>
+				<string>TLSv1.2</string>
+			</dict>
+		</dict>
+	</dict>
+	
+	<!-- Privacy Usage Descriptions -->
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>Structurizr needs access to your documents to save and open workspace files.</string>
+	<key>NSDownloadsFolderUsageDescription</key>
+	<string>Structurizr needs access to your downloads folder to save exported diagrams and workspace files.</string>
+	<key>NSNetworkVolumesUsageDescription</key>
+	<string>Structurizr needs access to network volumes to sync workspaces with cloud storage.</string>
+	<key>NSRemovableVolumesUsageDescription</key>
+	<string>Structurizr needs access to removable volumes to import workspace files from external storage.</string>
+	
+	<!-- Handoff and Continuity -->
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>com.structurizr.flutter.view-workspace</string>
+		<string>com.structurizr.flutter.edit-diagram</string>
+		<string>com.structurizr.flutter.view-documentation</string>
+	</array>
+	
+	<!-- Shortcuts Support -->
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>INStartWorkoutIntent</string>
+		<string>com.structurizr.flutter.create-workspace</string>
+		<string>com.structurizr.flutter.open-recent</string>
+		<string>com.structurizr.flutter.quick-diagram</string>
+	</array>
+	
+	<!-- Performance and Memory -->
+	<key>UIApplicationExitsOnSuspend</key>
+	<false/>
+	<key>UIRequiresPersistentWiFi</key>
+	<false/>
+	
+	<!-- Widget Support -->
+	<key>NSExtensionPointIdentifier</key>
+	<string>com.apple.widgetkit-extension</string>
+	
 </dict>
 </plist>

@@ -230,7 +230,7 @@ class MermaidExporter implements DiagramExporter<String> {
       // Check containers in all systems
       for (final system in model.softwareSystems) {
         final container = system.containers.firstWhere((c) => c.id == id,
-            orElse: () => Container(id: '', name: '', parentId: ''));
+            orElse: () => const Container(id: '', name: '', parentId: ''));
         if (container.id.isNotEmpty) {
           result.add(container);
 
@@ -247,7 +247,7 @@ class MermaidExporter implements DiagramExporter<String> {
         bool found = false;
         for (final container in system.containers) {
           final component = container.components.firstWhere((c) => c.id == id,
-              orElse: () => Component(id: '', name: '', parentId: ''));
+              orElse: () => const Component(id: '', name: '', parentId: ''));
           if (component.id.isNotEmpty) {
             result.add(component);
             found = true;
@@ -259,7 +259,8 @@ class MermaidExporter implements DiagramExporter<String> {
 
       // Check in deployment nodes
       final deploymentNode = model.deploymentNodes.firstWhere((n) => n.id == id,
-          orElse: () => DeploymentNode(id: '', name: '', environment: ''));
+          orElse: () =>
+              const DeploymentNode(id: '', name: '', environment: ''));
       if (deploymentNode.id.isNotEmpty) {
         result.add(deploymentNode);
         continue;
@@ -648,7 +649,7 @@ class MermaidExporter implements DiagramExporter<String> {
     // Find the container being detailed
     final container = elements.firstWhere(
       (e) => e.id == view.containerId,
-      orElse: () => Container(id: '', name: '', parentId: ''),
+      orElse: () => const Container(id: '', name: '', parentId: ''),
     ) as Container;
 
     // Define external elements

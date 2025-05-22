@@ -14,48 +14,48 @@ void main() {
     setUp(() {
       // Create a test workspace with a basic system context view
       // Using the actual API structure
-      
+
       // Create a Person using the factory method
       final user = Person.create(
         name: 'User',
         description: 'A user of the system',
       );
-      
+
       // Create a SoftwareSystem
       final softwareSystem = SoftwareSystem.create(
         name: 'Software System',
         description: 'Description of the system',
       );
-      
+
       // Create another SoftwareSystem for external system
       final database = SoftwareSystem.create(
         name: 'Database System',
         description: 'Stores data',
         location: 'External',
       );
-      
+
       // Add relationships between elements
       final userWithRelationship = user.addRelationship(
         destinationId: softwareSystem.id,
         description: 'Uses',
         technology: 'HTTPS',
       );
-      
+
       final systemWithRelationship = softwareSystem.addRelationship(
         destinationId: database.id,
         description: 'Reads/writes to',
         technology: 'JDBC',
       );
-      
+
       // Create model
       final model = Model(
         people: [userWithRelationship],
         softwareSystems: [systemWithRelationship, database],
       );
-      
+
       // Create views
       const views = Views();
-      
+
       // Create a SystemContextView
       systemContextViewKey = 'context';
       final contextView = SystemContextView(
@@ -72,10 +72,10 @@ void main() {
           RelationshipView(id: systemWithRelationship.relationships[0].id),
         ],
       );
-      
+
       // Add the view to views
       final updatedViews = views.addSystemContextView(contextView);
-      
+
       // Create the workspace
       testWorkspace = Workspace(
         id: 1,
@@ -95,15 +95,15 @@ void main() {
         includeRelationships: true,
         includeStyles: true,
       );
-      
+
       final diagram = DiagramReference(
         workspace: testWorkspace,
         viewKey: systemContextViewKey,
       );
-      
+
       // Act
       final result = await exporter.export(diagram);
-      
+
       // Assert
       expect(result, isA<String>());
       expect(result, contains('"type": "SystemContext"'));
@@ -124,15 +124,15 @@ void main() {
         includeRelationships: true,
         includeStyles: true,
       );
-      
+
       final diagram = DiagramReference(
         workspace: testWorkspace,
         viewKey: systemContextViewKey,
       );
-      
+
       // Act
       final result = await exporter.export(diagram);
-      
+
       // Assert
       expect(result, isA<String>());
       expect(result, contains('type: SystemContext'));
@@ -153,15 +153,15 @@ void main() {
         includeRelationships: true,
         includeStyles: true,
       );
-      
+
       final diagram = DiagramReference(
         workspace: testWorkspace,
         viewKey: systemContextViewKey,
       );
-      
+
       // Act
       final result = await exporter.export(diagram);
-      
+
       // Assert
       expect(result, isA<String>());
       expect(result, contains('"customStyles"'));
@@ -176,15 +176,15 @@ void main() {
         includeRelationships: true,
         includeStyles: true,
       );
-      
+
       final diagram = DiagramReference(
         workspace: testWorkspace,
         viewKey: systemContextViewKey,
       );
-      
+
       // Act
       final result = await exporter.export(diagram);
-      
+
       // Assert
       expect(result, isA<String>());
       expect(result, isNot(contains('"type": "SystemContext"')));
@@ -201,15 +201,15 @@ void main() {
         includeRelationships: false,
         includeStyles: true,
       );
-      
+
       final diagram = DiagramReference(
         workspace: testWorkspace,
         viewKey: systemContextViewKey,
       );
-      
+
       // Act
       final result = await exporter.export(diagram);
-      
+
       // Assert
       expect(result, isA<String>());
       expect(result, contains('"elements": ['));
@@ -225,15 +225,15 @@ void main() {
         includeRelationships: true,
         includeStyles: false,
       );
-      
+
       final diagram = DiagramReference(
         workspace: testWorkspace,
         viewKey: systemContextViewKey,
       );
-      
+
       // Act
       final result = await exporter.export(diagram);
-      
+
       // Assert
       expect(result, isA<String>());
       expect(result, contains('"elements": ['));

@@ -36,98 +36,100 @@ class _C4ExportExampleState extends State<C4ExportExample> {
   void _setupWorkspace() {
     // Create a model
     const model = Model();
-    
+
     // Add people
     final user = model.addPerson(
-      'user', 
-      'Bank Customer', 
+      'user',
+      'Bank Customer',
       'A customer of the bank',
     );
-    
+
     final admin = model.addPerson(
-      'admin', 
-      'Bank Administrator', 
+      'admin',
+      'Bank Administrator',
       'An administrator of the bank',
     );
-    
+
     // Add software systems
     final internetBankingSystem = model.addSoftwareSystem(
-      'banking_system', 
-      'Internet Banking System', 
+      'banking_system',
+      'Internet Banking System',
       'Allows customers to view account balances and make payments',
     );
-    
+
     final mainframeBankingSystem = model.addSoftwareSystem(
-      'mainframe', 
-      'Mainframe Banking System', 
+      'mainframe',
+      'Mainframe Banking System',
       'Stores all core banking information',
     );
     mainframeBankingSystem.location = 'External';
-    
+
     final emailSystem = model.addSoftwareSystem(
-      'email', 
-      'E-mail System', 
+      'email',
+      'E-mail System',
       'The bank\'s e-mail system',
     );
     emailSystem.location = 'External';
-    
+
     // Add relationships
     user.uses(internetBankingSystem, 'Uses', 'HTTPS');
     admin.uses(internetBankingSystem, 'Administers', 'HTTPS');
-    internetBankingSystem.uses(mainframeBankingSystem, 'Gets account information from', 'JDBC');
+    internetBankingSystem.uses(
+        mainframeBankingSystem, 'Gets account information from', 'JDBC');
     internetBankingSystem.uses(emailSystem, 'Sends e-mail using', 'SMTP');
-    
+
     // Add containers to the banking system
     final webApp = internetBankingSystem.addContainer(
-      'web_app', 
-      'Web Application', 
+      'web_app',
+      'Web Application',
       'Provides all functionality to customers via web interface',
       'JavaScript, Angular',
     );
-    
+
     final apiApp = internetBankingSystem.addContainer(
-      'api_app', 
-      'API Application', 
+      'api_app',
+      'API Application',
       'Provides an API for mobile apps to use',
       'Java, Spring Boot',
     );
-    
+
     final database = internetBankingSystem.addContainer(
-      'database', 
-      'Database', 
+      'database',
+      'Database',
       'Stores user registration information, audit logs, etc.',
       'Oracle Database',
     );
-    
+
     // Add container relationships
     webApp.uses(apiApp, 'Uses', 'JSON/HTTPS');
     apiApp.uses(database, 'Reads/writes to', 'JDBC');
     apiApp.uses(mainframeBankingSystem, 'Uses', 'JSON/HTTPS');
-    
+
     // Create views
     final views = Views();
-    
+
     // Create system context view
     _systemContextViewKey = 'SystemContext';
     final contextView = views.createSystemContextView(
-      internetBankingSystem, 
-      _systemContextViewKey, 
+      internetBankingSystem,
+      _systemContextViewKey,
       'System Context diagram for Internet Banking System',
     );
     contextView.addNearestNeighbours(internetBankingSystem);
-    
+
     // Create container view
     _containerViewKey = 'Containers';
     final containerView = views.createContainerView(
-      internetBankingSystem, 
-      _containerViewKey, 
+      internetBankingSystem,
+      _containerViewKey,
       'Container diagram for Internet Banking System',
     );
     containerView.addAllContainers();
     containerView.addNearestNeighbours(internetBankingSystem);
-    
+
     // Create workspace
-    _workspace = const Workspace('Banking System', 'Example workspace for banking system');
+    _workspace = const Workspace(
+        'Banking System', 'Example workspace for banking system');
     _workspace.model = model;
     _workspace.views = views;
   }
@@ -141,11 +143,13 @@ class _C4ExportExampleState extends State<C4ExportExample> {
 
     try {
       final manager = ExportManager();
-      
+
       final result = await manager.exportDiagram(
         workspace: _workspace,
-        viewKey: _selectedFormat == ExportFormat.c4json || _selectedFormat == ExportFormat.c4yaml 
-            ? _systemContextViewKey : _containerViewKey,
+        viewKey: _selectedFormat == ExportFormat.c4json ||
+                _selectedFormat == ExportFormat.c4yaml
+            ? _systemContextViewKey
+            : _containerViewKey,
         options: ExportOptions(
           format: _selectedFormat,
           width: 1200,
@@ -184,9 +188,9 @@ class _C4ExportExampleState extends State<C4ExportExample> {
     final directory = Directory.current;
     final extension = ExportManager.getFileExtension(_selectedFormat);
     final file = File('${directory.path}/export.${extension}');
-    
+
     await file.writeAsString(_exportedContent);
-    
+
     setState(() {
       _exportedContent = 'File saved to ${file.path}\n\n$_exportedContent';
     });
@@ -249,8 +253,9 @@ class _C4ExportExampleState extends State<C4ExportExample> {
                   ),
                   const SizedBox(width: 16),
                   ElevatedButton(
-                    onPressed: _exportedContent.isNotEmpty && _exportedContent != 'Exporting...' 
-                        ? _saveToFile 
+                    onPressed: _exportedContent.isNotEmpty &&
+                            _exportedContent != 'Exporting...'
+                        ? _saveToFile
                         : null,
                     child: const Text('Save to File'),
                   ),

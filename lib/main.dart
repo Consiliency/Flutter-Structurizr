@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart' hide Container, Border;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_structurizr/domain/model/model.dart' as model;
 import 'package:flutter_structurizr/domain/model/workspace.dart';
 import 'package:flutter_structurizr/infrastructure/persistence/file_workspace_repository.dart';
 import 'package:flutter_structurizr/presentation/pages/workspace_page.dart';
@@ -8,16 +7,13 @@ import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import 'package:flutter_structurizr/domain/parser/parser.dart';
 import 'package:flutter_structurizr/application/dsl/workspace_mapper_with_builder.dart';
+import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 import 'package:logging/logging.dart';
 
-final logger = Logger('Main');
-
 void main() {
-  Logger.root.level = Level.ALL;
-  Logger.root.onRecord.listen((record) {
-    logger.info(
-        '[[32m[1m[40m[0m${record.level.name}] ${record.loggerName}: ${record.message}');
-  });
+  // Disable logging to prevent infinite recursion
+  Logger.root.level = Level.OFF;
+  
   runApp(
     const ProviderScope(
       child: StructurizrApp(),
@@ -33,154 +29,69 @@ class StructurizrApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Structurizr',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1168BD)),
-        useMaterial3: true,
-        fontFamily: 'OpenSans',
+        primarySwatch: Colors.blue,
       ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF1168BD),
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-        fontFamily: 'OpenSans',
-      ),
-      themeMode: ThemeMode.system,
       home: const HomePage(),
     );
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  Workspace? _workspace;
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Automatically load test workspace on startup
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadTestWorkspace();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Flutter Structurizr'),
+        title: const Text('Structurizr DSL Viewer'),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'Flutter Structurizr',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-                'A cross-platform implementation of the Structurizr architecture visualization tool.'),
-            const SizedBox(height: 40),
-            ElevatedButton(
-              onPressed: () async {
-                final result = await FilePicker.platform.pickFiles(
-                  type: FileType.custom,
-                  allowedExtensions: ['json', 'dsl'],
-                );
-                if (result != null && result.files.single.path != null) {
-                  final filePath = result.files.single.path!;
-                  try {
-                    if (filePath.endsWith('.json')) {
-                      final repository = FileWorkspaceRepository(
-                          workspacesDirectory: './.workspaces');
-                      final workspace =
-                          await repository.loadWorkspace(filePath);
-                      if (context.mounted) {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                WorkspacePage(workspace: workspace),
-                          ),
-                        );
-                      }
-                    } else if (filePath.endsWith('.dsl')) {
-                      final dslText = await File(filePath).readAsString();
-                      final parser = Parser(dslText, filePath: filePath);
-                      final ast = parser.parse();
-                      // Debug output for AST views section
-                      // TODO: Replace with proper logging or remove for production
-                      // print('DEBUG: AST views node is present');
-                      // print('  SystemContextViews: \\${ast.views?.systemContextViews.length ?? 0}');
-                      // for (final v in ast.views?.systemContextViews ?? []) {
-                      //   print('    - key: \\${v.key}, title: \\${v.title}');
-                      // }
-                      // print('  ContainerViews: \\${ast.views?.containerViews.length ?? 0}');
-                      // print('  ComponentViews: \\${ast.views?.componentViews.length ?? 0}');
-                      // print('  DynamicViews: \\${ast.views?.dynamicViews.length ?? 0}');
-                      // print('  DeploymentViews: \\${ast.views?.deploymentViews.length ?? 0}');
-                      // print('  CustomViews: \\${ast.views?.customViews.length ?? 0}');
-                      // print('  ImageViews: \\${ast.views?.imageViews.length ?? 0}');
-                      // Use builder-based mapping
-                      final mapper =
-                          WorkspaceMapper(dslText, parser.errorReporter);
-                      final workspace = mapper.mapWorkspace(ast);
-                      if (workspace == null) {
-                        throw Exception('Failed to map DSL to workspace.');
-                      }
-                      // Debug output for workspace contents
-                      // TODO: Replace with proper logging or remove for production
-                      // print('DEBUG: Workspace name: \\${workspace.name}');
-                      // print('DEBUG: Workspace description: \\${workspace.description}');
-                      // if (workspace.views.systemContextViews.isNotEmpty) {
-                      //   print('DEBUG: SystemContextViews:');
-                      //   for (final v in workspace.views.systemContextViews) {
-                      //     print('  - key: \\${v.key}, title: \\${v.title}, elements: \\${v.elements.length}');
-                      //   }
-                      // }
-                      // if (workspace.views.containerViews.isNotEmpty) {
-                      //   print('DEBUG: ContainerViews:');
-                      //   for (final v in workspace.views.containerViews) {
-                      //     print('  - key: \\${v.key}, title: \\${v.title}, elements: \\${v.elements.length}');
-                      //   }
-                      // }
-                      // if (workspace.views.componentViews.isNotEmpty) {
-                      //   print('DEBUG: ComponentViews:');
-                      //   for (final v in workspace.views.componentViews) {
-                      //     print('  - key: \\${v.key}, title: \\${v.title}, elements: \\${v.elements.length}');
-                      //   }
-                      // }
-                      // if (workspace.views.deploymentViews.isNotEmpty) {
-                      //   print('DEBUG: DeploymentViews:');
-                      //   for (final v in workspace.views.deploymentViews) {
-                      //     print('  - key: \\${v.key}, title: \\${v.title}, elements: \\${v.elements.length}');
-                      //   }
-                      // }
-                      if (context.mounted) {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                WorkspacePage(workspace: workspace),
-                          ),
-                        );
-                      }
-                    } else {
-                      throw Exception('Unsupported file type.');
-                    }
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error loading workspace: $e')),
-                      );
-                    }
-                  }
-                }
-              },
-              child: const Text('Import Workspace File (.json, .dsl)'),
-            ),
+          children: <Widget>[
+            if (_isLoading)
+              const CircularProgressIndicator()
+            else if (_errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Error: $_errorMessage',
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+              )
+            else if (_workspace != null)
+              Expanded(
+                child: WorkspacePage(workspace: _workspace!),
+              )
+            else
+              const Text(
+                'No workspace loaded',
+                style: TextStyle(fontSize: 18),
+              ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                _openWorkspace(context);
-              },
-              child: const Text('Open Workspace'),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                _createWorkspace(context);
-              },
-              child: const Text('Create New Workspace'),
+              onPressed: _isLoading ? null : _loadWorkspace,
+              child: const Text('Load Workspace'),
             ),
           ],
         ),
@@ -188,59 +99,120 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Future<void> _openWorkspace(BuildContext context) async {
-    try {
-      // Use FileWorkspaceRepository to load workspace
-      final repository =
-          FileWorkspaceRepository(workspacesDirectory: './.workspaces');
+  Future<void> _loadWorkspace() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
-      // For now, create a simple example workspace since we can't open files directly
-      const workspace = Workspace(
-        id: 1,
-        name: 'Example Workspace',
-        description: 'A sample workspace for demonstration',
-        model: const model.Model(),
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json', 'dsl'],
       );
 
-      if (context.mounted) {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => const WorkspacePage(workspace: workspace),
-          ),
-        );
+      if (result != null && result.files.isNotEmpty) {
+        final file = File(result.files.single.path!);
+        final fileExtension = file.path.split('.').last.toLowerCase();
+
+        Workspace? workspace;
+
+        if (fileExtension == 'json') {
+          // Load JSON workspace
+          final repository = FileWorkspaceRepository(
+            workspacesDirectory: './.workspaces',
+          );
+          workspace = await repository.loadWorkspace(file.path);
+        } else if (fileExtension == 'dsl') {
+          // Parse DSL file
+          print('DEBUG: Starting DSL parsing for file: ${file.path}');
+          final content = await file.readAsString();
+          final parser = Parser(content);
+          final ast = parser.parse();
+          print('DEBUG: AST parsing complete');
+          print('DEBUG: AST views node is present: ${ast.views != null}');
+
+          // Map AST to Workspace using WorkspaceMapper
+          print('DEBUG: Starting workspace mapping');
+          final mapper = WorkspaceMapper('<dsl>', ErrorReporter('<dsl>'));
+          workspace = mapper.mapWorkspace(ast);
+          print('DEBUG: Workspace mapping complete');
+          print('DEBUG: Workspace name: ${workspace?.name}');
+          print('DEBUG: Workspace description: ${workspace?.description}');
+          print('DEBUG: Final workspace views:');
+          print('  SystemContextViews: ${workspace?.views.systemContextViews.length ?? 0}');
+          print('  ContainerViews: ${workspace?.views.containerViews.length ?? 0}');
+          print('  ComponentViews: ${workspace?.views.componentViews.length ?? 0}');
+          print('  DeploymentViews: ${workspace?.views.deploymentViews.length ?? 0}');
+        }
+
+        if (workspace != null) {
+          setState(() {
+            _workspace = workspace;
+            _isLoading = false;
+          });
+        } else {
+          setState(() {
+            _errorMessage = 'Failed to load workspace';
+            _isLoading = false;
+          });
+        }
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
       }
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error opening workspace: $e')),
-        );
-      }
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
     }
   }
 
-  Future<void> _createWorkspace(BuildContext context) async {
-    try {
-      // Create a new empty workspace
-      const workspace = Workspace(
-        id: 2,
-        name: 'New Workspace',
-        description: 'A new Structurizr workspace',
-        model: const model.Model(),
-      );
+  Future<void> _loadTestWorkspace() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
-      if (context.mounted) {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => const WorkspacePage(workspace: workspace),
-          ),
-        );
+    try {
+      final file = File('/home/jenner/Code/dart-structurizr/test_simple.dsl');
+      
+      if (await file.exists()) {
+        print('DEBUG: Auto-loading test workspace from: ${file.path}');
+        final content = await file.readAsString();
+        final parser = Parser(content);
+        final ast = parser.parse();
+        print('DEBUG: AST parsing complete - auto load');
+        print('DEBUG: AST views node is present: ${ast.views != null}');
+
+        final mapper = WorkspaceMapper('<dsl>', ErrorReporter('<dsl>'));
+        final workspace = mapper.mapWorkspace(ast);
+        print('DEBUG: Workspace mapping complete - auto load');
+        print('DEBUG: Workspace name: ${workspace?.name}');
+        print('DEBUG: Final workspace views:');
+        print('  SystemContextViews: ${workspace?.views.systemContextViews.length ?? 0}');
+        print('  ContainerViews: ${workspace?.views.containerViews.length ?? 0}');
+
+        if (workspace != null) {
+          setState(() {
+            _workspace = workspace;
+            _isLoading = false;
+          });
+        } else {
+          setState(() {
+            _errorMessage = 'Failed to load test workspace';
+            _isLoading = false;
+          });
+        }
       }
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error creating workspace: $e')),
-        );
-      }
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+      print('ERROR loading test workspace: $e');
     }
   }
 }

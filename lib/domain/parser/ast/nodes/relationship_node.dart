@@ -18,5 +18,7 @@ class RelationshipNode extends AstNode {
       SourcePosition? sourcePosition})
       : super(sourcePosition);
   @override
-  void accept(AstVisitor visitor) {}
+  void accept(AstVisitor visitor) {
+    visitor.visitRelationshipNode(this);
+  }
 }

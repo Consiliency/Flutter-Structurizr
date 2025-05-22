@@ -8,7 +8,6 @@ import 'package:flutter_structurizr/domain/model/component.dart';
 import 'package:flutter_structurizr/domain/model/deployment_node.dart';
 import 'package:flutter_structurizr/domain/view/view.dart';
 import 'package:flutter_structurizr/infrastructure/export/diagram_exporter.dart';
-import 'package:flutter_structurizr/util/color.dart';
 import 'package:logging/logging.dart';
 
 final logger = Logger('DotExporter');
@@ -252,7 +251,7 @@ class DotExporter implements DiagramExporter<String> {
       // Check containers in all systems
       for (final system in model.softwareSystems) {
         final container = system.containers.firstWhere((c) => c.id == id,
-            orElse: () => Container(id: '', name: '', parentId: ''));
+            orElse: () => const Container(id: '', name: '', parentId: ''));
         if (container.id.isNotEmpty) {
           result.add(container);
 
@@ -269,7 +268,7 @@ class DotExporter implements DiagramExporter<String> {
         bool found = false;
         for (final container in system.containers) {
           final component = container.components.firstWhere((c) => c.id == id,
-              orElse: () => Component(id: '', name: '', parentId: ''));
+              orElse: () => const Component(id: '', name: '', parentId: ''));
           if (component.id.isNotEmpty) {
             result.add(component);
             found = true;
@@ -281,7 +280,8 @@ class DotExporter implements DiagramExporter<String> {
 
       // Check in deployment nodes
       final deploymentNode = model.deploymentNodes.firstWhere((n) => n.id == id,
-          orElse: () => DeploymentNode(id: '', name: '', environment: ''));
+          orElse: () =>
+              const DeploymentNode(id: '', name: '', environment: ''));
       if (deploymentNode.id.isNotEmpty) {
         result.add(deploymentNode);
         continue;
@@ -836,7 +836,7 @@ class DotExporter implements DiagramExporter<String> {
     // Find the container being detailed
     final container = elements.firstWhere(
       (e) => e.id == view.containerId,
-      orElse: () => Container(id: '', name: '', parentId: ''),
+      orElse: () => const Container(id: '', name: '', parentId: ''),
     ) as Container;
 
     // Create cluster for the container if using clustering

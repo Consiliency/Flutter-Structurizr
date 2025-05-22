@@ -1,4 +1,3 @@
-import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/model.dart';
 import 'package:flutter_structurizr/domain/model/component.dart';
 import 'package:flutter_structurizr/domain/model/container.dart';
@@ -14,7 +13,7 @@ void main() {
     const parentId = 'container-1';
 
     setUp(() {
-      component = Component(
+      component = const Component(
         id: componentId,
         name: componentName,
         description: componentDescription,
@@ -49,7 +48,8 @@ void main() {
       expect(createdComponent.description, equals(componentDescription));
       expect(createdComponent.technology, equals(componentTechnology));
       expect(createdComponent.parentId, equals(parentId));
-      expect(createdComponent.tags, isEmpty); // No default tags are added by create()
+      expect(createdComponent.tags,
+          isEmpty); // No default tags are added by create()
     });
 
     test('addTag() adds a tag to the component', () {
@@ -115,13 +115,13 @@ void main() {
     });
 
     test('Component equality is based on ID', () {
-      final sameComponent = Component(
+      const sameComponent = Component(
         id: componentId,
         name: 'Different Name', // Different name but same ID
         parentId: parentId,
       );
 
-      final differentComponent = Component(
+      const differentComponent = Component(
         id: 'different-id',
         name: componentName, // Same name but different ID
         parentId: parentId,
@@ -143,7 +143,7 @@ void main() {
         name: 'E-commerce System',
       );
 
-      final container = Container(
+      const container = Container(
         id: parentId,
         name: 'Web Application',
         parentId: 'system-1',

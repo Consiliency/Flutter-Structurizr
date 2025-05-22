@@ -39,5 +39,7 @@ class ViewsNode extends AstNode {
   }) : super(sourcePosition ?? position);
 
   @override
-  void accept(AstVisitor visitor) {}
+  void accept(AstVisitor visitor) {
+    visitor.visitViewsNode(this);
+  }
 }

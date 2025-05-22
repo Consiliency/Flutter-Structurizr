@@ -9,22 +9,22 @@ import 'package:flutter_structurizr/presentation/widgets/diagram/structurizr_dia
 class DynamicViewDiagramConfig {
   /// Whether to show animation controls
   final bool showAnimationControls;
-  
+
   /// Whether to auto-play the animation
   final bool autoPlay;
-  
+
   /// Animation playback mode
   final AnimationMode animationMode;
-  
+
   /// Animation frames per second
   final double fps;
-  
+
   /// Configuration for the diagram
   final StructurizrDiagramConfig diagramConfig;
-  
+
   /// Configuration for animation controls
   final AnimationControlsConfig animationControlsConfig;
-  
+
   /// Creates a new configuration for the dynamic view diagram
   const DynamicViewDiagramConfig({
     this.showAnimationControls = true,
@@ -37,7 +37,7 @@ class DynamicViewDiagramConfig {
     ),
     this.animationControlsConfig = const AnimationControlsConfig(),
   });
-  
+
   /// Creates a copy of this configuration with the given fields replaced with new values
   DynamicViewDiagramConfig copyWith({
     bool? showAnimationControls,
@@ -48,12 +48,14 @@ class DynamicViewDiagramConfig {
     AnimationControlsConfig? animationControlsConfig,
   }) {
     return DynamicViewDiagramConfig(
-      showAnimationControls: showAnimationControls ?? this.showAnimationControls,
+      showAnimationControls:
+          showAnimationControls ?? this.showAnimationControls,
       autoPlay: autoPlay ?? this.autoPlay,
       animationMode: animationMode ?? this.animationMode,
       fps: fps ?? this.fps,
       diagramConfig: diagramConfig ?? this.diagramConfig,
-      animationControlsConfig: animationControlsConfig ?? this.animationControlsConfig,
+      animationControlsConfig:
+          animationControlsConfig ?? this.animationControlsConfig,
     );
   }
 }
@@ -66,31 +68,32 @@ class DynamicViewDiagramConfig {
 class DynamicViewDiagram extends StatefulWidget {
   /// The workspace containing the diagram data
   final Workspace workspace;
-  
+
   /// The dynamic view to render
   final DynamicView view;
-  
+
   /// Callback for when an element is selected
   final Function(String id, Element element)? onElementSelected;
-  
+
   /// Callback for when a relationship is selected
   final Function(String id, Relationship relationship)? onRelationshipSelected;
-  
+
   /// Callback for when selection is cleared
   final Function()? onSelectionCleared;
-  
+
   /// Callback for when an element is hovered over
   final Function(String id, Element element)? onElementHovered;
-  
+
   /// Callback for when multiple elements are selected
-  final Function(Set<String> elementIds, Set<String> relationshipIds)? onMultipleItemsSelected;
-  
+  final Function(Set<String> elementIds, Set<String> relationshipIds)?
+      onMultipleItemsSelected;
+
   /// Callback for when elements are moved
   final Function(Map<String, Offset> newPositions)? onElementsMoved;
-  
+
   /// Configuration options for the dynamic view diagram
   final DynamicViewDiagramConfig config;
-  
+
   /// Creates a new Structurizr dynamic view diagram
   const DynamicViewDiagram({
     Key? key,
@@ -104,7 +107,7 @@ class DynamicViewDiagram extends StatefulWidget {
     this.onElementsMoved,
     this.config = const DynamicViewDiagramConfig(),
   }) : super(key: key);
-  
+
   @override
   State<DynamicViewDiagram> createState() => _DynamicViewDiagramState();
 }
@@ -112,19 +115,20 @@ class DynamicViewDiagram extends StatefulWidget {
 class _DynamicViewDiagramState extends State<DynamicViewDiagram> {
   /// The current animation step
   int _currentAnimationStep = 0;
-  
+
   /// Key for the diagram to access its state
-  final GlobalKey<StructurizrDiagramState> _diagramKey = GlobalKey<StructurizrDiagramState>();
-  
+  final GlobalKey<StructurizrDiagramState> _diagramKey =
+      GlobalKey<StructurizrDiagramState>();
+
   @override
   void initState() {
     super.initState();
   }
-  
+
   @override
   void didUpdateWidget(DynamicViewDiagram oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
+
     // If the view changed, reset the animation step
     if (widget.view != oldWidget.view) {
       setState(() {
@@ -132,19 +136,19 @@ class _DynamicViewDiagramState extends State<DynamicViewDiagram> {
       });
     }
   }
-  
+
   /// Handle animation step changes
   void _onAnimationStepChanged(int step) {
     setState(() {
       _currentAnimationStep = step;
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     // Check if view is a dynamic view with animation steps
     final hasAnimationSteps = widget.view.animations.isNotEmpty;
-    
+
     return Column(
       children: [
         // Main diagram
@@ -163,7 +167,7 @@ class _DynamicViewDiagramState extends State<DynamicViewDiagram> {
             onElementsMoved: widget.onElementsMoved,
           ),
         ),
-        
+
         // Animation controls (only if there are animation steps and controls are enabled)
         if (hasAnimationSteps && widget.config.showAnimationControls)
           Padding(

@@ -1,38 +1,39 @@
 ---
-description: Guidelines for maintaining parser and test consistency
-globs: ["lib/domain/parser/**/*.dart", "test/domain/parser/**/*.dart"]
-alwaysApply: true
+description:
+globs:
+alwaysApply: false
 ---
+# Parser and Test Consistency Rules
 
-# Parser and Test Consistency Guidelines
+These rules ensure robust, maintainable, and consistent parser code and tests for Structurizr DSL parsing.
 
-## Import Organization
+## 1. Use the Properties Map for Extensible Attributes
+- All extensible or user-defined attributes (e.g., `description`, `tags`, custom properties) must be set and accessed via the `properties` map on model nodes.
+- Do **not** attempt to set or mutate `final` fields like `description` or `tags` directly after construction.
+- See [model_element_node.dart](mdc:lib/domain/parser/ast/nodes/model_element_node.dart)
 
-- Always use explicit imports and avoid wildcards
-- Use barrel files (like `ast_nodes.dart`) to export related types
-- Avoid circular dependencies in import structure
-- For imports that conflict with Flutter types, use explicit hiding:
-  ```dart
-  import 'package:flutter/material.dart' hide Element, Container, View;
-  ```
+## 2. Test Assertions Should Use the Properties Map
+- In tests, always check for attribute values using `node.properties?['key']` rather than direct field access, unless the field is explicitly non-extensible and public.
+- See [element_parser_test.dart](mdc:test/domain/parser/element_parser_test.dart)
 
-## Error Reporter Usage
+## 3. Context Stack Setup for Block/Property Parsing
+- Before calling `parseParentChild` or similar methods that set properties, push a context with the relevant node as `currentElement` onto the `ContextStack`.
+- Always pop the context after the test to avoid stack contamination.
+- See [context_stack.dart](mdc:lib/domain/parser/context_stack.dart)
 
-- Use consistent error reporting methods across all parser components
-- Prefer `reportStandardError(message, offset)` over deprecated methods
-- Include source position information for better diagnostics
-- Maintain consistent error message formatting
+## 4. ErrorReporter Initialization in Tests
+- When constructing an `ErrorReporter` in tests, use a non-empty string (e.g., `' ' * 1000`) to avoid out-of-bounds errors when reporting errors at specific offsets.
+- See [error_reporter.dart](mdc:lib/domain/parser/error_reporter.dart)
 
-## Method Signatures
+## 5. No Monkey-Patching or Method Overrides in Dart Tests
+- Dart does not allow replacing methods or properties at runtime. Use subclassing, dependency injection, or test doubles if you need to intercept or mock behavior.
 
-- Maintain consistent signatures across implementation and test mocks
-- Ensure return types match exactly (e.g., Model addElement returns Model, not void)
-- Use factory methods for test fixtures to ensure consistent object creation
-- Follow the method relationship tables in specs/ for proper dependencies
+## 6. Parser Methods Should Not Mutate Node Fields After Construction
+- All node fields that are `final` must be set only in the constructor. Use the `properties` map for any dynamic or extensible data.
 
-## AST Structure
+## 7. Keep Test Imports Canonical and Up-to-Date
+- Always import node types and utility classes from their canonical files (e.g., `model_element_node.dart`, `source_position.dart`).
+- Remove imports of deleted or obsolete files.
 
-- Maintain a clean hierarchy of AST node types
-- Use interfaces or abstract classes for shared functionality
-- Avoid redundant node types and favor composition
-- Properly document node relationships and hierarchy
+## 8. Public API Only in Tests
+- Tests should only use the public API of classes (no access to private members or fields like `_stack`).

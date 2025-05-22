@@ -3,3 +3,17 @@ description:
 globs:
 alwaysApply: false
 ---
+# Automation and Iterative Development Rule
+
+## 1. Inline Command Execution
+- The IDE/AI should automatically run bash and PowerShell commands inline (in the terminal) whenever possible, especially for test runs, builds, and code checks.
+- Prefer running commands directly in the shell rather than requiring manual user intervention, unless user confirmation is needed for safety or security.
+
+## 2. Continuous Test-Fix Iteration
+- Always continue iterating between running tests and applying code fixes until:
+  - The user explicitly stops the process, **or**
+  - An external factor (e.g., unrecoverable error, missing dependency, or explicit user instruction) prevents further automatic iteration.
+- Do not pause for user confirmation between test-fix cycles unless required by context or user request.
+
+## 3. Goal
+- The goal is to maximize developer productivity and minimize manual steps by automating as much of the test-fix cycle as possible.

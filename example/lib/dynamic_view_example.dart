@@ -21,17 +21,17 @@ class DynamicViewExample extends StatefulWidget {
 class _DynamicViewExampleState extends State<DynamicViewExample> {
   /// An example workspace with a dynamic view for demonstration
   late final Workspace _workspace;
-  
+
   /// The dynamic view for demonstration
   late final DynamicView _dynamicView;
-  
+
   /// Current configuration for the dynamic view diagram
   late DynamicViewDiagramConfig _config;
 
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize configuration
     _config = const DynamicViewDiagramConfig(
       autoPlay: false,
@@ -45,81 +45,86 @@ class _DynamicViewExampleState extends State<DynamicViewExample> {
         showRelationshipDescriptions: true,
       ),
     );
-    
+
     // Load the workspace and dynamic view
     _initWorkspaceAndView();
   }
-  
+
   /// Initialize an example workspace with a dynamic view
   void _initWorkspaceAndView() {
     // Create a simple example workspace for demonstration
-    final workspace = Workspace(name: 'Workspace', model: Model(), views: Views(),); const Workspace(
+    final workspace = Workspace(
+      name: 'Workspace',
+      model: Model(),
+      views: Views(),
+    );
+    const Workspace(
       name: 'Dynamic View Example',
       description: 'Example workspace showing animation of dynamic views',
     );
-    
+
     // Add some example elements to the model
     final user = workspace.model.addPerson(
       id: 'user',
       name: 'User',
       description: 'A user of the system',
     );
-    
+
     final webApp = workspace.model.addSoftwareSystem(
       id: 'webApp',
       name: 'Web Application',
       description: 'The web application',
     );
-    
+
     final apiGateway = workspace.model.addSoftwareSystem(
       id: 'apiGateway',
       name: 'API Gateway',
       description: 'API Gateway',
     );
-    
+
     final database = workspace.model.addSoftwareSystem(
       id: 'database',
       name: 'Database',
       description: 'The database',
     );
-    
+
     final cache = workspace.model.addSoftwareSystem(
       id: 'cache',
       name: 'Cache Service',
       description: 'Distributed caching service',
     );
-    
+
     // Add relationships between elements
     user.uses(
       destination: webApp,
       description: 'Uses',
       technology: 'HTTPS',
     );
-    
+
     webApp.uses(
       destination: apiGateway,
       description: 'Calls API',
       technology: 'HTTPS',
     );
-    
+
     apiGateway.uses(
       destination: cache,
       description: 'Checks cache',
       technology: 'Redis',
     );
-    
+
     apiGateway.uses(
       destination: database,
       description: 'Reads/writes data',
       technology: 'SQL/TCP',
     );
-    
+
     cache.uses(
-      destination: database, 
+      destination: database,
       description: 'Populates on miss',
       technology: 'SQL/TCP',
     );
-    
+
     // Create a dynamic view
     const dynamicView = DynamicView(
       key: 'dynamic',
@@ -127,40 +132,40 @@ class _DynamicViewExampleState extends State<DynamicViewExample> {
       description: 'Shows the flow of a user request through the system',
       autoAnimationInterval: true,
     );
-    
+
     // Add elements to the view (without relationships yet)
     dynamicView.addElement(ElementView(id: user.id));
     dynamicView.addElement(ElementView(id: webApp.id));
     dynamicView.addElement(ElementView(id: apiGateway.id));
     dynamicView.addElement(ElementView(id: cache.id));
     dynamicView.addElement(ElementView(id: database.id));
-    
+
     // Add the relationship views (these will be shown in order in the animation)
     final rel1 = dynamicView.addRelationship(RelationshipView(
       id: user.getRelationships()[0].id,
       order: '1',
     ));
-    
+
     final rel2 = rel1.addRelationship(RelationshipView(
       id: webApp.getRelationships()[0].id,
       order: '2',
     ));
-    
+
     final rel3 = rel2.addRelationship(RelationshipView(
       id: apiGateway.getRelationships()[0].id,
       order: '3',
     ));
-    
+
     final rel4 = rel3.addRelationship(RelationshipView(
       id: cache.getRelationships()[0].id,
       order: '4',
     ));
-    
+
     final rel5 = rel4.addRelationship(RelationshipView(
       id: apiGateway.getRelationships()[1].id,
       order: '5',
     ));
-    
+
     // Define animation steps
     final animations = [
       // Step 1: Show user and web app, with the first relationship
@@ -169,7 +174,7 @@ class _DynamicViewExampleState extends State<DynamicViewExample> {
         elements: [user.id, webApp.id],
         relationships: [user.getRelationships()[0].id],
       ),
-      
+
       // Step 2: Add API gateway and the next relationship
       AnimationStep(
         order: 2,
@@ -179,7 +184,7 @@ class _DynamicViewExampleState extends State<DynamicViewExample> {
           webApp.getRelationships()[0].id,
         ],
       ),
-      
+
       // Step 3: Add cache and check cache relationship
       AnimationStep(
         order: 3,
@@ -190,7 +195,7 @@ class _DynamicViewExampleState extends State<DynamicViewExample> {
           apiGateway.getRelationships()[0].id,
         ],
       ),
-      
+
       // Step 4: Add database and relationship from cache to database
       AnimationStep(
         order: 4,
@@ -202,7 +207,7 @@ class _DynamicViewExampleState extends State<DynamicViewExample> {
           cache.getRelationships()[0].id,
         ],
       ),
-      
+
       // Step 5: Add the final relationship from API gateway to database
       AnimationStep(
         order: 5,
@@ -216,18 +221,18 @@ class _DynamicViewExampleState extends State<DynamicViewExample> {
         ],
       ),
     ];
-    
+
     // Set the animation steps on the view
     final finalView = rel5.copyWith(animations: animations);
-    
+
     // Add the view to the workspace
     workspace.views.add(finalView);
-    
+
     // Set the workspace and view for the example
     _workspace = workspace;
     _dynamicView = finalView;
   }
-  
+
   /// Handle element selection
   void _onElementSelected(String id, Element element) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -237,7 +242,7 @@ class _DynamicViewExampleState extends State<DynamicViewExample> {
       ),
     );
   }
-  
+
   /// Update the animation config
   void _updateConfig(DynamicViewDiagramConfig newConfig) {
     setState(() {
@@ -273,7 +278,7 @@ class _DynamicViewExampleState extends State<DynamicViewExample> {
               ),
             ],
           ),
-          
+
           // Speed selection
           PopupMenuButton<double>(
             tooltip: 'Animation Speed',
@@ -300,11 +305,14 @@ class _DynamicViewExampleState extends State<DynamicViewExample> {
               ),
             ],
           ),
-          
+
           // Auto-play toggle
           IconButton(
-            icon: Icon(_config.autoPlay ? Icons.pause_circle_outline : Icons.play_circle_outline),
-            tooltip: _config.autoPlay ? 'Disable Auto-Play' : 'Enable Auto-Play',
+            icon: Icon(_config.autoPlay
+                ? Icons.pause_circle_outline
+                : Icons.play_circle_outline),
+            tooltip:
+                _config.autoPlay ? 'Disable Auto-Play' : 'Enable Auto-Play',
             onPressed: () {
               _updateConfig(_config.copyWith(autoPlay: !_config.autoPlay));
             },

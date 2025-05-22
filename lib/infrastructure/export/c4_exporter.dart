@@ -9,10 +9,6 @@ import 'package:flutter_structurizr/domain/view/view.dart';
 import 'package:flutter_structurizr/infrastructure/export/diagram_exporter.dart';
 import 'package:logging/logging.dart';
 import 'package:flutter_structurizr/domain/model/container.dart';
-import 'package:flutter_structurizr/domain/model/software_system.dart';
-import 'package:flutter_structurizr/domain/model/person.dart';
-import 'package:flutter_structurizr/domain/model/relationship.dart';
-import 'package:flutter_structurizr/domain/model/infrastructure_node.dart';
 
 final logger = Logger('C4Exporter');
 
@@ -200,7 +196,7 @@ class C4Exporter implements DiagramExporter<String> {
       for (final system in (model.softwareSystems as List<SoftwareSystem>)) {
         final container = system.containers.firstWhere(
           (c) => c.id == id,
-          orElse: () => Container(id: '', name: '', parentId: ''),
+          orElse: () => const Container(id: '', name: '', parentId: ''),
         );
         if (container.id.isNotEmpty) {
           result.add(container as Element);
@@ -215,10 +211,10 @@ class C4Exporter implements DiagramExporter<String> {
       // Check components in all containers of all systems
       for (final system in (model.softwareSystems as List<SoftwareSystem>)) {
         bool found = false;
-        for (final container in (system.containers as List<Container>)) {
+        for (final container in system.containers) {
           final component = container.components.firstWhere(
             (c) => c.id == id,
-            orElse: () => Component(id: '', name: '', parentId: ''),
+            orElse: () => const Component(id: '', name: '', parentId: ''),
           );
           if (component.id.isNotEmpty) {
             result.add(component as Element);
@@ -257,7 +253,7 @@ class C4Exporter implements DiagramExporter<String> {
         for (final person in (model.people as List<Person>)) {
           final relationship = person.getRelationshipById(id);
           if (relationship != null) {
-            result.add(relationship as Relationship);
+            result.add(relationship);
             break;
           }
         }
@@ -266,23 +262,23 @@ class C4Exporter implements DiagramExporter<String> {
         for (final system in (model.softwareSystems as List<SoftwareSystem>)) {
           final relationship = system.getRelationshipById(id);
           if (relationship != null) {
-            result.add(relationship as Relationship);
+            result.add(relationship);
             break;
           }
 
           // Find relationships in containers
-          for (final container in (system.containers as List<Container>)) {
+          for (final container in system.containers) {
             final relationship = container.getRelationshipById(id);
             if (relationship != null) {
-              result.add(relationship as Relationship);
+              result.add(relationship);
               break;
             }
 
             // Find relationships in components
-            for (final component in (container.components as List<Component>)) {
+            for (final component in container.components) {
               final relationship = component.getRelationshipById(id);
               if (relationship != null) {
-                result.add(relationship as Relationship);
+                result.add(relationship);
                 break;
               }
             }
@@ -304,10 +300,9 @@ class C4Exporter implements DiagramExporter<String> {
       // From people
       for (final person in (model.people as List<Person>)) {
         if (elementIds.contains(person.id)) {
-          for (final relationship
-              in (person.relationships as List<Relationship>)) {
+          for (final relationship in person.relationships) {
             if (isRelationshipInView(relationship)) {
-              result.add(relationship as Relationship);
+              result.add(relationship);
             }
           }
         }
@@ -316,32 +311,29 @@ class C4Exporter implements DiagramExporter<String> {
       // From software systems and their containers/components
       for (final system in (model.softwareSystems as List<SoftwareSystem>)) {
         if (elementIds.contains(system.id)) {
-          for (final relationship
-              in (system.relationships as List<Relationship>)) {
+          for (final relationship in system.relationships) {
             if (isRelationshipInView(relationship)) {
-              result.add(relationship as Relationship);
+              result.add(relationship);
             }
           }
         }
 
         // From containers
-        for (final container in (system.containers as List<Container>)) {
+        for (final container in system.containers) {
           if (elementIds.contains(container.id)) {
-            for (final relationship
-                in (container.relationships as List<Relationship>)) {
+            for (final relationship in container.relationships) {
               if (isRelationshipInView(relationship)) {
-                result.add(relationship as Relationship);
+                result.add(relationship);
               }
             }
           }
 
           // From components
-          for (final component in (container.components as List<Component>)) {
+          for (final component in container.components) {
             if (elementIds.contains(component.id)) {
-              for (final relationship
-                  in (component.relationships as List<Relationship>)) {
+              for (final relationship in component.relationships) {
                 if (isRelationshipInView(relationship)) {
-                  result.add(relationship as Relationship);
+                  result.add(relationship);
                 }
               }
             }
@@ -377,7 +369,7 @@ class C4Exporter implements DiagramExporter<String> {
           description: safeDescription,
         );
 
-        result.add(relationship as Relationship);
+        result.add(relationship);
       }
     }
 
@@ -481,7 +473,7 @@ class C4Exporter implements DiagramExporter<String> {
     // Find the container being described
     final container = elements.firstWhere(
       (element) => element.id == view.containerId,
-      orElse: () => SoftwareSystem(id: '', name: 'Unknown Container'),
+      orElse: () => const SoftwareSystem(id: '', name: 'Unknown Container'),
     );
 
     final Map<String, dynamic> c4Model = {};
@@ -618,16 +610,14 @@ class C4Exporter implements DiagramExporter<String> {
       } else if (element is Container) {
         elementMap['type'] = 'container';
         elementMap['parent'] = element.parentId;
-        if ((element as Container).technology != null &&
-            (element as Container).technology!.isNotEmpty) {
-          elementMap['technology'] = (element as Container).technology;
+        if ((element).technology != null && (element).technology!.isNotEmpty) {
+          elementMap['technology'] = (element).technology;
         }
       } else if (element is Component) {
         elementMap['type'] = 'component';
         elementMap['parent'] = element.parentId;
-        if ((element as Component).technology != null &&
-            (element as Component).technology!.isNotEmpty) {
-          elementMap['technology'] = (element as Component).technology;
+        if ((element).technology != null && (element).technology!.isNotEmpty) {
+          elementMap['technology'] = (element).technology;
         }
       } else if (element is DeploymentNode) {
         elementMap['type'] = 'deploymentNode';

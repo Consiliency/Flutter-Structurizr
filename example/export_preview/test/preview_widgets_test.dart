@@ -5,9 +5,9 @@ import 'package:export_preview_example/main.dart';
 
 void main() {
   testWidgets('Preview widget rendering tests', (WidgetTester tester) async {
-    // For basic widget testing, we're just going to verify that 
+    // For basic widget testing, we're just going to verify that
     // the main components can render without errors
-    
+
     // Build the SvgPreviewWidget
     await tester.pumpWidget(
       const MaterialApp(
@@ -21,12 +21,12 @@ void main() {
         ),
       ),
     );
-    
+
     await tester.pumpAndSettle();
-    
+
     // Verify the widget exists
     expect(find.byType(SvgPreviewWidget), findsOneWidget);
-    
+
     // Build the TextPreviewWidget
     await tester.pumpWidget(
       const MaterialApp(
@@ -40,13 +40,13 @@ void main() {
         ),
       ),
     );
-    
+
     await tester.pumpAndSettle();
-    
+
     // Verify the widget exists and format is displayed
     expect(find.byType(TextPreviewWidget), findsOneWidget);
     expect(find.text('DSL Preview'), findsOneWidget);
-    
+
     // Build the CheckerboardBackground
     await tester.pumpWidget(
       const MaterialApp(
@@ -61,9 +61,9 @@ void main() {
         ),
       ),
     );
-    
+
     await tester.pumpAndSettle();
-    
+
     // Verify the widget exists
     expect(find.byType(CheckerboardBackground), findsOneWidget);
   });

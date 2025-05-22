@@ -16,7 +16,7 @@ class MockElement {
     this.tags = const [],
     this.properties = const {},
   });
-  
+
   // Getters to match the interface
   List<dynamic> get relationships => [];
   String get type => 'MockElement';
@@ -47,7 +47,7 @@ class MockWorkspace {
   final String id;
   final String name;
   final List<MockElement> elements;
-  
+
   MockWorkspace({
     required this.id,
     required this.name,
@@ -82,16 +82,17 @@ class TestScreen extends StatefulWidget {
   State<TestScreen> createState() => _TestScreenState();
 }
 
-class _TestScreenState extends State<TestScreen> with SingleTickerProviderStateMixin {
+class _TestScreenState extends State<TestScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  
+
   final MockElement testElement = MockElement(
     id: 'element-1',
     name: 'Test Element',
     description: 'This is a test element',
     tags: ['TestTag', 'Element'],
   );
-  
+
   final MockRelationship testRelationship = MockRelationship(
     id: 'rel-1',
     sourceId: 'element-1',
@@ -99,25 +100,28 @@ class _TestScreenState extends State<TestScreen> with SingleTickerProviderStateM
     description: 'Test Relationship',
     tags: ['TestTag', 'Relationship'],
   );
-  
+
   final MockWorkspace testWorkspace = MockWorkspace(
     id: 'workspace-1',
     name: 'Test Workspace',
     elements: [
-      MockElement(id: 'element-1', name: 'Element 1', tags: ['Element', 'Component']),
-      MockElement(id: 'element-2', name: 'Element 2', tags: ['Element', 'Person']),
-      MockElement(id: 'element-3', name: 'Element 3', tags: ['Element', 'Database']),
+      MockElement(
+          id: 'element-1', name: 'Element 1', tags: ['Element', 'Component']),
+      MockElement(
+          id: 'element-2', name: 'Element 2', tags: ['Element', 'Person']),
+      MockElement(
+          id: 'element-3', name: 'Element 3', tags: ['Element', 'Database']),
     ],
   );
-  
+
   final List<String> activeFilters = ['tag:Element'];
-  
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
   }
-  
+
   @override
   void dispose() {
     _tabController.dispose();
@@ -155,24 +159,25 @@ class _TestScreenState extends State<TestScreen> with SingleTickerProviderStateM
                     padding: EdgeInsets.all(16.0),
                     child: Text(
                       'Style Editor Test',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                   ),
                   Expanded(
                     child: Text('Style Editor would be shown here.\n\n'
-                      'To fully test the StyleEditor and FilterPanel, we would need to:\n\n'
-                      '1. Properly implement the abstract Element interface\n'
-                      '2. Create working mock classes for Workspace, Model, etc.\n'
-                      '3. Fix Container name conflicts in property_panel.dart\n'
-                      '4. Fix UI utility methods in property_panel.dart\n\n'
-                      'The codebase has significant integration issues requiring\n'
-                      'deeper changes beyond the scope of our UI component implementation.'),
+                        'To fully test the StyleEditor and FilterPanel, we would need to:\n\n'
+                        '1. Properly implement the abstract Element interface\n'
+                        '2. Create working mock classes for Workspace, Model, etc.\n'
+                        '3. Fix Container name conflicts in property_panel.dart\n'
+                        '4. Fix UI utility methods in property_panel.dart\n\n'
+                        'The codebase has significant integration issues requiring\n'
+                        'deeper changes beyond the scope of our UI component implementation.'),
                   ),
                 ],
               ),
             ),
           ),
-          
+
           // Filter Panel Test
           Center(
             child: flutter.Container(
@@ -188,18 +193,19 @@ class _TestScreenState extends State<TestScreen> with SingleTickerProviderStateM
                     padding: EdgeInsets.all(16.0),
                     child: Text(
                       'Filter Panel Test',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                   ),
                   Expanded(
                     child: Text('Filter Panel would be shown here.\n\n'
-                      'The implementation issues affecting testing include:\n\n'
-                      '1. Name conflicts with Flutter\'s Container class\n'
-                      '2. Issues with abstract Element implementation\n'
-                      '3. Dependency on the complete model structure\n'
-                      '4. Incomplete stub implementations in test files\n\n'
-                      'A complete test harness would be needed to fully test\n'
-                      'these components in isolation from the main codebase.'),
+                        'The implementation issues affecting testing include:\n\n'
+                        '1. Name conflicts with Flutter\'s Container class\n'
+                        '2. Issues with abstract Element implementation\n'
+                        '3. Dependency on the complete model structure\n'
+                        '4. Incomplete stub implementations in test files\n\n'
+                        'A complete test harness would be needed to fully test\n'
+                        'these components in isolation from the main codebase.'),
                   ),
                 ],
               ),

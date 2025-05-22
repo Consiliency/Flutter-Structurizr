@@ -29,17 +29,17 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(deeplyNestedDsl);
       final workspace = parser.parse();
-      
+
       expect(workspace, isA<WorkspaceNode>());
       expect(workspace.model, isA<ModelNode>());
-      
+
       // Verify deep nesting was handled correctly
       // Add assertions based on your implementation
     });
-    
+
     test('should handle models with extensive relationships', () {
       // Create a model with many relationships to test parser limits
       const manyRelationshipsDsl = '''
@@ -63,17 +63,17 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(manyRelationshipsDsl);
       final workspace = parser.parse();
-      
+
       expect(workspace, isA<WorkspaceNode>());
       expect(workspace.model, isA<ModelNode>());
-      
+
       // Verify relationships were handled correctly
       // Add assertions based on your implementation
     });
-    
+
     test('should handle models with circular relationships', () {
       const circularDsl = '''
         workspace {
@@ -88,17 +88,17 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(circularDsl);
       final workspace = parser.parse();
-      
+
       expect(workspace, isA<WorkspaceNode>());
       expect(workspace.model, isA<ModelNode>());
-      
+
       // Verify circular relationships were handled correctly
       // Add assertions based on your implementation
     });
-    
+
     test('should handle models with very long names and descriptions', () {
       final longNamesDsl = '''
         workspace {
@@ -111,17 +111,17 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(longNamesDsl);
       final workspace = parser.parse();
-      
+
       expect(workspace, isA<WorkspaceNode>());
       expect(workspace.model, isA<ModelNode>());
-      
+
       // Verify long strings were handled correctly
       // Add assertions based on your implementation
     });
-    
+
     test('should handle models with special characters in names', () {
       const specialCharsDsl = '''
         workspace {
@@ -132,17 +132,17 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(specialCharsDsl);
       final workspace = parser.parse();
-      
+
       expect(workspace, isA<WorkspaceNode>());
       expect(workspace.model, isA<ModelNode>());
-      
+
       // Verify special characters were handled correctly
       // Add assertions based on your implementation
     });
-    
+
     test('should handle models with Unicode characters', () {
       const unicodeDsl = '''
         workspace {
@@ -153,18 +153,19 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(unicodeDsl);
       final workspace = parser.parse();
-      
+
       expect(workspace, isA<WorkspaceNode>());
       expect(workspace.model, isA<ModelNode>());
-      
+
       // Verify Unicode characters were handled correctly
       // Add assertions based on your implementation
     });
-    
-    test('should handle models with same-named elements in different scopes', () {
+
+    test('should handle models with same-named elements in different scopes',
+        () {
       const sameNamesDsl = '''
         workspace {
           model {
@@ -184,17 +185,17 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(sameNamesDsl);
       final workspace = parser.parse();
-      
+
       expect(workspace, isA<WorkspaceNode>());
       expect(workspace.model, isA<ModelNode>());
-      
+
       // Verify same-named elements in different scopes were handled correctly
       // Add assertions based on your implementation
     });
-    
+
     test('should handle models with identifiers that are keywords', () {
       const keywordIdsDsl = '''
         workspace {
@@ -210,17 +211,17 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(keywordIdsDsl);
       final workspace = parser.parse();
-      
+
       expect(workspace, isA<WorkspaceNode>());
       expect(workspace.model, isA<ModelNode>());
-      
+
       // Verify identifiers with keywords were handled correctly
       // Add assertions based on your implementation
     });
-    
+
     test('should handle models with complex whitespace and formatting', () {
       const complexFormatDsl = '''
         workspace {
@@ -240,17 +241,17 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(complexFormatDsl);
       final workspace = parser.parse();
-      
+
       expect(workspace, isA<WorkspaceNode>());
       expect(workspace.model, isA<ModelNode>());
-      
+
       // Verify complex whitespace and formatting were handled correctly
       // Add assertions based on your implementation
     });
-    
+
     test('should handle models with multiple nested groups', () {
       const nestedGroupsDsl = '''
         workspace {
@@ -270,17 +271,17 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(nestedGroupsDsl);
       final workspace = parser.parse();
-      
+
       expect(workspace, isA<WorkspaceNode>());
       expect(workspace.model, isA<ModelNode>());
-      
+
       // Verify nested groups were handled correctly
       // Add assertions based on your implementation
     });
-    
+
     test('should handle models with enterprise and groups at same level', () {
       const enterpriseAndGroupDsl = '''
         workspace {
@@ -300,18 +301,20 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(enterpriseAndGroupDsl);
       final workspace = parser.parse();
-      
+
       expect(workspace, isA<WorkspaceNode>());
       expect(workspace.model, isA<ModelNode>());
-      
+
       // Verify enterprise and groups at same level were handled correctly
       // Add assertions based on your implementation
     });
-    
-    test('should handle implied relationships with complex source/destination references', () {
+
+    test(
+        'should handle implied relationships with complex source/destination references',
+        () {
       const complexRefsDsl = '''
         workspace {
           model {
@@ -332,17 +335,17 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(complexRefsDsl);
       final workspace = parser.parse();
-      
+
       expect(workspace, isA<WorkspaceNode>());
       expect(workspace.model, isA<ModelNode>());
-      
+
       // Verify complex references in relationships were handled correctly
       // Add assertions based on your implementation
     });
-    
+
     test('should recover from errors and continue parsing when possible', () {
       const errorRecoveryDsl = '''
         workspace {
@@ -364,11 +367,11 @@ void main() {
           }
         }
       ''';
-      
+
       // This test depends on how your parser handles errors
       // If it throws on first error:
       expect(() => Parser(errorRecoveryDsl).parse(), throwsException);
-      
+
       // Or if it collects errors and continues:
       // final parser = Parser(errorRecoveryDsl);
       // final workspace = parser.parse();

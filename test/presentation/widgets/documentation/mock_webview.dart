@@ -9,7 +9,7 @@ class MockWebViewPlatform extends WebViewPlatform {
   // Track the last created controller for testing
   PlatformWebViewController? lastCreatedController;
   final List<NavigationDelegate> delegates = [];
-  
+
   @override
   PlatformWebViewController createPlatformWebViewController(
     PlatformWebViewControllerCreationParams params,
@@ -25,7 +25,7 @@ class MockWebViewPlatform extends WebViewPlatform {
   ) {
     return MockPlatformWebViewWidget(params: params);
   }
-  
+
   @override
   PlatformWebViewCookieManager createPlatformCookieManager(
     PlatformWebViewCookieManagerCreationParams params,
@@ -45,9 +45,9 @@ class MockWebViewPlatform extends WebViewPlatform {
 class MockPlatformWebViewController extends PlatformWebViewController {
   MockPlatformWebViewController(PlatformWebViewControllerCreationParams params)
       : super.implementation(params);
-  
+
   NavigationDelegate? _pendingDelegate;
-  
+
   @override
   dynamic noSuchMethod(Invocation invocation) {
     if (invocation.memberName == const Symbol('runJavaScript') ||
@@ -58,7 +58,7 @@ class MockPlatformWebViewController extends PlatformWebViewController {
       // Methods we've implemented
       return null;
     }
-    
+
     if (invocation.isGetter) {
       return null;
     } else if (invocation.isSetter) {
@@ -67,6 +67,7 @@ class MockPlatformWebViewController extends PlatformWebViewController {
       return Future<dynamic>.value();
     }
   }
+
   // Keep track of JavaScript channels for testing
   final Map<String, JavaScriptChannelParams> _channels = {};
   NavigationDelegate? _navigationDelegate;
@@ -88,21 +89,24 @@ class MockPlatformWebViewController extends PlatformWebViewController {
 
   @override
   Future<void> setNavigationDelegate(NavigationDelegate delegate) async {
-    print('[MockPlatformWebViewController] setNavigationDelegate called on controller hashCode=\x1B[36m${hashCode}\x1B[0m with delegate=$delegate');
+    print(
+        '[MockPlatformWebViewController] setNavigationDelegate called on controller hashCode=\x1B[36m${hashCode}\x1B[0m with delegate=$delegate');
     _navigationDelegate = delegate;
     _pendingDelegate = delegate;
   }
 
   @override
   Future<void> addJavaScriptChannel(JavaScriptChannelParams params) async {
-    print('[MockPlatformWebViewController] addJavaScriptChannel: ${params.name}');
+    print(
+        '[MockPlatformWebViewController] addJavaScriptChannel: ${params.name}');
     _channels[params.name] = params;
   }
 
   @override
   Future<void> loadHtmlString(String html, {String? baseUrl}) async {
     ensureDelegateWired();
-    print('[MockPlatformWebViewController] loadHtmlString called on controller hashCode=\x1B[36m${hashCode}\x1B[0m: _hasError=$_hasError, _isLoading=$_isLoading');
+    print(
+        '[MockPlatformWebViewController] loadHtmlString called on controller hashCode=\x1B[36m${hashCode}\x1B[0m: _hasError=$_hasError, _isLoading=$_isLoading');
     // Cancel any existing timers before starting a new load
     for (final timer in _timers) {
       timer.cancel();
@@ -113,17 +117,20 @@ class MockPlatformWebViewController extends PlatformWebViewController {
     _isLoading = true;
     _hasError = false;
     // Detect dark mode for test verification
-    _isDarkMode = html.contains('dark-mode') || html.contains('background-color: #1a1a1a');
+    _isDarkMode = html.contains('dark-mode') ||
+        html.contains('background-color: #1a1a1a');
     // Simulate page loading
     _navigationDelegate?.onPageStarted?.call('about:blank');
     final timer = Timer(const Duration(milliseconds: 50), () {
-      print('[MockPlatformWebViewController] Timer fired (disposed=$_disposed, hasError=$_hasError)');
+      print(
+          '[MockPlatformWebViewController] Timer fired (disposed=$_disposed, hasError=$_hasError)');
       if (_disposed || _hasError) {
         for (final t in _timers) {
           t.cancel();
         }
         _timers.clear();
-        print('[MockPlatformWebViewController] Timer cancelled due to disposed or error');
+        print(
+            '[MockPlatformWebViewController] Timer cancelled due to disposed or error');
         return;
       }
       print('[MockPlatformWebViewController] Timer firing onPageFinished');
@@ -136,7 +143,7 @@ class MockPlatformWebViewController extends PlatformWebViewController {
 
   @override
   Future<void> loadRequest(LoadRequestParams params) async {}
-  
+
   @override
   Future<void> loadFile(String absoluteFilePath) async {}
 
@@ -152,17 +159,19 @@ class MockPlatformWebViewController extends PlatformWebViewController {
       // Simulate diagram click from JS
       if (_channels.containsKey('AsciidocDiagram')) {
         final channel = _channels['AsciidocDiagram']!;
-        channel.onMessageReceived.call(const JavaScriptMessage(message: '{"diagramKey": "SystemContext"}'));
+        channel.onMessageReceived.call(const JavaScriptMessage(
+            message: '{"diagramKey": "SystemContext"}'));
       }
     } else if (javaScript.contains('simulateLinkClick')) {
       // Simulate link click from JS
       if (_channels.containsKey('AsciidocLink')) {
         final channel = _channels['AsciidocLink']!;
-        channel.onMessageReceived.call(const JavaScriptMessage(message: 'https://www.google.com'));
+        channel.onMessageReceived
+            .call(const JavaScriptMessage(message: 'https://www.google.com'));
       }
     }
   }
-  
+
   Future<void> _simulateChunkProcessing() async {
     // Simulate chunk processing and progress updates
     for (int i = 0; i < 3; i++) {
@@ -170,71 +179,70 @@ class MockPlatformWebViewController extends PlatformWebViewController {
       if (_channels.containsKey('AsciidocProgress')) {
         final progressChannel = _channels['AsciidocProgress']!;
         // Simulate progress message from JavaScript
-        progressChannel.onMessageReceived.call(
-          JavaScriptMessage(message: '{"progress": ${(i + 1) * 33}, "currentChunk": $i, "totalChunks": 3}')
-        );
+        progressChannel.onMessageReceived.call(JavaScriptMessage(
+            message:
+                '{"progress": ${(i + 1) * 33}, "currentChunk": $i, "totalChunks": 3}'));
       }
     }
-    
+
     // Simulate completion
     if (_channels.containsKey('AsciidocRenderer')) {
       final rendererChannel = _channels['AsciidocRenderer']!;
-      rendererChannel.onMessageReceived.call(
-        const JavaScriptMessage(message: '{"status": "complete", "renderTime": 120}')
-      );
+      rendererChannel.onMessageReceived.call(const JavaScriptMessage(
+          message: '{"status": "complete", "renderTime": 120}'));
     }
   }
-  
+
   Future<void> _simulateRendererInitialization() async {
     await Future.delayed(const Duration(milliseconds: 20));
     if (_channels.containsKey('AsciidocRenderer')) {
       final rendererChannel = _channels['AsciidocRenderer']!;
-      rendererChannel.onMessageReceived.call(
-        const JavaScriptMessage(message: '{"status": "initialized"}')
-      );
+      rendererChannel.onMessageReceived
+          .call(const JavaScriptMessage(message: '{"status": "initialized"}'));
     }
   }
-  
+
   @override
   Future<String> runJavaScriptReturningResult(String javaScript) async {
     // Simulate caching behavior
     if (javaScript.contains('getCachedContent')) {
-      final contentHash = javaScript.split('"')[1]; // Extract hash from JS string
+      final contentHash =
+          javaScript.split('"')[1]; // Extract hash from JS string
       if (_contentCache.containsKey(contentHash)) {
         return _contentCache[contentHash]!;
       }
       return 'null'; // Cache miss
     }
-    
+
     // Check if renderer is ready
     if (javaScript.contains('isRendererReady')) {
       return !_isLoading ? 'true' : 'false';
     }
-    
+
     return '';
   }
-  
+
   @override
   Future<void> setUserAgent(String? userAgent) async {}
-  
+
   @override
   Future<String?> getUserAgent() async {
     return null;
   }
-  
+
   @override
   Future<void> enableZoom(bool enabled) async {}
-  
+
   @override
   Future<void> setPlatformNavigationDelegate(
     PlatformNavigationDelegate handler,
   ) async {}
-  
+
   @override
   Future<void> reload() async {
     _isLoading = true;
     _navigationDelegate?.onPageStarted?.call('about:blank');
-    
+
     Future.delayed(const Duration(milliseconds: 50), () {
       if (!_hasError) {
         _navigationDelegate?.onPageFinished?.call('about:blank');
@@ -242,24 +250,26 @@ class MockPlatformWebViewController extends PlatformWebViewController {
       }
     });
   }
-  
+
   @override
   Future<void> clearCache() async {
     _contentCache.clear();
   }
-  
+
   @override
   Future<void> clearLocalStorage() async {}
-  
+
   @override
   Future<void> setOnPlatformPermissionRequest(
-    void Function(PlatformWebViewPermissionRequest request)? onPermissionRequest,
+    void Function(PlatformWebViewPermissionRequest request)?
+        onPermissionRequest,
   ) async {}
-  
+
   // Test helper methods
   void simulateError() {
     ensureDelegateWired();
-    print('[MockPlatformWebViewController] simulateError called on controller hashCode=\x1B[36m${hashCode}\x1B[0m');
+    print(
+        '[MockPlatformWebViewController] simulateError called on controller hashCode=\x1B[36m${hashCode}\x1B[0m');
     _hasError = true;
     for (final timer in _timers) {
       timer.cancel();
@@ -277,14 +287,15 @@ class MockPlatformWebViewController extends PlatformWebViewController {
     _navigationDelegate?.onPageFinished?.call('about:blank');
     _isLoading = false;
   }
-  
+
   void simulateRendererReady() {
     ensureDelegateWired();
-    print('[MockPlatformWebViewController] simulateRendererReady called on controller hashCode=\x1B[36m${hashCode}\x1B[0m');
+    print(
+        '[MockPlatformWebViewController] simulateRendererReady called on controller hashCode=\x1B[36m${hashCode}\x1B[0m');
     _navigationDelegate?.onPageFinished?.call('about:blank');
     _isLoading = false;
   }
-  
+
   // Simulate caching a document
   void addToCache(String hash, String html) {
     _contentCache[hash] = html;
@@ -303,7 +314,8 @@ class MockPlatformWebViewController extends PlatformWebViewController {
   void triggerDiagramClick(String key) {
     if (_channels.containsKey('AsciidocDiagram')) {
       final channel = _channels['AsciidocDiagram']!;
-      channel.onMessageReceived.call(JavaScriptMessage(message: '{"diagramKey": "$key"}'));
+      channel.onMessageReceived
+          .call(JavaScriptMessage(message: '{"diagramKey": "$key"}'));
     }
   }
 
@@ -311,7 +323,8 @@ class MockPlatformWebViewController extends PlatformWebViewController {
   void triggerLinkClick(String url) {
     if (_channels.containsKey('AsciidocLink')) {
       final channel = _channels['AsciidocLink']!;
-      channel.onMessageReceived.call(JavaScriptMessage(message: '{"url": "$url"}'));
+      channel.onMessageReceived
+          .call(JavaScriptMessage(message: '{"url": "$url"}'));
     }
   }
 
@@ -335,7 +348,8 @@ class MockPlatformWebViewController extends PlatformWebViewController {
 
   void ensureDelegateWired() {
     if (_pendingDelegate != null) {
-      print('[MockPlatformWebViewController] ensureDelegateWired: wiring pending delegate on controller hashCode=\x1B[36m${hashCode}\x1B[0m');
+      print(
+          '[MockPlatformWebViewController] ensureDelegateWired: wiring pending delegate on controller hashCode=\x1B[36m${hashCode}\x1B[0m');
       _navigationDelegate = _pendingDelegate;
       _pendingDelegate = null;
     }
@@ -345,7 +359,10 @@ class MockPlatformWebViewController extends PlatformWebViewController {
 /// A mock implementation of PlatformWebViewWidget for testing
 class MockPlatformWebViewWidget extends PlatformWebViewWidget {
   MockPlatformWebViewWidget({PlatformWebViewWidgetCreationParams? params})
-      : super.implementation(params ?? PlatformWebViewWidgetCreationParams(controller: MockPlatformWebViewController(const PlatformWebViewControllerCreationParams())));
+      : super.implementation(params ??
+            PlatformWebViewWidgetCreationParams(
+                controller: MockPlatformWebViewController(
+                    const PlatformWebViewControllerCreationParams())));
 
   @override
   Widget build(BuildContext context) {
@@ -360,26 +377,32 @@ class MockPlatformWebViewWidget extends PlatformWebViewWidget {
 
 /// A mock implementation of PlatformNavigationDelegate for testing
 class MockPlatformNavigationDelegate extends PlatformNavigationDelegate {
-  MockPlatformNavigationDelegate(PlatformNavigationDelegateCreationParams params)
+  MockPlatformNavigationDelegate(
+      PlatformNavigationDelegateCreationParams params)
       : super.implementation(params);
 
   @override
-  Future<void> setOnNavigationRequest(FutureOr<NavigationDecision> Function(NavigationRequest) onNavigationRequest) async {
+  Future<void> setOnNavigationRequest(
+      FutureOr<NavigationDecision> Function(NavigationRequest)
+          onNavigationRequest) async {
     // No-op for testing
   }
 
   @override
-  Future<void> setOnPageFinished(void Function(String url)? onPageFinished) async {
+  Future<void> setOnPageFinished(
+      void Function(String url)? onPageFinished) async {
     // No-op for testing
   }
 
   @override
-  Future<void> setOnPageStarted(void Function(String url)? onPageStarted) async {
+  Future<void> setOnPageStarted(
+      void Function(String url)? onPageStarted) async {
     // No-op for testing
   }
 
   @override
-  Future<void> setOnWebResourceError(void Function(WebResourceError error)? onWebResourceError) async {
+  Future<void> setOnWebResourceError(
+      void Function(WebResourceError error)? onWebResourceError) async {
     // No-op for testing
   }
 }
@@ -389,5 +412,6 @@ class TestWebViewController extends WebViewController {
   TestWebViewController(MockPlatformWebViewController mockController)
       : super.fromPlatform(mockController);
 
-  MockPlatformWebViewController get mock => platform as MockPlatformWebViewController;
+  MockPlatformWebViewController get mock =>
+      platform as MockPlatformWebViewController;
 }

@@ -14,8 +14,6 @@ import 'package:flutter_structurizr/domain/parser/ast/nodes/container_node.dart'
     show ContainerNode;
 import 'package:flutter_structurizr/domain/parser/ast/nodes/component_node.dart'
     show ComponentNode;
-import 'package:flutter_structurizr/domain/parser/ast/nodes/relationship_node.dart'
-    show RelationshipNode;
 import 'package:flutter_structurizr/domain/parser/ast/nodes/views_node.dart'
     show ViewsNode;
 import 'package:flutter_structurizr/domain/parser/ast/nodes/group_node.dart'
@@ -46,8 +44,6 @@ import 'package:flutter_structurizr/domain/parser/ast/nodes/terminology_node.dar
     show TerminologyNode;
 import 'package:flutter_structurizr/domain/parser/ast/nodes/directive_node.dart'
     show DirectiveNode;
-import 'package:flutter_structurizr/domain/parser/ast/nodes/decision_node.dart'
-    show DecisionNode;
 import 'package:flutter_structurizr/domain/parser/ast/nodes/documentation_node.dart'
     show DocumentationNode, DocumentationSectionNode;
 import 'package:flutter_structurizr/domain/parser/ast/nodes/system_landscape_view_node.dart'
@@ -92,11 +88,8 @@ class WorkspaceMapper implements AstVisitor {
   /// This is the main entry point for the mapping process.
   Workspace? mapWorkspace(WorkspaceNode workspaceNode) {
     try {
-      // First phase: process the AST and build model elements
+      // Process the AST and build model elements (relationships are resolved within visitWorkspaceNode)
       workspaceNode.accept(this);
-
-      // Second phase: resolve relationships
-      _builder.resolveRelationships();
 
       // Build and validate the final workspace
       return _builder.build();
@@ -122,13 +115,25 @@ class WorkspaceMapper implements AstVisitor {
     );
 
     // Process the model section
+    print('DEBUG: [WorkspaceMapper] visitWorkspaceNode - model is null: ${node.model == null}');
     if (node.model != null) {
+      print('DEBUG: [WorkspaceMapper] visitWorkspaceNode - calling model.accept()');
       node.model!.accept(this);
+    } else {
+      print('DEBUG: [WorkspaceMapper] visitWorkspaceNode - WARNING: node.model is null!');
     }
 
+    // CRITICAL: Resolve relationships BEFORE processing views
+    print('DEBUG: [WorkspaceMapper] visitWorkspaceNode - resolving relationships before views');
+    _builder.resolveRelationships();
+
     // Process the views section
+    print('DEBUG: [WorkspaceMapper] visitWorkspaceNode - views is null: ${node.views == null}');
     if (node.views != null) {
+      print('DEBUG: [WorkspaceMapper] visitWorkspaceNode - calling views.accept()');
       node.views!.accept(this);
+    } else {
+      print('DEBUG: [WorkspaceMapper] visitWorkspaceNode - WARNING: node.views is null!');
     }
 
     // Process styles
@@ -154,14 +159,16 @@ class WorkspaceMapper implements AstVisitor {
 
   @override
   void visitModelNode(ModelNode node) {
-    // print('DEBUG: [WorkspaceMapper] visitModelNode: registering model elements');
+    print('DEBUG: [WorkspaceMapper] visitModelNode: registering model elements');
+    print('DEBUG: [WorkspaceMapper] people count: ${node.people.length}');
+    print('DEBUG: [WorkspaceMapper] softwareSystems count: ${node.softwareSystems.length}');
     // Process people
     for (final personNode in node.people) {
       personNode.accept(this);
     }
     // Process software systems
     for (final systemNode in node.softwareSystems) {
-      // print('DEBUG: [WorkspaceMapper] Registering software system: \\${systemNode.name}, id: \\${systemNode.id}');
+      print('DEBUG: [WorkspaceMapper] Registering software system: ${systemNode.name}, id: ${systemNode.id}');
       systemNode.accept(this);
     }
     // Process deployment environments
@@ -169,7 +176,9 @@ class WorkspaceMapper implements AstVisitor {
       envNode.accept(this);
     }
     // Process relationships at the model level
+    print('DEBUG: [WorkspaceMapper] Processing ${node.relationships.length} relationships');
     for (final relationship in node.relationships) {
+      print('DEBUG: [WorkspaceMapper] Processing relationship: ${relationship.sourceId} -> ${relationship.destinationId}');
       relationship.accept(this);
     }
   }
@@ -181,6 +190,7 @@ class WorkspaceMapper implements AstVisitor {
 
   @override
   void visitSoftwareSystemNode(SoftwareSystemNode node) {
+    print('DEBUG: [WorkspaceMapper] visitSoftwareSystemNode: ${node.id}');
     _builder.addSoftwareSystem(node);
   }
 
@@ -195,19 +205,22 @@ class WorkspaceMapper implements AstVisitor {
   }
 
   @override
-  void visitRelationshipNode(RelationshipNode node) {
+  void visitRelationshipNode(dynamic node) {
+    print('DEBUG: [WorkspaceMapper] visitRelationshipNode: ${node.sourceId} -> ${node.destinationId}');
     _builder.addRelationship(node);
   }
 
   @override
   void visitViewsNode(ViewsNode node) {
-    // print('DEBUG: [WorkspaceMapper] visitViewsNode: processing views');
+    print('DEBUG: [WorkspaceMapper] visitViewsNode: processing views');
+    print('DEBUG: [WorkspaceMapper] systemContextViews count: ${node.systemContextViews.length}');
     // Process different types of views
     for (final view in node.systemLandscapeViews) {
       view.accept(this);
     }
 
     for (final view in node.systemContextViews) {
+      print('DEBUG: [WorkspaceMapper] Processing systemContextView: ${view.key}');
       view.accept(this);
     }
 
@@ -247,6 +260,7 @@ class WorkspaceMapper implements AstVisitor {
 
   @override
   void visitSystemContextViewNode(SystemContextViewNode node) {
+    print('DEBUG: [WorkspaceMapper] visitSystemContextViewNode: ${node.key}');
     _builder.addSystemContextView(node);
   }
 

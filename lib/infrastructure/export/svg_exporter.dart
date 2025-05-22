@@ -367,10 +367,10 @@ class SvgExporter implements DiagramExporter<String> {
           final y = (position.y is double)
               ? position.y
               : double.tryParse(position.y.toString()) ?? 0.0;
-          minX = min(minX as double, (x - 10.0) as double);
-          minY = min(minY as double, (y - 10.0) as double);
-          maxX = max(maxX as double, (x + width + 10.0) as double);
-          maxY = max(maxY as double, (y + height + 10.0) as double);
+          minX = min(minX, (x - 10.0) as double);
+          minY = min(minY, (y - 10.0) as double);
+          maxX = max(maxX, (x + width + 10.0) as double);
+          maxY = max(maxY, (y + height + 10.0) as double);
         }
       }
 

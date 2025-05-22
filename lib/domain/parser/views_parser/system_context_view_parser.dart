@@ -1,6 +1,4 @@
 import 'package:flutter_structurizr/domain/model/software_system.dart';
-import 'package:flutter_structurizr/domain/model/element.dart';
-import 'package:flutter_structurizr/domain/parser/ast/ast.dart';
 import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 import 'package:flutter_structurizr/domain/parser/reference_resolver.dart';
 import 'package:flutter_structurizr/domain/view/view.dart';
@@ -27,6 +25,11 @@ class SystemContextViewParser {
   /// Parses and builds a system context view from an AST node
   SystemContextView? parse(
       SystemContextViewNode node, WorkspaceBuilder builder) {
+    print('DEBUG: [SystemContextViewParser] parse - START');
+    print('DEBUG: [SystemContextViewParser] Node includes: ${node.includes.length}');
+    for (var inc in node.includes) {
+      print('DEBUG: [SystemContextViewParser] Include path: ${inc.path}');
+    }
     // Resolve the system reference
     final softwareSystem = referenceResolver.resolveReference(
       node.systemId,
@@ -75,9 +78,12 @@ class SystemContextViewParser {
 
     // Process include/exclude rules for the view
     final includes =
-        node.includes.map((include) => include.expression).toList();
+        node.includes.map((include) => include.path).toList();
     final excludes =
-        node.excludes.map((exclude) => exclude.expression).toList();
+        node.excludes.map((exclude) => exclude.path).toList();
+    
+    print('DEBUG: [SystemContextViewParser] Mapped includes: $includes');
+    print('DEBUG: [SystemContextViewParser] Mapped excludes: $excludes');
 
     // Calculate element views and relationship views based on include/exclude criteria
     final model = builder.workspace?.model;
@@ -93,10 +99,44 @@ class SystemContextViewParser {
     final elementViews = <ElementView>[];
     final relationshipViews = <RelationshipView>[];
 
+    print('DEBUG: [SystemContextViewParser] Checking if includes contains *');
+    print('DEBUG: [SystemContextViewParser] includes.contains("*") = ${includes.contains('*')}');
+    
     if (includes.contains('*')) {
+      print('DEBUG: [SystemContextViewParser] YES - includes contains *!');
       // Include all elements in scope
       handleIncludeAll(node);
-    } else if (!includes.isEmpty || !excludes.isEmpty) {
+      
+      // Add the software system itself
+      elementViews.add(ElementView(id: softwareSystem.id));
+      print('DEBUG: [SystemContextViewParser] Added software system to view: ${softwareSystem.id}');
+      
+      // Add all people in the model
+      for (final person in model.people) {
+        elementViews.add(ElementView(id: person.id));
+        print('DEBUG: [SystemContextViewParser] Added person to view: ${person.id}');
+      }
+      
+      // Add all other software systems
+      for (final otherSystem in model.softwareSystems) {
+        if (otherSystem.id != softwareSystem.id) {
+          elementViews.add(ElementView(id: otherSystem.id));
+          print('DEBUG: [SystemContextViewParser] Added other system to view: ${otherSystem.id}');
+        }
+      }
+      
+      // Add all relationships between these elements
+      for (final person in model.people) {
+        for (final rel in person.relationships) {
+          relationshipViews.add(RelationshipView(id: rel.id));
+        }
+      }
+      for (final system in model.softwareSystems) {
+        for (final rel in system.relationships) {
+          relationshipViews.add(RelationshipView(id: rel.id));
+        }
+      }
+    } else if (includes.isNotEmpty || excludes.isNotEmpty) {
       // Handle specific include/exclude expressions
       handleIncludeExclude(node);
     } else {
@@ -149,6 +189,7 @@ class SystemContextViewParser {
             : 'System Context');
 
     // Create and return the view
+    print('DEBUG: [SystemContextViewParser] Creating view with ${elementViews.length} elements and ${relationshipViews.length} relationships');
     return SystemContextView(
       key: node.key,
       softwareSystemId: softwareSystem.id,
@@ -158,8 +199,8 @@ class SystemContextViewParser {
       relationships: relationshipViews,
       automaticLayout: automaticLayout,
       animations: animationSteps,
-      includeTags: includes?.cast<String>() ?? [],
-      excludeTags: excludes?.cast<String>() ?? [],
+      includeTags: includes.cast<String>() ?? [],
+      excludeTags: excludes.cast<String>() ?? [],
     );
   }
 

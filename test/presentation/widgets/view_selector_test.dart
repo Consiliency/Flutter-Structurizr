@@ -49,7 +49,8 @@ void main() {
       ),
     );
 
-    testWidgets('ViewSelector renders in compact mode', (WidgetTester tester) async {
+    testWidgets('ViewSelector renders in compact mode',
+        (WidgetTester tester) async {
       // Build the widget in compact mode
       await tester.pumpWidget(
         MaterialApp(
@@ -68,23 +69,24 @@ void main() {
 
       // Verify dropdown is shown
       expect(find.text('View'), findsOneWidget);
-      
-      // Find dropdown button  
+
+      // Find dropdown button
       final dropdownFinder = find.byType(DropdownButton<String>);
       expect(dropdownFinder, findsOneWidget);
-      
+
       // Tap to open the dropdown
       await tester.tap(dropdownFinder);
       await tester.pumpAndSettle();
-      
+
       // Verify view options are shown
       expect(find.text('System Context 1').last, findsOneWidget);
       expect(find.text('Container View 1').last, findsOneWidget);
       expect(find.text('Container View 2').last, findsOneWidget);
       expect(find.text('Component View 1').last, findsOneWidget);
     });
-    
-    testWidgets('ViewSelector renders in flat mode', (WidgetTester tester) async {
+
+    testWidgets('ViewSelector renders in flat mode',
+        (WidgetTester tester) async {
       // Build the widget in flat mode
       await tester.pumpWidget(
         MaterialApp(
@@ -111,8 +113,9 @@ void main() {
       expect(find.text('Container View 2'), findsOneWidget);
       expect(find.text('Component View 1'), findsOneWidget);
     });
-    
-    testWidgets('ViewSelector renders in grouped mode', (WidgetTester tester) async {
+
+    testWidgets('ViewSelector renders in grouped mode',
+        (WidgetTester tester) async {
       // Build the widget in grouped mode
       await tester.pumpWidget(
         MaterialApp(
@@ -132,17 +135,18 @@ void main() {
 
       // Verify title is shown
       expect(find.text('Views'), findsOneWidget);
-      
+
       // Verify group headers are shown
       expect(find.text('System Context Views (1)'), findsOneWidget);
       expect(find.text('Container Views (2)'), findsOneWidget);
       expect(find.text('Component Views (1)'), findsOneWidget);
     });
-    
-    testWidgets('ViewSelector fires selection callback', (WidgetTester tester) async {
+
+    testWidgets('ViewSelector fires selection callback',
+        (WidgetTester tester) async {
       // Track selected view key
       String? selectedViewKey;
-      
+
       // Build the widget with selection callback
       await tester.pumpWidget(
         MaterialApp(
@@ -168,12 +172,13 @@ void main() {
       expect(containerViewTile, findsOneWidget);
       await tester.tap(containerViewTile);
       await tester.pump();
-      
+
       // Verify callback was called with correct view key
       expect(selectedViewKey, equals('container-1'));
     });
-    
-    testWidgets('ViewSelector shows empty state when no views available', (WidgetTester tester) async {
+
+    testWidgets('ViewSelector shows empty state when no views available',
+        (WidgetTester tester) async {
       // Create an empty workspace
       const emptyWorkspace = Workspace(
         name: 'Empty Workspace',
@@ -184,7 +189,7 @@ void main() {
         ),
         views: Views(),
       );
-      
+
       // Build the widget with empty workspace
       await tester.pumpWidget(
         const MaterialApp(

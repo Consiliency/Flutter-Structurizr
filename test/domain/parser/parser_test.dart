@@ -271,7 +271,7 @@ void main() {
       expect(rds.name, equals('RDS'));
       expect(rds.technology, equals('Amazon RDS'));
       expect(rds.tags, isA<TagsNode>());
-      expect(rds.tags!.tags, contains('database'));
+      expect(rds.tags.tags, contains('database'));
     });
 
     test('should parse explicitly defined relationships', () {

@@ -42,11 +42,11 @@ abstract class View {
 
   /// The type of this view (SystemLandscape, SystemContext, etc.).
   String get viewType;
-  
+
   /// Tags to include in this view (elements with these tags will be included).
   /// This may be element identifiers or tag expressions.
   List<String> get includeTags => const [];
-  
+
   /// Tags to exclude from this view (elements with these tags will be excluded).
   /// This may be element identifiers or tag expressions.
   List<String> get excludeTags => const [];
@@ -106,7 +106,8 @@ class BaseView with _$BaseView implements View {
   }) = _BaseView;
 
   /// Creates a base view from a JSON object.
-  factory BaseView.fromJson(Map<String, dynamic> json) => _$BaseViewFromJson(json);
+  factory BaseView.fromJson(Map<String, dynamic> json) =>
+      _$BaseViewFromJson(json);
 
   @override
   BaseView addElement(ElementView element) {
@@ -170,7 +171,8 @@ class SystemLandscapeView with _$SystemLandscapeView implements View {
   }) = _SystemLandscapeView;
 
   /// Creates a system landscape view from a JSON object.
-  factory SystemLandscapeView.fromJson(Map<String, dynamic> json) => _$SystemLandscapeViewFromJson(json);
+  factory SystemLandscapeView.fromJson(Map<String, dynamic> json) =>
+      _$SystemLandscapeViewFromJson(json);
 
   @override
   SystemLandscapeView addElement(ElementView element) {
@@ -235,7 +237,8 @@ class SystemContextView with _$SystemContextView implements View {
   }) = _SystemContextView;
 
   /// Creates a system context view from a JSON object.
-  factory SystemContextView.fromJson(Map<String, dynamic> json) => _$SystemContextViewFromJson(json);
+  factory SystemContextView.fromJson(Map<String, dynamic> json) =>
+      _$SystemContextViewFromJson(json);
 
   @override
   SystemContextView addElement(ElementView element) {
@@ -300,7 +303,8 @@ class ContainerView with _$ContainerView implements View {
   }) = _ContainerView;
 
   /// Creates a container view from a JSON object.
-  factory ContainerView.fromJson(Map<String, dynamic> json) => _$ContainerViewFromJson(json);
+  factory ContainerView.fromJson(Map<String, dynamic> json) =>
+      _$ContainerViewFromJson(json);
 
   @override
   ContainerView addElement(ElementView element) {
@@ -366,7 +370,8 @@ class ComponentView with _$ComponentView implements View {
   }) = _ComponentView;
 
   /// Creates a component view from a JSON object.
-  factory ComponentView.fromJson(Map<String, dynamic> json) => _$ComponentViewFromJson(json);
+  factory ComponentView.fromJson(Map<String, dynamic> json) =>
+      _$ComponentViewFromJson(json);
 
   @override
   ComponentView addElement(ElementView element) {
@@ -431,7 +436,8 @@ class DynamicView with _$DynamicView implements View {
   }) = _DynamicView;
 
   /// Creates a dynamic view from a JSON object.
-  factory DynamicView.fromJson(Map<String, dynamic> json) => _$DynamicViewFromJson(json);
+  factory DynamicView.fromJson(Map<String, dynamic> json) =>
+      _$DynamicViewFromJson(json);
 
   @override
   DynamicView addElement(ElementView element) {
@@ -496,7 +502,8 @@ class DeploymentView with _$DeploymentView implements View {
   }) = _DeploymentView;
 
   /// Creates a deployment view from a JSON object.
-  factory DeploymentView.fromJson(Map<String, dynamic> json) => _$DeploymentViewFromJson(json);
+  factory DeploymentView.fromJson(Map<String, dynamic> json) =>
+      _$DeploymentViewFromJson(json);
 
   @override
   DeploymentView addElement(ElementView element) {
@@ -562,7 +569,8 @@ class FilteredView with _$FilteredView implements View {
   }) = _FilteredView;
 
   /// Creates a filtered view from a JSON object.
-  factory FilteredView.fromJson(Map<String, dynamic> json) => _$FilteredViewFromJson(json);
+  factory FilteredView.fromJson(Map<String, dynamic> json) =>
+      _$FilteredViewFromJson(json);
 
   @override
   FilteredView addElement(ElementView element) {
@@ -629,13 +637,14 @@ class ElementView with _$ElementView {
 
     /// Parent element ID for nested elements.
     String? parentId,
-    
+
     /// Whether this element view is collapsed (for boundaries).
     bool? collapsed,
   }) = _ElementView;
 
   /// Creates an element view from a JSON object.
-  factory ElementView.fromJson(Map<String, dynamic> json) => _$ElementViewFromJson(json);
+  factory ElementView.fromJson(Map<String, dynamic> json) =>
+      _$ElementViewFromJson(json);
 }
 
 /// Relationship view in a diagram.
@@ -668,7 +677,8 @@ class RelationshipView with _$RelationshipView {
   }) = _RelationshipView;
 
   /// Creates a relationship view from a JSON object.
-  factory RelationshipView.fromJson(Map<String, dynamic> json) => _$RelationshipViewFromJson(json);
+  factory RelationshipView.fromJson(Map<String, dynamic> json) =>
+      _$RelationshipViewFromJson(json);
 }
 
 /// A vertex (point) in a relationship path.
@@ -680,7 +690,7 @@ class Vertex with _$Vertex {
   const factory Vertex({
     /// X position in the diagram.
     required int x,
-    
+
     /// Y position in the diagram.
     required int y,
   }) = _Vertex;
@@ -698,22 +708,23 @@ class AutomaticLayout with _$AutomaticLayout {
   const factory AutomaticLayout({
     /// Algorithm to use (e.g., "Graphviz", "ForceDirected").
     @Default('ForceDirected') String implementation,
-    
+
     /// Rank direction (e.g., "TopBottom", "LeftRight").
     String? rankDirection,
-    
+
     /// Rank separation for layered layouts.
     int? rankSeparation,
-    
+
     /// Node separation for layered layouts.
     int? nodeSeparation,
-    
+
     /// Edge separation for layered layouts.
     int? edgeSeparation,
   }) = _AutomaticLayout;
 
   /// Creates an automatic layout configuration from a JSON object.
-  factory AutomaticLayout.fromJson(Map<String, dynamic> json) => _$AutomaticLayoutFromJson(json);
+  factory AutomaticLayout.fromJson(Map<String, dynamic> json) =>
+      _$AutomaticLayoutFromJson(json);
 }
 
 /// Animation step for dynamic views.
@@ -725,16 +736,17 @@ class AnimationStep with _$AnimationStep {
   const factory AnimationStep({
     /// Step number.
     required int order,
-    
+
     /// Elements to show in this step.
     @Default([]) List<String> elements,
-    
+
     /// Relationships to show in this step.
     @Default([]) List<String> relationships,
   }) = _AnimationStep;
 
   /// Creates an animation step from a JSON object.
-  factory AnimationStep.fromJson(Map<String, dynamic> json) => _$AnimationStepFromJson(json);
+  factory AnimationStep.fromJson(Map<String, dynamic> json) =>
+      _$AnimationStepFromJson(json);
 }
 
 /// Custom view for user-defined diagrams.
@@ -758,7 +770,8 @@ class CustomView with _$CustomView implements View {
   }) = _CustomView;
 
   /// Creates a custom view from a JSON object.
-  factory CustomView.fromJson(Map<String, dynamic> json) => _$CustomViewFromJson(json);
+  factory CustomView.fromJson(Map<String, dynamic> json) =>
+      _$CustomViewFromJson(json);
 
   @override
   CustomView addElement(ElementView element) {
@@ -824,7 +837,8 @@ class ImageView with _$ImageView implements View {
   }) = _ImageView;
 
   /// Creates an image view from a JSON object.
-  factory ImageView.fromJson(Map<String, dynamic> json) => _$ImageViewFromJson(json);
+  factory ImageView.fromJson(Map<String, dynamic> json) =>
+      _$ImageViewFromJson(json);
 
   @override
   ImageView addElement(ElementView element) {

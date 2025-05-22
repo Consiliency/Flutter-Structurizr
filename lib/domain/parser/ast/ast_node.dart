@@ -37,6 +37,8 @@ import 'nodes/source_position.dart';
 // Minimal stub for AstVisitor
 abstract class AstVisitor {
   void visitWorkspaceNode(WorkspaceNode node);
+  void visitModelNode(ModelNode node);
+  void visitViewsNode(ViewsNode node);
   void visitViewNode(
       dynamic node); // Use dynamic for now, or import ViewNode if possible
   void visitViewPropertyNode(dynamic node);
@@ -54,6 +56,7 @@ abstract class AstVisitor {
   void visitInfrastructureNodeNode(InfrastructureNodeNode node);
   void visitSoftwareSystemInstanceNode(SoftwareSystemInstanceNode node);
   void visitContainerInstanceNode(ContainerInstanceNode node);
+  void visitRelationshipNode(dynamic node); // Use dynamic for RelationshipNode
   void visitPropertiesNode(PropertiesNode node);
   void visitPropertyNode(PropertyNode node);
   void visitDirectiveNode(DirectiveNode node);

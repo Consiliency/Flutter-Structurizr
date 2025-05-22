@@ -614,6 +614,32 @@ class Parser {
 
     _consume(TokenType.workspace, "Expect 'workspace' keyword");
 
+    // Handle optional extends directive
+    String? extendsPath;
+    if (_check(TokenType.extends_)) {
+      _advance(); // consume 'extends'
+      // The extends path can be either a string literal or an identifier-like path
+      if (_check(TokenType.string)) {
+        extendsPath = _parseStringLiteral('Expect extends path as string');
+      } else if (_check(TokenType.identifier)) {
+        extendsPath = _current.lexeme;
+        _advance();
+        // Handle paths with dots and slashes (like ../model.dsl)
+        while (_check(TokenType.dot) || _check(TokenType.slash) || _check(TokenType.identifier)) {
+          extendsPath = (extendsPath ?? '') + _current.lexeme;
+          _advance();
+        }
+      } else {
+        _errorReporter.reportStandardError(
+          'Expected extends path after extends keyword',
+          _current.position.offset,
+        );
+        print('ERROR: Expected extends path after extends keyword');
+      }
+      logger.fine('DEBUG: Parsed extends path: $extendsPath');
+      print('DEBUG: Parsed extends path: $extendsPath');
+    }
+
     // --- FIXED LOGIC: Only parse name/description if next token(s) are string ---
     String name = 'Workspace';
     String? description;
@@ -689,6 +715,7 @@ class Parser {
       if (_match(TokenType.model)) {
         model = _parseModel();
       } else if (_match(TokenType.views)) {
+        print('DEBUG: Found views token, parsing views section');
         views = _parseViews();
       } else if (_match(TokenType.styles)) {
         styles = _parseStyles();
@@ -1333,6 +1360,7 @@ class Parser {
     String? enterpriseName;
     while (!_check(TokenType.rightBrace) && !_isAtEnd()) {
       try {
+        print('DEBUG: [Parser] Parsing model token: ${_current.type} "${_current.lexeme}"');
         if (_check(TokenType.identifier) ||
             _check(TokenType.string) ||
             _isKeyword(_current.type)) {
@@ -2112,12 +2140,15 @@ class Parser {
   /// Parses an implicit relationship (source -> destination).
   RelationshipNode _parseImplicitRelationship() {
     final sourcePosition = _current.position;
+    print('DEBUG: [Parser] Parsing implicit relationship');
 
     final sourceId =
         _parseIdentifierOrString('Expect source element identifier');
+    print('DEBUG: [Parser] Relationship source: $sourceId');
     _consume(TokenType.arrow, "Expect '->' between source and destination");
     final destinationId =
         _parseIdentifierOrString('Expect destination element identifier');
+    print('DEBUG: [Parser] Relationship destination: $destinationId');
 
     String? description;
     String? technology;
@@ -2173,6 +2204,7 @@ class Parser {
   ViewsNode _parseViews() {
     final sourcePosition = _current.position;
     logger.fine('DEBUG: ENTERED _parseViews');
+    print('DEBUG: ENTERED _parseViews method');
     _pushContext(_ParsingContext.views);
     _consume(TokenType.leftBrace, "Expect '{' after views declaration");
     final systemLandscapeViews = <SystemLandscapeViewNode>[];
@@ -2189,6 +2221,7 @@ class Parser {
       if (_match(TokenType.systemLandscape)) {
         systemLandscapeViews.add(_parseSystemLandscapeView());
       } else if (_match(TokenType.systemContext)) {
+        print('DEBUG: Found systemContext token, parsing system context view');
         systemContextViews.add(_parseSystemContextView());
       } else if (_match(TokenType.containerView)) {
         containerViews.add(_parseContainerView());
@@ -2208,6 +2241,7 @@ class Parser {
           _current.lexeme == 'configuration') {
         configuration.addAll(_parseConfiguration());
       } else {
+        print('DEBUG: Unexpected token in views: ${_current.lexeme}, type: ${_current.type}');
         _errorReporter.reportStandardError(
           'Unexpected token in views: \\${_current.lexeme}',
           _current.position.offset,
@@ -2347,8 +2381,12 @@ class Parser {
       _pushContext(_ParsingContext.view);
 
       while (!_check(TokenType.rightBrace) && !_isAtEnd()) {
+        print('DEBUG: [Parser] Parsing system context view body token: ${_current.type} "${_current.lexeme}"');
         if (_match(TokenType.include)) {
-          includes.add(_parseInclude());
+          print('DEBUG: [Parser] Found include token, parsing include directive');
+          final includeNode = _parseInclude();
+          print('DEBUG: [Parser] Parsed include: "${includeNode.path}"');
+          includes.add(includeNode);
         } else if (_match(TokenType.exclude)) {
           excludes.add(_parseExclude());
         } else if (_match(TokenType.autoLayout)) {
@@ -2366,6 +2404,11 @@ class Parser {
 
       _consume(TokenType.rightBrace, "Expect '}' after view definition");
       _popContext();
+    }
+
+    print('DEBUG: [Parser] Creating SystemContextViewNode with ${includes.length} includes and ${excludes.length} excludes');
+    for (final include in includes) {
+      print('DEBUG: [Parser] Include: "${include.path}"');
     }
 
     return SystemContextViewNode(
@@ -2767,7 +2810,15 @@ class Parser {
   IncludeNode _parseInclude() {
     final sourcePosition = _current.position;
 
-    String expression = _parseIdentifierOrString('Expect include expression');
+    String expression;
+    if (_check(TokenType.star)) {
+      // Handle the "*" token specifically for include all
+      expression = _current.lexeme;
+      _advance();
+    } else {
+      // Handle identifier or string expressions
+      expression = _parseIdentifierOrString('Expect include expression');
+    }
 
     return IncludeNode(
       path: expression,

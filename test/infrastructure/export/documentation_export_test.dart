@@ -31,7 +31,7 @@ class TestDslExporter extends DslExporter {
 
 void main() {
   late TestDslExporter exporter;
-  
+
   setUp(() {
     exporter = const TestDslExporter();
   });
@@ -55,20 +55,24 @@ void main() {
           ),
         ],
       );
-      
+
       final buffer = StringBuffer();
-      
+
       // Act
       exporter.generateDocumentationSection(buffer, workspace);
-      
+
       // Assert
       final output = buffer.toString();
       expect(output, contains('documentation {'));
       expect(output, contains('section "Overview" {'));
-      expect(output, contains('content """This is an overview of the system."""'));
+      expect(
+          output, contains('content """This is an overview of the system."""'));
       expect(output, contains('section "Getting Started" {'));
-      expect(output, contains('content """# Getting Started\\n\\nFollow these steps to get started."""'));
-      
+      expect(
+          output,
+          contains(
+              'content """# Getting Started\\n\\nFollow these steps to get started."""'));
+
       // Should not contain format specification for markdown (default)
       expect(output.contains('format "markdown"'), isFalse);
     });
@@ -85,18 +89,21 @@ void main() {
           ),
         ],
       );
-      
+
       final buffer = StringBuffer();
-      
+
       // Act
       exporter.generateDocumentationSection(buffer, workspace);
-      
+
       // Assert
       final output = buffer.toString();
       expect(output, contains('documentation {'));
       expect(output, contains('section "AsciiDoc Example" {'));
       expect(output, contains('format "asciidoc"'));
-      expect(output, contains('content """= AsciiDoc Title\\n\\nThis is *bold* content."""'));
+      expect(
+          output,
+          contains(
+              'content """= AsciiDoc Title\\n\\nThis is *bold* content."""'));
     });
 
     test('escapes special characters in documentation content', () {
@@ -111,16 +118,19 @@ void main() {
           ),
         ],
       );
-      
+
       final buffer = StringBuffer();
-      
+
       // Act
       exporter.generateDocumentationSection(buffer, workspace);
-      
+
       // Assert
       final output = buffer.toString();
       expect(output, contains('section "Special \\"Characters\\"" {'));
-      expect(output, contains('content """Content with \\"quotes\\" and \\\\ backslashes and\\nnew lines."""'));
+      expect(
+          output,
+          contains(
+              'content """Content with \\"quotes\\" and \\\\ backslashes and\\nnew lines."""'));
     });
 
     test('does not generate documentation section when sections is empty', () {
@@ -128,12 +138,12 @@ void main() {
       final workspace = _createWorkspaceWithDocumentation(
         sections: [],
       );
-      
+
       final buffer = StringBuffer();
-      
+
       // Act
       exporter.generateDocumentationSection(buffer, workspace);
-      
+
       // Assert
       final output = buffer.toString();
       expect(output, isEmpty);
@@ -151,16 +161,17 @@ void main() {
             date: testDate,
             status: 'Accepted',
             title: 'Use Markdown for documentation',
-            content: 'We will use Markdown for documentation because it is widely supported.',
+            content:
+                'We will use Markdown for documentation because it is widely supported.',
           ),
         ],
       );
-      
+
       final buffer = StringBuffer();
-      
+
       // Act
       exporter.generateDecisionsSection(buffer, workspace);
-      
+
       // Assert
       final output = buffer.toString();
       expect(output, contains('decisions {'));
@@ -168,7 +179,10 @@ void main() {
       expect(output, contains('title "Use Markdown for documentation"'));
       expect(output, contains('status "Accepted"'));
       expect(output, contains('date "2023-05-15"'));
-      expect(output, contains('content """We will use Markdown for documentation because it is widely supported."""'));
+      expect(
+          output,
+          contains(
+              'content """We will use Markdown for documentation because it is widely supported."""'));
     });
 
     test('generates decisions with links to other decisions', () {
@@ -181,17 +195,18 @@ void main() {
             date: testDate,
             status: 'Accepted',
             title: 'Use Markdown for documentation',
-            content: 'We will use Markdown for documentation because it is widely supported.',
+            content:
+                'We will use Markdown for documentation because it is widely supported.',
             links: ['ADR-002', 'ADR-003'],
           ),
         ],
       );
-      
+
       final buffer = StringBuffer();
-      
+
       // Act
       exporter.generateDecisionsSection(buffer, workspace);
-      
+
       // Assert
       final output = buffer.toString();
       expect(output, contains('links "ADR-002", "ADR-003"'));
@@ -212,17 +227,17 @@ void main() {
           ),
         ],
       );
-      
+
       final buffer = StringBuffer();
-      
+
       // Act
       exporter.generateDecisionsSection(buffer, workspace);
-      
+
       // Assert
       final output = buffer.toString();
       expect(output, contains('format "asciidoc"'));
     });
-    
+
     test('handles special characters in decision properties', () {
       // Arrange
       final testDate = DateTime(2023, 5, 15);
@@ -237,18 +252,22 @@ void main() {
           ),
         ],
       );
-      
+
       final buffer = StringBuffer();
-      
+
       // Act
       exporter.generateDecisionsSection(buffer, workspace);
-      
+
       // Assert
       final output = buffer.toString();
       expect(output, contains('decision "ADR-001 \\"Special\\"" {'));
       expect(output, contains('status "Accepted & Implemented"'));
-      expect(output, contains('title "Title with \\"quotes\\" and \\\\ backslashes"'));
-      expect(output, contains('content """Content with \\"quotes\\" and \\\\ backslashes and\\nnew lines."""'));
+      expect(output,
+          contains('title "Title with \\"quotes\\" and \\\\ backslashes"'));
+      expect(
+          output,
+          contains(
+              'content """Content with \\"quotes\\" and \\\\ backslashes and\\nnew lines."""'));
     });
 
     test('does not generate decisions section when decisions is empty', () {
@@ -256,12 +275,12 @@ void main() {
       final workspace = _createWorkspaceWithDocumentation(
         decisions: [],
       );
-      
+
       final buffer = StringBuffer();
-      
+
       // Act
       exporter.generateDecisionsSection(buffer, workspace);
-      
+
       // Assert
       final output = buffer.toString();
       expect(output, isEmpty);
@@ -271,33 +290,35 @@ void main() {
   group('String escaping', () {
     test('escapes quotes, backslashes and newlines correctly', () {
       // Arrange
-      const testString = 'This is a "quoted" string with \\ backslashes and\nnew lines.';
-      
+      const testString =
+          'This is a "quoted" string with \\ backslashes and\nnew lines.';
+
       // Act
       final escaped = exporter.escapeString(testString);
-      
+
       // Assert
-      expect(escaped, 'This is a \\"quoted\\" string with \\\\ backslashes and\\nnew lines.');
+      expect(escaped,
+          'This is a \\"quoted\\" string with \\\\ backslashes and\\nnew lines.');
     });
-    
+
     test('handles empty strings', () {
       // Arrange
       const testString = '';
-      
+
       // Act
       final escaped = exporter.escapeString(testString);
-      
+
       // Assert
       expect(escaped, '');
     });
-    
+
     test('handles strings with only special characters', () {
       // Arrange
       const testString = '"\\\n';
-      
+
       // Act
       final escaped = exporter.escapeString(testString);
-      
+
       // Assert
       expect(escaped, '\\"\\\\\\n');
     });

@@ -3,3 +3,8 @@ description:
 globs:
 alwaysApply: false
 ---
+# Element Parser Edge Case Handling
+
+The Dart Structurizr parser robustly handles edge cases for element parsing, ensuring compatibility with the Structurizr DSL. The parser only throws a 'too many tokens' error for inline elements (i.e., those without a block) when there are more than 4 relevant header tokens (the keyword and up to three strings for name, description, and tags). Block-based elements and valid edge cases—such as empty descriptions, empty or malformed tags, and nested elements—are accepted and parsed correctly.
+
+All edge case tests are located in [test/domain/parser/element_parser_edge_cases_test.dart](mdc:test/domain/parser/element_parser_edge_cases_test.dart), and the parser logic is implemented in [lib/domain/parser/element_parser.dart](mdc:lib/domain/parser/element_parser.dart).

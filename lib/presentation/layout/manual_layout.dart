@@ -155,25 +155,25 @@ class ManualLayout implements LayoutStrategy {
   /// Export manual positions as a map for serialization
   Map<String, Map<String, double>> exportPositions() {
     final result = <String, Map<String, double>>{};
-    
+
     for (final entry in manualPositions.entries) {
       result[entry.key] = {
         'x': entry.value.dx,
         'y': entry.value.dy,
       };
     }
-    
+
     return result;
   }
 
   /// Import positions from a serialized map
   void importPositions(Map<String, Map<String, dynamic>> serializedPositions) {
     manualPositions.clear();
-    
+
     for (final entry in serializedPositions.entries) {
       final x = entry.value['x'];
       final y = entry.value['y'];
-      
+
       if (x is num && y is num) {
         manualPositions[entry.key] = Offset(
           x.toDouble(),

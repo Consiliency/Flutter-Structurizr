@@ -14,18 +14,18 @@ void main() {
       ),
     ],
   );
-  
+
   // Create a test software system
   final testSystem = TestSoftwareSystem(
     name: 'Test System',
     description: 'Test System Description',
   );
-  
+
   // Create a test model with the system
   final testModel = TestModel(
     softwareSystems: [testSystem],
   );
-  
+
   // Create a test workspace
   final testWorkspace = TestWorkspace(
     id: 1,
@@ -53,7 +53,8 @@ void main() {
       expect(find.text('This is a paragraph.'), findsOneWidget);
     });
 
-    testWidgets('renders section numbers when enabled', (WidgetTester tester) async {
+    testWidgets('renders section numbers when enabled',
+        (WidgetTester tester) async {
       const content = '# Heading 1\n\n## Heading 2\n\n### Heading 3';
 
       await tester.pumpWidget(
@@ -72,8 +73,9 @@ void main() {
       expect(find.textContaining('1.1 Heading 2'), findsOneWidget);
       expect(find.textContaining('1.1.1 Heading 3'), findsOneWidget);
     });
-    
-    testWidgets('renders section numbers with multiple sections', (WidgetTester tester) async {
+
+    testWidgets('renders section numbers with multiple sections',
+        (WidgetTester tester) async {
       const content = '''
 # First Chapter
 
@@ -116,13 +118,14 @@ Content in a new chapter
       expect(find.textContaining('1.1 Section 1.1'), findsOneWidget);
       expect(find.textContaining('1.1.1 Subsection 1.1.1'), findsOneWidget);
       expect(find.textContaining('1.2 Section 1.2'), findsOneWidget);
-      
+
       // Verify section numbering for second chapter
       expect(find.textContaining('2 Second Chapter'), findsOneWidget);
       expect(find.textContaining('2.1 Section 2.1'), findsOneWidget);
     });
-    
-    testWidgets('skips section numbering in code blocks', (WidgetTester tester) async {
+
+    testWidgets('skips section numbering in code blocks',
+        (WidgetTester tester) async {
       const content = '''
 # Main Heading
 
@@ -150,10 +153,11 @@ Here's some code:
       // Verify section numbering for actual headings
       expect(find.textContaining('1 Main Heading'), findsOneWidget);
       expect(find.textContaining('1.1 Actual Subheading'), findsOneWidget);
-      
+
       // Verify code block content is preserved without numbering
       expect(find.text('# This is a heading in a code block'), findsOneWidget);
-      expect(find.text('## This is a subheading in a code block'), findsOneWidget);
+      expect(
+          find.text('## This is a subheading in a code block'), findsOneWidget);
     });
 
     testWidgets('respects dark mode setting', (WidgetTester tester) async {
@@ -181,7 +185,8 @@ Here's some code:
       expect(text.style?.color, isNot(Colors.black));
     });
 
-    testWidgets('renders code blocks with syntax highlighting', (WidgetTester tester) async {
+    testWidgets('renders code blocks with syntax highlighting',
+        (WidgetTester tester) async {
       const content = '''
 # Code Sample
 
@@ -233,17 +238,20 @@ void main() {
 
       // Since we're using the TestMarkdownRenderer, it won't actually show the diagram
       // but it will correctly process the diagram markdown and invoke the callback
-      
+
       // Verify diagram placeholder text
-      expect(find.text('Diagram: System Context (Workspace not available)'), findsOneWidget);
-      
+      expect(find.text('Diagram: System Context (Workspace not available)'),
+          findsOneWidget);
+
       // Tap on the text and verify callback
-      await tester.tap(find.text('Diagram: System Context (Workspace not available)'));
-      
+      await tester
+          .tap(find.text('Diagram: System Context (Workspace not available)'));
+
       // For this test, we're checking if the widget renders without errors
     });
-    
-    testWidgets('renders embedded diagrams with parameters', (WidgetTester tester) async {
+
+    testWidgets('renders embedded diagrams with parameters',
+        (WidgetTester tester) async {
       const content = '''
 # Diagram Example with Parameters
 
@@ -268,12 +276,15 @@ void main() {
 
       // Since we're using the TestMarkdownRenderer, it won't show the diagram with parameters
       // but we can verify the markdown is rendered
-      expect(find.text('Diagram: Custom Sized Diagram (Workspace not available)'), findsOneWidget);
-      
+      expect(
+          find.text('Diagram: Custom Sized Diagram (Workspace not available)'),
+          findsOneWidget);
+
       // For this test, we're checking if the widget renders without errors
     });
-    
-    testWidgets('renders embedded diagrams in dark mode', (WidgetTester tester) async {
+
+    testWidgets('renders embedded diagrams in dark mode',
+        (WidgetTester tester) async {
       const content = '''
 # Diagram Example in Dark Mode
 
@@ -294,12 +305,14 @@ void main() {
       );
 
       // Verify diagram is rendered in dark mode
-      expect(find.text('Diagram: Dark Mode Diagram (Workspace not available)'), findsOneWidget);
-      
+      expect(find.text('Diagram: Dark Mode Diagram (Workspace not available)'),
+          findsOneWidget);
+
       // For this test, we're checking if the widget renders without errors in dark mode
     });
 
-    testWidgets('handles missing workspace for diagrams', (WidgetTester tester) async {
+    testWidgets('handles missing workspace for diagrams',
+        (WidgetTester tester) async {
       const content = '''
 # Diagram Example
 
@@ -318,7 +331,8 @@ void main() {
       );
 
       // Verify diagram placeholder indicates workspace is not available
-      expect(find.text('Diagram: System Context (Workspace not available)'), findsOneWidget);
+      expect(find.text('Diagram: System Context (Workspace not available)'),
+          findsOneWidget);
     });
   });
 }

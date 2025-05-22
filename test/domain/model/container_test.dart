@@ -1,5 +1,3 @@
-import 'package:flutter_structurizr/domain/model/element.dart';
-import 'package:flutter_structurizr/domain/model/model.dart';
 import 'package:flutter_structurizr/domain/model/container.dart';
 import 'package:flutter_structurizr/domain/model/component.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,7 +12,7 @@ void main() {
     const parentId = 'system-1';
 
     setUp(() {
-      container = Container(
+      container = const Container(
         id: containerId,
         name: containerName,
         description: containerDescription,
@@ -55,7 +53,7 @@ void main() {
     });
 
     test('addComponent() adds a component to the container', () {
-      final component = Component(
+      const component = Component(
         id: 'component-1',
         name: 'UserController',
         description: 'REST controller for user endpoints',
@@ -73,14 +71,14 @@ void main() {
     });
 
     test('getComponentById() returns the correct component', () {
-      final component1 = Component(
+      const component1 = Component(
         id: 'component-1',
         name: 'UserController',
         description: 'REST controller for user endpoints',
         parentId: containerId,
       );
 
-      final component2 = Component(
+      const component2 = Component(
         id: 'component-2',
         name: 'OrderService',
         description: 'Business logic for orders',
@@ -99,7 +97,7 @@ void main() {
     });
 
     test('getComponentById() returns null for non-existent component', () {
-      final containerWithComponent = container.addComponent(Component(
+      final containerWithComponent = container.addComponent(const Component(
         id: 'component-1',
         name: 'UserController',
         parentId: containerId,

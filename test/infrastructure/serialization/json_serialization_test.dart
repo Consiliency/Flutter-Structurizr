@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_structurizr/domain/model/element.dart';
 import 'package:flutter_structurizr/domain/model/model.dart';
 import 'package:flutter_structurizr/domain/model/workspace.dart';
 import 'package:flutter_structurizr/domain/style/styles.dart';
@@ -9,10 +8,7 @@ import 'package:flutter_structurizr/domain/view/views.dart';
 import 'package:flutter_structurizr/domain/view/view.dart' hide View;
 import 'package:flutter_structurizr/infrastructure/serialization/json_serialization.dart';
 import 'package:flutter_structurizr/infrastructure/serialization/json_serialization_helper.dart';
-import 'package:flutter_structurizr/domain/model/person.dart';
-import 'package:flutter_structurizr/domain/model/software_system.dart';
 import 'package:flutter_structurizr/domain/model/container.dart';
-import 'package:flutter_structurizr/domain/model/component.dart';
 
 void main() {
   group('JsonSerialization', () {

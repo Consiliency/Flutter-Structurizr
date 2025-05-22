@@ -8,21 +8,21 @@ import 'package:path_provider/path_provider.dart';
 /// Example application demonstrating the use of FileStorage and AutoSave.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize file storage
   final workspacesDirectory = await FileStorage.getDefaultWorkspaceDirectory();
   final backupDirectory = await FileStorage.getDefaultBackupDirectory();
-  
+
   final fileStorage = FileStorage(
     workspacesDirectory: workspacesDirectory,
     backupDirectory: backupDirectory,
   );
-  
+
   final autoSave = AutoSave(
     storage: fileStorage,
     intervalMs: 5000, // Auto-save every 5 seconds
   );
-  
+
   runApp(StorageExampleApp(
     fileStorage: fileStorage,
     autoSave: autoSave,
@@ -33,13 +33,13 @@ void main() async {
 class StorageExampleApp extends StatelessWidget {
   final FileStorage fileStorage;
   final AutoSave autoSave;
-  
+
   const StorageExampleApp({
     Key? key,
     required this.fileStorage,
     required this.autoSave,
   }) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -60,13 +60,13 @@ class StorageExampleApp extends StatelessWidget {
 class StorageExampleHome extends StatefulWidget {
   final FileStorage fileStorage;
   final AutoSave autoSave;
-  
+
   const StorageExampleHome({
     Key? key,
     required this.fileStorage,
     required this.autoSave,
   }) : super(key: key);
-  
+
   @override
   _StorageExampleHomeState createState() => _StorageExampleHomeState();
 }
@@ -79,34 +79,34 @@ class _StorageExampleHomeState extends State<StorageExampleHome> {
   double _saveProgress = 0.0;
   bool _isSaving = false;
   List<String> _events = [];
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     // Listen for auto-save events
     widget.autoSave.autoSaveEvents.listen(_handleAutoSaveEvent);
-    
+
     // Load workspaces
     _loadWorkspaces();
   }
-  
+
   @override
   void dispose() {
     // Stop auto-save and dispose resources
     widget.autoSave.dispose();
     super.dispose();
   }
-  
+
   /// Loads the list of available workspaces.
   Future<void> _loadWorkspaces() async {
     final workspaces = await widget.fileStorage.listWorkspaces();
-    
+
     setState(() {
       _workspaces = workspaces;
     });
   }
-  
+
   /// Creates a new workspace.
   Future<void> _createWorkspace() async {
     // Show a dialog to get the workspace name
@@ -114,7 +114,7 @@ class _StorageExampleHomeState extends State<StorageExampleHome> {
       context: context,
       builder: (context) => _NewWorkspaceDialog(),
     );
-    
+
     if (name != null && name.isNotEmpty) {
       // Create a new workspace
       final tempDir = await getTemporaryDirectory();
@@ -122,31 +122,31 @@ class _StorageExampleHomeState extends State<StorageExampleHome> {
         widget.fileStorage.repository.workspacesDirectory,
         '${name.toLowerCase().replaceAll(' ', '-')}.json',
       );
-      
+
       final metadata = WorkspaceMetadata(
         path: workspacePath,
         name: name,
         description: 'A new workspace',
         lastModified: DateTime.now(),
       );
-      
+
       final workspace = await widget.fileStorage.createWorkspace(metadata);
-      
+
       // Reload workspaces
       await _loadWorkspaces();
-      
+
       // Open the new workspace
       _openWorkspace(workspacePath);
     }
   }
-  
+
   /// Opens a workspace.
   Future<void> _openWorkspace(String path) async {
     setState(() {
       _isSaving = false;
       _saveProgress = 0.0;
     });
-    
+
     try {
       // Load the workspace
       final workspace = await widget.fileStorage.loadWorkspace(
@@ -157,13 +157,13 @@ class _StorageExampleHomeState extends State<StorageExampleHome> {
           });
         },
       );
-      
+
       setState(() {
         _currentWorkspace = workspace;
         _currentWorkspacePath = path;
         _saveProgress = 0.0;
       });
-      
+
       // Start auto-save
       widget.autoSave.startMonitoring(
         workspace,
@@ -174,27 +174,27 @@ class _StorageExampleHomeState extends State<StorageExampleHome> {
           });
         },
       );
-      
+
       // Enable auto-save
       widget.autoSave.setEnabled(_autoSaveEnabled);
-      
+
       _logEvent('Opened workspace: ${workspace.name}');
     } catch (e) {
       _showError('Failed to open workspace', e);
     }
   }
-  
+
   /// Saves the current workspace.
   Future<void> _saveWorkspace() async {
     if (_currentWorkspace == null || _currentWorkspacePath == null) {
       return;
     }
-    
+
     setState(() {
       _isSaving = true;
       _saveProgress = 0.0;
     });
-    
+
     try {
       await widget.autoSave.saveNow(
         onProgress: (progress) {
@@ -203,7 +203,7 @@ class _StorageExampleHomeState extends State<StorageExampleHome> {
           });
         },
       );
-      
+
       _logEvent('Manually saved workspace: ${_currentWorkspace!.name}');
     } catch (e) {
       _showError('Failed to save workspace', e);
@@ -213,42 +213,43 @@ class _StorageExampleHomeState extends State<StorageExampleHome> {
       });
     }
   }
-  
+
   /// Updates the current workspace with a new description.
   void _updateCurrentWorkspace() {
     if (_currentWorkspace == null) {
       return;
     }
-    
+
     // Create a new workspace with an updated description
     final updatedWorkspace = Workspace(
       id: _currentWorkspace!.id,
       name: _currentWorkspace!.name,
-      description: '${_currentWorkspace!.description ?? ''} (Updated: ${DateTime.now()})',
+      description:
+          '${_currentWorkspace!.description ?? ''} (Updated: ${DateTime.now()})',
       model: _currentWorkspace!.model,
     );
-    
+
     // Update the workspace in auto-save
     widget.autoSave.updateWorkspace(updatedWorkspace);
-    
+
     _logEvent('Updated workspace: ${updatedWorkspace.name}');
   }
-  
+
   /// Toggles auto-save on or off.
   void _toggleAutoSave() {
     setState(() {
       _autoSaveEnabled = !_autoSaveEnabled;
     });
-    
+
     widget.autoSave.setEnabled(_autoSaveEnabled);
-    
+
     _logEvent('Auto-save ${_autoSaveEnabled ? 'enabled' : 'disabled'}');
   }
-  
+
   /// Handles auto-save events.
   void _handleAutoSaveEvent(AutoSaveEvent event) {
     String message;
-    
+
     switch (event.type) {
       case AutoSaveEventType.saveCompleted:
         message = 'Auto-save completed';
@@ -289,26 +290,26 @@ class _StorageExampleHomeState extends State<StorageExampleHome> {
       default:
         message = 'Unknown event: ${event.type}';
     }
-    
+
     _logEvent(message);
   }
-  
+
   /// Logs an event to the UI.
   void _logEvent(String message) {
     setState(() {
       _events.insert(0, '[${DateTime.now().toIso8601String()}] $message');
-      
+
       // Limit to 100 events
       if (_events.length > 100) {
         _events = _events.sublist(0, 100);
       }
     });
   }
-  
+
   /// Shows an error dialog.
   void _showError(String message, Object error) {
     _logEvent('ERROR: $message - $error');
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -323,7 +324,7 @@ class _StorageExampleHomeState extends State<StorageExampleHome> {
       ),
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -333,7 +334,8 @@ class _StorageExampleHomeState extends State<StorageExampleHome> {
           if (_currentWorkspace != null)
             IconButton(
               icon: Icon(_autoSaveEnabled ? Icons.sync : Icons.sync_disabled),
-              tooltip: _autoSaveEnabled ? 'Disable Auto-Save' : 'Enable Auto-Save',
+              tooltip:
+                  _autoSaveEnabled ? 'Disable Auto-Save' : 'Enable Auto-Save',
               onPressed: _toggleAutoSave,
             ),
           if (_currentWorkspace != null)
@@ -394,9 +396,12 @@ class _StorageExampleHomeState extends State<StorageExampleHome> {
                                     final workspace = _workspaces[index];
                                     return ListTile(
                                       title: Text(workspace.name),
-                                      subtitle: Text(workspace.description ?? ''),
-                                      selected: _currentWorkspacePath == workspace.path,
-                                      onTap: () => _openWorkspace(workspace.path),
+                                      subtitle:
+                                          Text(workspace.description ?? ''),
+                                      selected: _currentWorkspacePath ==
+                                          workspace.path,
+                                      onTap: () =>
+                                          _openWorkspace(workspace.path),
                                     );
                                   },
                                 ),
@@ -423,19 +428,23 @@ class _StorageExampleHomeState extends State<StorageExampleHome> {
                                   children: [
                                     Text(
                                       _currentWorkspace!.name,
-                                      style: Theme.of(context).textTheme.headlineSmall,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .headlineSmall,
                                     ),
                                     if (_currentWorkspace!.description != null)
                                       Padding(
                                         padding: const EdgeInsets.only(top: 8),
-                                        child: Text(_currentWorkspace!.description!),
+                                        child: Text(
+                                            _currentWorkspace!.description!),
                                       ),
                                     const SizedBox(height: 16),
                                     Row(
                                       children: [
                                         ElevatedButton(
                                           onPressed: _updateCurrentWorkspace,
-                                          child: const Text('Update Description'),
+                                          child:
+                                              const Text('Update Description'),
                                         ),
                                         const SizedBox(width: 8),
                                         Text(
@@ -443,7 +452,8 @@ class _StorageExampleHomeState extends State<StorageExampleHome> {
                                               ? 'Unsaved changes'
                                               : 'No unsaved changes',
                                           style: TextStyle(
-                                            color: widget.autoSave.hasUnsavedChanges()
+                                            color: widget.autoSave
+                                                    .hasUnsavedChanges()
                                                 ? Colors.red
                                                 : Colors.green,
                                           ),
@@ -455,19 +465,23 @@ class _StorageExampleHomeState extends State<StorageExampleHome> {
                               ),
                               const Divider(),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 8),
                                 child: Text(
                                   'Event Log',
-                                  style: Theme.of(context).textTheme.titleMedium,
+                                  style:
+                                      Theme.of(context).textTheme.titleMedium,
                                 ),
                               ),
                               Expanded(
                                 child: ListView.builder(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16),
                                   itemCount: _events.length,
                                   itemBuilder: (context, index) {
                                     return Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 4),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 4),
                                       child: Text(
                                         _events[index],
                                         style: const TextStyle(
@@ -501,13 +515,13 @@ class _NewWorkspaceDialog extends StatefulWidget {
 class _NewWorkspaceDialogState extends State<_NewWorkspaceDialog> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  
+
   @override
   void dispose() {
     _nameController.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(

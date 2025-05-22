@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart' hide Element, Container, View, Border;
-import 'package:flutter_structurizr/infrastructure/export/diagram_exporter.dart' as diagram;
+import 'package:flutter_structurizr/infrastructure/export/diagram_exporter.dart'
+    as diagram;
 import 'package:flutter_structurizr/infrastructure/export/rendering_pipeline.dart';
 import 'package:image/image.dart' as img;
 
@@ -43,7 +44,8 @@ class PngExporter implements diagram.DiagramExporter<Uint8List> {
   }
 
   /// Exports a diagram using the unified rendering pipeline
-  Future<Uint8List> _exportWithRenderingPipeline(diagram.DiagramReference diagram) async {
+  Future<Uint8List> _exportWithRenderingPipeline(
+      diagram.DiagramReference diagram) async {
     // Get render parameters with defaults
     final width = renderParameters.width ?? 1920;
     final height = renderParameters.height ?? 1080;
@@ -51,8 +53,10 @@ class PngExporter implements diagram.DiagramExporter<Uint8List> {
     final includeTitle = renderParameters.includeTitle ?? true;
     final includeMetadata = renderParameters.includeMetadata ?? true;
     final includeElementNames = renderParameters.includeElementNames ?? true;
-    final includeElementDescriptions = renderParameters.includeElementDescriptions ?? false;
-    final includeRelationshipDescriptions = renderParameters.includeRelationshipDescriptions ?? true;
+    final includeElementDescriptions =
+        renderParameters.includeElementDescriptions ?? false;
+    final includeRelationshipDescriptions =
+        renderParameters.includeRelationshipDescriptions ?? true;
     final elementScaleFactor = renderParameters.elementScaleFactor ?? 1.0;
 
     // Render using the unified pipeline
@@ -64,7 +68,8 @@ class PngExporter implements diagram.DiagramExporter<Uint8List> {
       includeLegend: includeLegend,
       includeTitle: includeTitle,
       includeMetadata: includeMetadata,
-      backgroundColor: transparentBackground ? Colors.transparent : Colors.white,
+      backgroundColor:
+          transparentBackground ? Colors.transparent : Colors.white,
       transparentBackground: transparentBackground,
       includeElementNames: includeElementNames,
       includeElementDescriptions: includeElementDescriptions,
@@ -79,36 +84,38 @@ class PngExporter implements diagram.DiagramExporter<Uint8List> {
       return byteData.buffer.asUint8List();
     } else {
       // For non-transparent, convert RGBA to PNG using image library
-      return _convertRgbaToEncodedPng(byteData, width * scaleFactor, height * scaleFactor);
+      return _convertRgbaToEncodedPng(
+          byteData, width * scaleFactor, height * scaleFactor);
     }
   }
 
   /// Converts raw RGBA data to properly encoded PNG
-  Uint8List _convertRgbaToEncodedPng(ByteData rgbaData, double width, double height) {
+  Uint8List _convertRgbaToEncodedPng(
+      ByteData rgbaData, double width, double height) {
     final widthInt = width.toInt();
     final heightInt = height.toInt();
-    
+
     // Create an image from the RGBA data
     final image = img.Image(width: widthInt, height: heightInt);
     final rgbaBytes = rgbaData.buffer.asUint8List();
-    
+
     // Copy pixel data
     for (int y = 0; y < heightInt; y++) {
       for (int x = 0; x < widthInt; x++) {
         final pixelIndex = (y * widthInt + x) * 4;
-        
+
         if (pixelIndex + 3 < rgbaBytes.length) {
           final red = rgbaBytes[pixelIndex];
           final green = rgbaBytes[pixelIndex + 1];
           final blue = rgbaBytes[pixelIndex + 2];
           final alpha = rgbaBytes[pixelIndex + 3];
-          
+
           // Set the pixel in the image
           image.setPixel(x, y, img.ColorRgba8(red, green, blue, alpha));
         }
       }
     }
-    
+
     // Encode as PNG
     final pngBytes = img.encodePng(image);
     return pngBytes;
@@ -126,26 +133,31 @@ class PngExporter implements diagram.DiagramExporter<Uint8List> {
     final includeTitle = renderParameters.includeTitle ?? true;
     final includeMetadata = renderParameters.includeMetadata ?? true;
     final includeElementNames = renderParameters.includeElementNames ?? true;
-    final includeElementDescriptions = renderParameters.includeElementDescriptions ?? false;
-    final includeRelationshipDescriptions = renderParameters.includeRelationshipDescriptions ?? true;
+    final includeElementDescriptions =
+        renderParameters.includeElementDescriptions ?? false;
+    final includeRelationshipDescriptions =
+        renderParameters.includeRelationshipDescriptions ?? true;
     final elementScaleFactor = renderParameters.elementScaleFactor ?? 1.0;
 
     // Create list of diagram parameters for batch processing
-    final diagramParams = diagrams.map((diagram) => <String, dynamic>{
-      'workspace': diagram.workspace,
-      'viewKey': diagram.viewKey,
-      'width': width * scaleFactor,
-      'height': height * scaleFactor,
-      'includeLegend': includeLegend,
-      'includeTitle': includeTitle,
-      'includeMetadata': includeMetadata,
-      'includeElementNames': includeElementNames,
-      'includeElementDescriptions': includeElementDescriptions, 
-      'includeRelationshipDescriptions': includeRelationshipDescriptions,
-      'elementScaleFactor': elementScaleFactor,
-      'backgroundColor': Colors.white,
-      'transparentBackground': transparentBackground,
-    }).toList();
+    final diagramParams = diagrams
+        .map((diagram) => <String, dynamic>{
+              'workspace': diagram.workspace,
+              'viewKey': diagram.viewKey,
+              'width': width * scaleFactor,
+              'height': height * scaleFactor,
+              'includeLegend': includeLegend,
+              'includeTitle': includeTitle,
+              'includeMetadata': includeMetadata,
+              'includeElementNames': includeElementNames,
+              'includeElementDescriptions': includeElementDescriptions,
+              'includeRelationshipDescriptions':
+                  includeRelationshipDescriptions,
+              'elementScaleFactor': elementScaleFactor,
+              'backgroundColor': Colors.white,
+              'transparentBackground': transparentBackground,
+            })
+        .toList();
 
     // Process each diagram one by one to avoid memory issues
     final results = <Uint8List>[];
@@ -157,7 +169,8 @@ class PngExporter implements diagram.DiagramExporter<Uint8List> {
 
       // Custom progress callback that maps to the overall progress
       final diagramProgress = (double progress) {
-        final mappedProgress = progressStart + (progressEnd - progressStart) * progress;
+        final mappedProgress =
+            progressStart + (progressEnd - progressStart) * progress;
         onProgress?.call(mappedProgress);
       };
 
@@ -170,7 +183,8 @@ class PngExporter implements diagram.DiagramExporter<Uint8List> {
         includeLegend: includeLegend,
         includeTitle: includeTitle,
         includeMetadata: includeMetadata,
-        backgroundColor: transparentBackground ? Colors.transparent : Colors.white,
+        backgroundColor:
+            transparentBackground ? Colors.transparent : Colors.white,
         transparentBackground: transparentBackground,
         includeElementNames: includeElementNames,
         includeElementDescriptions: includeElementDescriptions,
@@ -187,10 +201,7 @@ class PngExporter implements diagram.DiagramExporter<Uint8List> {
       } else {
         // For non-transparent, convert RGBA to PNG using image library
         pngBytes = _convertRgbaToEncodedPng(
-          byteData, 
-          width * scaleFactor, 
-          height * scaleFactor
-        );
+            byteData, width * scaleFactor, height * scaleFactor);
       }
 
       // Add to results

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App strings -->
+    <string name="app_name">Structurizr</string>
+    <string name="app_description">Architecture visualization and documentation</string>
+    
+    <!-- Shortcut strings -->
+    <string name="shortcut_new_workspace_short">New Workspace</string>
+    <string name="shortcut_new_workspace_long">Create a new workspace</string>
+    <string name="shortcut_recent_short">Recent</string>
+    <string name="shortcut_recent_long">Open recent workspaces</string>
+    <string name="shortcut_diagram_short">Quick Diagram</string>
+    <string name="shortcut_diagram_long">Create diagram from template</string>
+    <string name="shortcut_import_short">Import</string>
+    <string name="shortcut_import_long">Import workspace file</string>
+    <string name="shortcut_disabled_message">Shortcut is temporarily disabled</string>
+    
+    <!-- File handling strings -->
+    <string name="file_received_title">File received</string>
+    <string name="file_received_message">Do you want to open this file with Structurizr?</string>
+    <string name="open">Open</string>
+    <string name="cancel">Cancel</string>
+    
+    <!-- Share target strings -->
+    <string name="share_received_title">Content shared</string>
+    <string name="share_received_message">Content has been shared with Structurizr</string>
+    
+    <!-- Cloud storage strings -->
+    <string name="cloud_sync_enabled">Cloud sync enabled</string>
+    <string name="cloud_sync_disabled">Cloud sync disabled</string>
+    <string name="cloud_sync_error">Cloud sync error</string>
+    
+    <!-- Backup strings (will be configured when backup service is set up) -->
+    <!-- <string name="backup_api_key">YOUR_ANDROID_BACKUP_API_KEY</string> -->
+    
+    <!-- Notification strings -->
+    <string name="sync_notification_title">Syncing workspaces</string>
+    <string name="sync_notification_message">Synchronizing with cloud storage</string>
+    <string name="sync_notification_channel">sync_channel</string>
+    <string name="sync_notification_channel_description">Notifications for workspace synchronization</string>
+    
+    <!-- Performance strings -->
+    <string name="performance_notification_title">Performance monitoring</string>
+    <string name="performance_notification_message">Monitoring app performance</string>
+    <string name="performance_notification_channel">performance_channel</string>
+    <string name="performance_notification_channel_description">Notifications for performance monitoring</string>
+    
+    <!-- Error strings -->
+    <string name="error_file_not_found">File not found</string>
+    <string name="error_permission_denied">Permission denied</string>
+    <string name="error_network_unavailable">Network unavailable</string>
+    <string name="error_storage_full">Storage full</string>
+    <string name="error_unknown">Unknown error occurred</string>
+</resources>

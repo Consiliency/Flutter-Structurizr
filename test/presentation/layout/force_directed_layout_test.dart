@@ -53,7 +53,7 @@ void main() {
 
       // Check that all positions are within a reasonable distance from center
       const maxDistance = 1000.0;
-      const center = Offset(400, 300);  // center of 800x600 canvas
+      const center = Offset(400, 300); // center of 800x600 canvas
 
       expect((positions['element1']! - center).distance, lessThan(maxDistance));
       expect((positions['element2']! - center).distance, lessThan(maxDistance));
@@ -68,7 +68,10 @@ void main() {
 
       const initialPosition = Offset(200, 300);
       final elementViews = [
-        ElementView(id: 'element1', x: initialPosition.dx.toInt(), y: initialPosition.dy.toInt()),
+        ElementView(
+            id: 'element1',
+            x: initialPosition.dx.toInt(),
+            y: initialPosition.dy.toInt()),
         const ElementView(id: 'element2'),
       ];
 

@@ -8,7 +8,6 @@ import 'package:flutter_structurizr/domain/model/deployment_node.dart';
 import 'package:flutter_structurizr/domain/model/infrastructure_node.dart';
 import 'package:flutter_structurizr/domain/model/relationship.dart';
 import 'package:flutter_structurizr/domain/model/modeled_relationship.dart';
-import 'package:flutter_structurizr/domain/model/group.dart';
 import 'package:flutter_structurizr/domain/style/branding.dart';
 import 'package:flutter_structurizr/domain/style/styles.dart';
 import 'package:flutter_structurizr/domain/view/view.dart';
@@ -17,10 +16,6 @@ import 'package:flutter_structurizr/domain/parser/error_reporter.dart';
 import 'package:flutter_structurizr/domain/parser/reference_resolver.dart';
 import 'package:flutter_structurizr/domain/parser/views_parser/system_context_view_parser.dart';
 import 'package:flutter_structurizr/application/dsl/workspace_builder.dart';
-import 'package:uuid/uuid.dart';
-import 'package:flutter_structurizr/domain/parser/ast/nodes/view_node.dart';
-import 'package:flutter_structurizr/domain/parser/ast/nodes/views_node.dart';
-import 'package:flutter_structurizr/util/color.dart';
 import 'package:flutter_structurizr/domain/parser/ast/nodes/relationship_node.dart';
 import 'package:flutter_structurizr/domain/parser/ast/nodes/person_node.dart';
 import 'package:flutter_structurizr/domain/parser/ast/nodes/software_system_node.dart';
@@ -45,17 +40,9 @@ import 'package:flutter_structurizr/domain/parser/ast/nodes/properties_node.dart
 import 'package:flutter_structurizr/domain/parser/ast/nodes/theme_node.dart';
 import 'package:flutter_structurizr/domain/parser/ast/nodes/branding_node.dart';
 import 'package:flutter_structurizr/domain/parser/ast/nodes/terminology_node.dart';
-import 'package:flutter_structurizr/domain/parser/ast/nodes/tags_node.dart';
-import 'package:flutter_structurizr/domain/parser/ast/nodes/properties_node.dart';
 import 'package:flutter_structurizr/domain/parser/ast/nodes/model_element_node.dart'
     show ElementNode;
-import 'package:flutter_structurizr/domain/parser/ast/nodes/styles_node.dart'
-    show ElementStyleNode, RelationshipStyleNode;
 import 'package:logging/logging.dart';
-import 'package:flutter_structurizr/domain/parser/ast/nodes/model_element_node.dart'
-    show ElementNode;
-import 'package:flutter_structurizr/domain/parser/ast/nodes/styles_node.dart'
-    show ElementStyleNode, RelationshipStyleNode;
 import 'package:flutter_structurizr/domain/model/container_instance.dart';
 import 'package:flutter/material.dart' show Color;
 
@@ -154,9 +141,7 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
 
     // Queue relationships for later processing
     for (final relationship in node.relationships) {
-      if (relationship is RelationshipNode) {
-        _pendingRelationships.add(relationship);
-      }
+      _pendingRelationships.add(relationship);
     }
 
     // Restore previous context
@@ -203,9 +188,7 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
 
     // Queue relationships for later processing
     for (final relationship in node.relationships) {
-      if (relationship is RelationshipNode) {
-        _pendingRelationships.add(relationship);
-      }
+      _pendingRelationships.add(relationship);
     }
 
     // Restore previous parent ID and context ID
@@ -254,9 +237,7 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
 
     // Queue relationships for later processing
     for (final relationship in node.relationships) {
-      if (relationship is RelationshipNode) {
-        _pendingRelationships.add(relationship);
-      }
+      _pendingRelationships.add(relationship);
     }
 
     // Restore previous parent ID and context ID
@@ -296,9 +277,7 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
 
     // Queue relationships for later processing
     for (final relationship in node.relationships) {
-      if (relationship is RelationshipNode) {
-        _pendingRelationships.add(relationship);
-      }
+      _pendingRelationships.add(relationship);
     }
 
     // Restore previous context ID
@@ -337,9 +316,7 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
 
     // Queue relationships for later processing
     for (final relationship in node.relationships) {
-      if (relationship is RelationshipNode) {
-        _pendingRelationships.add(relationship);
-      }
+      _pendingRelationships.add(relationship);
     }
 
     // Restore previous parent ID and context ID
@@ -401,9 +378,7 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
 
     // Queue relationships for later processing
     for (final relationship in node.relationships) {
-      if (relationship is RelationshipNode) {
-        _pendingRelationships.add(relationship);
-      }
+      _pendingRelationships.add(relationship);
     }
 
     // Restore previous parent ID and context ID
@@ -551,8 +526,8 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       relationships: [], // Relationships will be computed
       automaticLayout: automaticLayout,
       animations: animationSteps,
-      includeTags: includes?.cast<String>() ?? [],
-      excludeTags: excludes?.cast<String>() ?? [],
+      includeTags: includes.cast<String>() ?? [],
+      excludeTags: excludes.cast<String>() ?? [],
     );
 
     // Add to views collection
@@ -834,8 +809,8 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       relationships: [], // Relationships will be computed
       automaticLayout: automaticLayout,
       animations: animationSteps,
-      includeTags: includes?.cast<String>() ?? [],
-      excludeTags: excludes?.cast<String>() ?? [],
+      includeTags: includes.cast<String>() ?? [],
+      excludeTags: excludes.cast<String>() ?? [],
     );
 
     // Add to views collection
@@ -918,8 +893,8 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       relationships: [], // Relationships will be computed
       automaticLayout: automaticLayout,
       animations: animationSteps,
-      includeTags: includes?.cast<String>() ?? [],
-      excludeTags: excludes?.cast<String>() ?? [],
+      includeTags: includes.cast<String>() ?? [],
+      excludeTags: excludes.cast<String>() ?? [],
     );
 
     // Add to views collection
@@ -1001,8 +976,8 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       relationships: [], // Relationships will be computed from animation steps
       automaticLayout: automaticLayout,
       animations: animationSteps,
-      includeTags: includes?.cast<String>() ?? [],
-      excludeTags: excludes?.cast<String>() ?? [],
+      includeTags: includes.cast<String>() ?? [],
+      excludeTags: excludes.cast<String>() ?? [],
     );
 
     // Add to views collection
@@ -1019,12 +994,14 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
     logger.info(
         'DEBUG: addDeploymentView called with key: \\${node.key}, title: \\${node.title}');
     // Resolve the system reference
-    final softwareSystem = node.systemId != null ? referenceResolver.resolveReference(
-      node.systemId!,
-      sourcePosition: node.sourcePosition,
-      searchByName: true,
-      expectedType: SoftwareSystem,
-    ) as SoftwareSystem? : null;
+    final softwareSystem = node.systemId != null
+        ? referenceResolver.resolveReference(
+            node.systemId!,
+            sourcePosition: node.sourcePosition,
+            searchByName: true,
+            expectedType: SoftwareSystem,
+          ) as SoftwareSystem?
+        : null;
 
     if (softwareSystem == null) {
       errorReporter.reportStandardError(
@@ -1072,8 +1049,8 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       relationships: [], // Relationships will be computed
       automaticLayout: automaticLayout,
       animations: animationSteps,
-      includeTags: includes?.cast<String>() ?? [],
-      excludeTags: excludes?.cast<String>() ?? [],
+      includeTags: includes.cast<String>() ?? [],
+      excludeTags: excludes.cast<String>() ?? [],
     );
 
     // Add to views collection
@@ -1139,8 +1116,8 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       baseViewKey: node.baseViewKey,
       title: node.title ?? 'Filtered: ${baseView.title}',
       description: node.description,
-      includeTags: includes?.cast<String>() ?? [],
-      excludeTags: excludes?.cast<String>() ?? [],
+      includeTags: includes.cast<String>() ?? [],
+      excludeTags: excludes.cast<String>() ?? [],
     );
 
     // Add to views collection
@@ -1192,8 +1169,8 @@ class WorkspaceBuilderImpl implements WorkspaceBuilder {
       paperSize: 'A4_Landscape', // Default
       automaticLayout: automaticLayout,
       animations: animationSteps,
-      includeTags: includes?.cast<String>() ?? [],
-      excludeTags: excludes?.cast<String>() ?? [],
+      includeTags: includes.cast<String>() ?? [],
+      excludeTags: excludes.cast<String>() ?? [],
     );
 
     // Add to views collection

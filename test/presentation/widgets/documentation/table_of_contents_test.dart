@@ -34,7 +34,7 @@ void main() {
         order: 5,
       ),
     ];
-    
+
     final decisions = [
       Decision(
         id: 'ADR-001',
@@ -52,7 +52,8 @@ void main() {
       ),
     ];
 
-    testWidgets('renders with sections and collapsible hierarchy', (WidgetTester tester) async {
+    testWidgets('renders with sections and collapsible hierarchy',
+        (WidgetTester tester) async {
       int selectedIndex = -1;
 
       await tester.pumpWidget(
@@ -80,30 +81,30 @@ void main() {
       expect(find.text('1.2. Installation'), findsOneWidget);
       expect(find.text('2. Architecture'), findsOneWidget);
       expect(find.text('2.1. Components'), findsOneWidget);
-      
+
       // Verify element ID is displayed
       expect(find.text('Related to: system-1'), findsOneWidget);
-      
+
       // Tap on the collapse icon for Introduction section
       await tester.tap(find.byIcon(Icons.keyboard_arrow_down).first);
       await tester.pump();
-      
+
       // Verify that child sections are no longer visible
       expect(find.text('1. Introduction'), findsOneWidget);
       expect(find.text('1.1. Getting Started'), findsNothing);
       expect(find.text('1.2. Installation'), findsNothing);
-      
+
       // Expand it again
       await tester.tap(find.byIcon(Icons.keyboard_arrow_right).first);
       await tester.pump();
-      
+
       // Verify that child sections are visible again
       expect(find.text('1.1. Getting Started'), findsOneWidget);
       expect(find.text('1.2. Installation'), findsOneWidget);
-      
+
       // Tap on a section to select it
       await tester.tap(find.text('2. Architecture'));
-      
+
       // Verify selection callback was called with correct index
       expect(selectedIndex, equals(3));
     });
@@ -133,19 +134,20 @@ void main() {
       // Verify decision titles are displayed
       expect(find.text('Use Flutter'), findsOneWidget);
       expect(find.text('Database Choice'), findsOneWidget);
-      
+
       // Verify decision IDs and dates are displayed
       expect(find.text('ADR-001 • 2023-01-15'), findsOneWidget);
       expect(find.text('ADR-002 • 2023-02-20'), findsOneWidget);
-      
+
       // Tap on the second decision
       await tester.tap(find.text('Database Choice'));
-      
+
       // Verify selection callback was called with correct index
       expect(selectedIndex, equals(1));
     });
 
-    testWidgets('renders with both sections and decisions', (WidgetTester tester) async {
+    testWidgets('renders with both sections and decisions',
+        (WidgetTester tester) async {
       bool toggleCalled = false;
 
       await tester.pumpWidget(
@@ -170,10 +172,10 @@ void main() {
       // Verify tab header is shown
       expect(find.text('Documentation'), findsOneWidget);
       expect(find.text('Decisions'), findsOneWidget);
-      
+
       // Tap on the Decisions tab
       await tester.tap(find.text('Decisions'));
-      
+
       // Verify toggle callback was called
       expect(toggleCalled, isTrue);
     });
@@ -222,12 +224,13 @@ void main() {
 
       // Verify the widget is rendered
       expect(find.byType(TableOfContents), findsOneWidget);
-      
+
       // The actual visual check would require golden testing
       // In a real test, we'd verify specific color values
     });
-    
-    testWidgets('keyboard accessibility for expand/collapse', (WidgetTester tester) async {
+
+    testWidgets('keyboard accessibility for expand/collapse',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -248,14 +251,14 @@ void main() {
       // Focus on the first expand/collapse button
       await tester.tap(find.byIcon(Icons.keyboard_arrow_down).first);
       await tester.pump();
-      
+
       // Verify state changed (section collapsed)
       expect(find.text('1.1. Getting Started'), findsNothing);
-      
+
       // Tap again to expand
       await tester.tap(find.byIcon(Icons.keyboard_arrow_right).first);
       await tester.pump();
-      
+
       // Verify state changed back (section expanded)
       expect(find.text('1.1. Getting Started'), findsOneWidget);
     });

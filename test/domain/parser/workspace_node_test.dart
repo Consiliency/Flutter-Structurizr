@@ -1,9 +1,7 @@
 import 'package:flutter_structurizr/domain/parser/ast/ast.dart';
 import 'package:flutter_structurizr/domain/parser/ast/nodes/documentation/documentation_node.dart';
-import 'package:flutter_structurizr/domain/parser/lexer/token.dart';
 import 'package:flutter_structurizr/domain/parser/ast/nodes/source_position.dart';
 import 'package:test/test.dart';
-import 'package:flutter_structurizr/domain/parser/ast/nodes/model_element_node.dart';
 
 void main() {
   test('WorkspaceNode correctly stores documentation', () {

@@ -11,7 +11,6 @@ Fix: Modified the _match method to also match based on lexeme for documentation 
 
 import 'package:flutter_structurizr/domain/parser/parser.dart';
 import 'package:flutter_structurizr/domain/parser/ast/ast_nodes.dart';
-import 'package:flutter_structurizr/domain/parser/ast/nodes/documentation/documentation_node.dart';
 import 'package:flutter_structurizr/domain/parser/lexer/token.dart';
 import 'package:flutter_structurizr/domain/parser/lexer/lexer.dart';
 import 'package:logging/logging.dart';

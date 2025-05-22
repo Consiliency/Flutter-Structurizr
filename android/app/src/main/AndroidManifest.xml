@@ -1,4 +1,43 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" 
+          xmlns:tools="http://schemas.android.com/tools">
+    
+    <!-- Permissions for file handling and cloud storage -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" 
+                     android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 
+                     android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" 
+                     tools:ignore="ScopedStorage" />
+    
+    <!-- Storage Access Framework permissions -->
+    <uses-permission android:name="android.permission.MANAGE_DOCUMENTS" />
+    
+    <!-- Google Drive API permissions -->
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.ACCOUNT_MANAGER" />
+    
+    <!-- Background sync permissions -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    
+    <!-- Performance monitoring permissions -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.BATTERY_STATS" />
+    
+    <!-- File picker and sharing permissions -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    
+    <!-- Features -->
+    <uses-feature 
+        android:name="android.hardware.touchscreen" 
+        android:required="false" />
+    <uses-feature 
+        android:name="android.software.leanback" 
+        android:required="false" />
+    
     <application
         android:label="flutter_structurizr"
         android:name="${applicationName}"
@@ -24,7 +63,152 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            
+            <!-- File handling intent filters -->
+            <intent-filter android:priority="50">
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.EDIT" />
+                <action android:name="android.intent.action.PICK" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" />
+                <data android:scheme="content" />
+                <data android:mimeType="text/plain" />
+                <data android:pathPattern=".*\\.dsl" />
+            </intent-filter>
+            
+            <intent-filter android:priority="50">
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.EDIT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="file" />
+                <data android:scheme="content" />
+                <data android:mimeType="application/json" />
+            </intent-filter>
+            
+            <!-- Share target intent filters -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+            
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/json" />
+            </intent-filter>
+            
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+            
+            <!-- Custom URL scheme -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="structurizr" />
+            </intent-filter>
+            
+            <!-- Deep linking -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https"
+                      android:host="structurizr.com" />
+            </intent-filter>
         </activity>
+        
+        <!-- Share receiver activity (will be enabled when implementation is complete) -->
+        <!-- <activity
+            android:name="com.structurizr.flutter.ShareReceiverActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Transparent"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:excludeFromRecents="true">
+            
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+            
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/json" />
+            </intent-filter>
+            
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+        </activity> -->
+        
+        <!-- File provider for sharing files -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+        
+        <!-- Services will be enabled when fully implemented -->
+        <!-- Google Drive sync service -->
+        <!-- <service
+            android:name="com.structurizr.flutter.GoogleDriveSyncService"
+            android:exported="false"
+            android:enabled="true" /> -->
+        
+        <!-- Background sync service -->
+        <!-- <service
+            android:name="com.structurizr.flutter.BackgroundSyncService"
+            android:exported="false"
+            android:enabled="true"
+            android:foregroundServiceType="dataSync" /> -->
+        
+        <!-- Performance monitoring service -->
+        <!-- <service
+            android:name="com.structurizr.flutter.PerformanceMonitoringService"
+            android:exported="false"
+            android:enabled="true" /> -->
+        
+        <!-- Boot receiver for auto-sync -->
+        <!-- <receiver
+            android:name="com.structurizr.flutter.BootReceiver"
+            android:exported="true"
+            android:enabled="true">
+            <intent-filter android:priority="1000">
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver> -->
+        
+        <!-- App shortcuts -->
+        <meta-data
+            android:name="android.app.shortcuts"
+            android:resource="@xml/shortcuts" />
+        
+        <!-- Google Services (will be added when Google Services are configured) -->
+        <!-- <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" /> -->
+            
+        <!-- Backup agent (will be added when backup service is configured) -->
+        <!-- <meta-data
+            android:name="com.google.android.backup.api_key"
+            android:value="@string/backup_api_key" /> -->
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

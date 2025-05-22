@@ -127,14 +127,24 @@ class GridLayout implements LayoutStrategy {
           padding,
           existingBounds.bottom + verticalSpacing,
           max(0, canvasSize.width - 2 * padding),
-          max(0, canvasSize.height - existingBounds.bottom - verticalSpacing - padding),
+          max(
+              0,
+              canvasSize.height -
+                  existingBounds.bottom -
+                  verticalSpacing -
+                  padding),
         );
       } else {
         // Existing elements are taller than wide, place new elements to the right
         effectiveArea = Rect.fromLTWH(
           existingBounds.right + horizontalSpacing,
           padding,
-          max(0, canvasSize.width - existingBounds.right - horizontalSpacing - padding),
+          max(
+              0,
+              canvasSize.width -
+                  existingBounds.right -
+                  horizontalSpacing -
+                  padding),
           max(0, canvasSize.height - 2 * padding),
         );
       }
@@ -151,9 +161,11 @@ class GridLayout implements LayoutStrategy {
     }
 
     // Calculate cell size
-    final avgElementWidth = _calculateAverageSize(elementsToPosition, elementSizes).width;
-    final avgElementHeight = _calculateAverageSize(elementsToPosition, elementSizes).height;
-    
+    final avgElementWidth =
+        _calculateAverageSize(elementsToPosition, elementSizes).width;
+    final avgElementHeight =
+        _calculateAverageSize(elementsToPosition, elementSizes).height;
+
     final cellWidth = max(
       avgElementWidth,
       (effectiveArea.width - (columns - 1) * horizontalSpacing) / columns,
@@ -203,14 +215,12 @@ class GridLayout implements LayoutStrategy {
     // Identify parent-child relationships
     final Map<String?, List<ElementView>> parentToChildren = {};
     for (final element in elementViews) {
-      parentToChildren
-          .putIfAbsent(element.parentId, () => [])
-          .add(element);
+      parentToChildren.putIfAbsent(element.parentId, () => []).add(element);
     }
 
     // Position top-level elements (those without parents)
     final topLevelElements = parentToChildren[null] ?? [];
-    
+
     // Position top-level elements in a grid
     final topLevelLayout = _calculateFlatLayout(
       topLevelElements,
@@ -250,8 +260,9 @@ class GridLayout implements LayoutStrategy {
 
       // Calculate cell size for children
       final avgChildWidth = _calculateAverageSize(children, elementSizes).width;
-      final avgChildHeight = _calculateAverageSize(children, elementSizes).height;
-      
+      final avgChildHeight =
+          _calculateAverageSize(children, elementSizes).height;
+
       final cellWidth = max(
         avgChildWidth,
         (availableArea.width - (columns - 1) * horizontalSpacing / 2) / columns,
@@ -272,7 +283,8 @@ class GridLayout implements LayoutStrategy {
         final row = index ~/ columns;
         final col = index % columns;
 
-        final x = availableArea.left + col * (cellWidth + horizontalSpacing / 2);
+        final x =
+            availableArea.left + col * (cellWidth + horizontalSpacing / 2);
         final y = availableArea.top + row * (cellHeight + verticalSpacing / 2);
 
         // Center the child in its cell

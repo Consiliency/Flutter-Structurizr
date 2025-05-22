@@ -11,13 +11,13 @@ import 'package:flutter_structurizr/infrastructure/persistence/file_storage.dart
 class BatchExportDialog extends StatefulWidget {
   /// The workspace containing the diagrams to export
   final Workspace workspace;
-  
+
   /// On export complete callback - receives the exported data
   final void Function(List<Uint8List>, List<String>)? onExportComplete;
-  
+
   /// Dialog title
   final String title;
-  
+
   /// Creates a new batch export dialog
   const BatchExportDialog({
     super.key,
@@ -51,7 +51,7 @@ class BatchExportDialog extends StatefulWidget {
 
 class _BatchExportDialogState extends State<BatchExportDialog> {
   ExportFormat _selectedFormat = ExportFormat.png;
-  
+
   bool _includeTitle = true;
   bool _includeLegend = true;
   bool _includeMetadata = true;
@@ -59,19 +59,19 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
   double _width = 1920;
   double _height = 1080;
   double _scale = 1.0;
-  
+
   bool _isExporting = false;
   double _exportProgress = 0.0;
   String _statusMessage = '';
   String _errorMessage = '';
-  
+
   final _selectedViews = <ModelView>{};
   final ExportManager _exportManager = ExportManager();
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     // By default, select all views
     _selectedViews.addAll(widget.workspace.views.systemLandscapeViews);
     _selectedViews.addAll(widget.workspace.views.systemContextViews);
@@ -80,8 +80,8 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
     _selectedViews.addAll(widget.workspace.views.deploymentViews);
     _selectedViews.addAll(widget.workspace.views.dynamicViews);
     _selectedViews.addAll(widget.workspace.views.filteredViews);
-    }
-  
+  }
+
   /// Exports the selected diagrams
   Future<void> _exportDiagrams() async {
     if (_selectedViews.isEmpty) {
@@ -90,7 +90,7 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
       });
       return;
     }
-    
+
     try {
       setState(() {
         _isExporting = true;
@@ -98,13 +98,15 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
         _statusMessage = 'Preparing export...';
         _errorMessage = '';
       });
-      
+
       // Create diagram references
-      final diagrams = _selectedViews.map((view) => DiagramReference(
-        workspace: widget.workspace,
-        viewKey: view.key,
-      )).toList();
-      
+      final diagrams = _selectedViews
+          .map((view) => DiagramReference(
+                workspace: widget.workspace,
+                viewKey: view.key,
+              ))
+          .toList();
+
       // Create render parameters
       final options = ExportOptions(
         format: _selectedFormat,
@@ -122,55 +124,56 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
           });
         },
       );
-      
+
       // Export the diagrams as a batch
       final results = await _exportManager.exportBatch(
         diagrams: diagrams,
         options: options,
       );
-      
+
       setState(() {
         _statusMessage = 'Saving exported files...';
         _exportProgress = 0.9;
       });
-      
+
       // Save the exported files
       final fileStorage = FileStorage();
       final savedPaths = <String>[];
       final fileData = <Uint8List>[];
-      
+
       for (var i = 0; i < diagrams.length; i++) {
         final diagram = diagrams[i];
         final result = results[i];
-        
+
         if (result != null) {
           // Get file extension
           final extension = ExportManager.getFileExtension(_selectedFormat);
           final filename = '${diagram.viewKey}.$extension';
-          
+
           // Convert string results to bytes if needed
-          final data = result is String 
-              ? Uint8List.fromList(result.codeUnits) 
+          final data = result is String
+              ? Uint8List.fromList(result.codeUnits)
               : result as Uint8List;
-          
+
           // Save the file
-          final savedPath = await fileStorage.saveExportedDiagram(data, filename);
+          final savedPath =
+              await fileStorage.saveExportedDiagram(data, filename);
           savedPaths.add(savedPath);
           fileData.add(data);
         }
       }
-      
+
       setState(() {
         _isExporting = false;
         _statusMessage = 'Export complete';
         _exportProgress = 1.0;
       });
-      
+
       // Call the onExportComplete callback if provided
       if (widget.onExportComplete != null) {
         widget.onExportComplete!(fileData, savedPaths);
       }
-      
+
       // Show success message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -192,7 +195,7 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return AlertDialog(
       title: Text(widget.title),
       content: SizedBox(
@@ -206,7 +209,7 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
-            
+
             // Views selection
             Expanded(
               child: Card(
@@ -247,15 +250,15 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             Text(
               'Export options:',
               style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
-            
+
             // Export options
             Card(
               child: Padding(
@@ -337,11 +340,12 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Format-specific options
-                    if (_selectedFormat == ExportFormat.png || _selectedFormat == ExportFormat.svg) ...[
+                    if (_selectedFormat == ExportFormat.png ||
+                        _selectedFormat == ExportFormat.svg) ...[
                       Row(
                         children: [
                           const Text('Size:'),
@@ -349,10 +353,17 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
                           DropdownButton<String>(
                             value: '${_width.toInt()}x${_height.toInt()}',
                             items: const [
-                              DropdownMenuItem(value: '1920x1080', child: Text('1920x1080 (Full HD)')),
-                              DropdownMenuItem(value: '3840x2160', child: Text('3840x2160 (4K)')),
-                              DropdownMenuItem(value: '1280x720', child: Text('1280x720 (HD)')),
-                              DropdownMenuItem(value: '800x600', child: Text('800x600')),
+                              DropdownMenuItem(
+                                  value: '1920x1080',
+                                  child: Text('1920x1080 (Full HD)')),
+                              DropdownMenuItem(
+                                  value: '3840x2160',
+                                  child: Text('3840x2160 (4K)')),
+                              DropdownMenuItem(
+                                  value: '1280x720',
+                                  child: Text('1280x720 (HD)')),
+                              DropdownMenuItem(
+                                  value: '800x600', child: Text('800x600')),
                             ],
                             onChanged: (value) {
                               if (value != null) {
@@ -371,7 +382,8 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
                             value: _scale,
                             items: const [
                               DropdownMenuItem(value: 0.5, child: Text('0.5x')),
-                              DropdownMenuItem(value: 0.75, child: Text('0.75x')),
+                              DropdownMenuItem(
+                                  value: 0.75, child: Text('0.75x')),
                               DropdownMenuItem(value: 1.0, child: Text('1.0x')),
                               DropdownMenuItem(value: 1.5, child: Text('1.5x')),
                               DropdownMenuItem(value: 2.0, child: Text('2.0x')),
@@ -386,7 +398,6 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
                           ),
                         ],
                       ),
-                      
                       if (_selectedFormat == ExportFormat.png)
                         CheckboxListTile(
                           title: const Text('Transparent Background'),
@@ -400,7 +411,7 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
                           },
                         ),
                     ],
-                    
+
                     // Common options
                     Row(
                       children: [
@@ -449,14 +460,14 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
                 ),
               ),
             ),
-            
+
             // Status message
             if (_statusMessage.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: Text(_statusMessage),
               ),
-              
+
             // Error message
             if (_errorMessage.isNotEmpty)
               Padding(
@@ -466,7 +477,7 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
                   style: TextStyle(color: theme.colorScheme.error),
                 ),
               ),
-              
+
             // Progress indicator
             if (_isExporting)
               Padding(
@@ -484,19 +495,20 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: _isExporting || _selectedViews.isEmpty ? null : _exportDiagrams,
+          onPressed:
+              _isExporting || _selectedViews.isEmpty ? null : _exportDiagrams,
           child: const Text('Export'),
         ),
       ],
     );
   }
-  
+
   /// Builds a section of views for selection
   Widget _buildViewsSection(String title, List<ModelView> views) {
     if (views.isEmpty) {
       return const SizedBox.shrink();
     }
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -515,7 +527,7 @@ class _BatchExportDialogState extends State<BatchExportDialog> {
             children: views.map((view) {
               final isSelected = _selectedViews.contains(view);
               final displayName = view.title ?? view.key;
-              
+
               return FilterChip(
                 label: Text(displayName),
                 selected: isSelected,

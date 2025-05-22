@@ -5,10 +5,10 @@ import 'package:flutter_structurizr/domain/model/workspace.dart';
 class FilterPanel extends StatefulWidget {
   /// The workspace containing the elements to filter
   final Workspace workspace;
-  
+
   /// Currently active filters
   final List<String> activeFilters;
-  
+
   /// Called when filters are changed
   final Function(List<String>) onFiltersChanged;
 
@@ -28,37 +28,43 @@ class _FilterPanelState extends State<FilterPanel> {
   late List<String> _activeFilters;
   late TextEditingController _searchController;
   String _searchQuery = '';
-  
+
   @override
   void initState() {
     super.initState();
     _activeFilters = List.from(widget.activeFilters);
     _searchController = TextEditingController();
   }
-  
+
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     // Collect all potential filter options
     final List<String> allTags = _getAllTagsFromWorkspace();
     final List<String> allElementTypes = _getAllElementTypesFromWorkspace();
-    
+
     // Filter the options based on search query
     final List<String> filteredTags = _searchQuery.isEmpty
-      ? allTags
-      : allTags.where((tag) => tag.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
-    
+        ? allTags
+        : allTags
+            .where(
+                (tag) => tag.toLowerCase().contains(_searchQuery.toLowerCase()))
+            .toList();
+
     final List<String> filteredElementTypes = _searchQuery.isEmpty
-      ? allElementTypes
-      : allElementTypes.where((type) => type.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
-    
+        ? allElementTypes
+        : allElementTypes
+            .where((type) =>
+                type.toLowerCase().contains(_searchQuery.toLowerCase()))
+            .toList();
+
     return Material(
       color: theme.cardColor,
       child: Column(
@@ -88,7 +94,7 @@ class _FilterPanelState extends State<FilterPanel> {
               ],
             ),
           ),
-          
+
           // Active filters
           if (_activeFilters.isNotEmpty) ...[
             Padding(
@@ -101,11 +107,13 @@ class _FilterPanelState extends State<FilterPanel> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: _activeFilters.map((filter) => Chip(
-                      label: Text(filter),
-                      onDeleted: () => _removeFilter(filter),
-                      deleteIcon: const Icon(Icons.close, size: 18),
-                    )).toList(),
+                    children: _activeFilters
+                        .map((filter) => Chip(
+                              label: Text(filter),
+                              onDeleted: () => _removeFilter(filter),
+                              deleteIcon: const Icon(Icons.close, size: 18),
+                            ))
+                        .toList(),
                   ),
                   const SizedBox(height: 8),
                   OutlinedButton.icon(
@@ -118,7 +126,7 @@ class _FilterPanelState extends State<FilterPanel> {
               ),
             ),
           ],
-          
+
           // Filter options
           Expanded(
             child: ListView(
@@ -129,41 +137,45 @@ class _FilterPanelState extends State<FilterPanel> {
                   ExpansionTile(
                     title: const Text('Element Types'),
                     initiallyExpanded: true,
-                    children: filteredElementTypes.map((type) => CheckboxListTile(
-                      title: Text(type),
-                      value: _activeFilters.contains('type:$type'),
-                      onChanged: (selected) {
-                        final filterValue = 'type:$type';
-                        if (selected == true) {
-                          _addFilter(filterValue);
-                        } else {
-                          _removeFilter(filterValue);
-                        }
-                      },
-                    )).toList(),
+                    children: filteredElementTypes
+                        .map((type) => CheckboxListTile(
+                              title: Text(type),
+                              value: _activeFilters.contains('type:$type'),
+                              onChanged: (selected) {
+                                final filterValue = 'type:$type';
+                                if (selected == true) {
+                                  _addFilter(filterValue);
+                                } else {
+                                  _removeFilter(filterValue);
+                                }
+                              },
+                            ))
+                        .toList(),
                   ),
                 ],
-                
+
                 // Tag Filters
                 if (filteredTags.isNotEmpty) ...[
                   ExpansionTile(
                     title: const Text('Tags'),
                     initiallyExpanded: true,
-                    children: filteredTags.map((tag) => CheckboxListTile(
-                      title: Text(tag),
-                      value: _activeFilters.contains('tag:$tag'),
-                      onChanged: (selected) {
-                        final filterValue = 'tag:$tag';
-                        if (selected == true) {
-                          _addFilter(filterValue);
-                        } else {
-                          _removeFilter(filterValue);
-                        }
-                      },
-                    )).toList(),
+                    children: filteredTags
+                        .map((tag) => CheckboxListTile(
+                              title: Text(tag),
+                              value: _activeFilters.contains('tag:$tag'),
+                              onChanged: (selected) {
+                                final filterValue = 'tag:$tag';
+                                if (selected == true) {
+                                  _addFilter(filterValue);
+                                } else {
+                                  _removeFilter(filterValue);
+                                }
+                              },
+                            ))
+                        .toList(),
                   ),
                 ],
-                
+
                 // Custom Filter Section
                 ExpansionTile(
                   title: const Text('Custom Filters'),
@@ -218,7 +230,7 @@ class _FilterPanelState extends State<FilterPanel> {
               ],
             ),
           ),
-          
+
           // Bottom action buttons
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -250,9 +262,9 @@ class _FilterPanelState extends State<FilterPanel> {
       ),
     );
   }
-  
+
   // Helper Methods
-  
+
   void _addFilter(String filter) {
     if (!_activeFilters.contains(filter)) {
       setState(() {
@@ -260,22 +272,22 @@ class _FilterPanelState extends State<FilterPanel> {
       });
     }
   }
-  
+
   void _removeFilter(String filter) {
     setState(() {
       _activeFilters.remove(filter);
     });
   }
-  
+
   void _clearAllFilters() {
     setState(() {
       _activeFilters.clear();
     });
   }
-  
+
   List<String> _getAllTagsFromWorkspace() {
     final Set<String> allTags = {};
-    
+
     // Add tags from all elements
     final model = widget.workspace.model;
     final allElements = model.getAllElements();
@@ -284,13 +296,13 @@ class _FilterPanelState extends State<FilterPanel> {
         allTags.addAll(element.tags);
       }
     }
-      
+
     return allTags.toList()..sort();
   }
-  
+
   List<String> _getAllElementTypesFromWorkspace() {
     final Set<String> elementTypes = {};
-    
+
     // Add element types
     final model = widget.workspace.model;
     final allElements = model.getAllElements();
@@ -302,10 +314,10 @@ class _FilterPanelState extends State<FilterPanel> {
       }
       elementTypes.add(typeName);
     }
-      
+
     return elementTypes.toList()..sort();
   }
-  
+
   void _showFilterTemplateMenu(BuildContext context) {
     final templates = [
       {
@@ -329,17 +341,19 @@ class _FilterPanelState extends State<FilterPanel> {
         'filter': 'type:equals:Container',
       },
     ];
-    
+
     final RenderBox button = context.findRenderObject() as RenderBox;
-    final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final RenderBox overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox;
     final position = RelativeRect.fromRect(
       Rect.fromPoints(
         button.localToGlobal(Offset.zero, ancestor: overlay),
-        button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
+        button.localToGlobal(button.size.bottomRight(Offset.zero),
+            ancestor: overlay),
       ),
       Offset.zero & overlay.size,
     );
-    
+
     showMenu<String>(
       context: context,
       position: position,
@@ -358,7 +372,8 @@ class _FilterPanelState extends State<FilterPanel> {
 }
 
 /// Shows the filter panel in a dialog
-void showFilterPanel(BuildContext context, Workspace workspace, List<String> activeFilters, Function(List<String>) onFiltersChanged) {
+void showFilterPanel(BuildContext context, Workspace workspace,
+    List<String> activeFilters, Function(List<String>) onFiltersChanged) {
   showDialog(
     context: context,
     builder: (context) => Dialog(
@@ -379,9 +394,10 @@ void showFilterPanel(BuildContext context, Workspace workspace, List<String> act
 }
 
 /// Shows the filter panel in a drawer
-void showFilterPanelInDrawer(BuildContext context, Workspace workspace, List<String> activeFilters, Function(List<String>) onFiltersChanged) {
+void showFilterPanelInDrawer(BuildContext context, Workspace workspace,
+    List<String> activeFilters, Function(List<String>) onFiltersChanged) {
   Scaffold.of(context).openEndDrawer();
-  
+
   // Note: The drawer would be defined in the main scaffold as:
   // endDrawer: FilterPanel(
   //   workspace: workspace,

@@ -24,5 +24,7 @@ class ModelNode extends AstNode {
   void addElement(dynamic element) {}
   void addImpliedRelationship(dynamic relationship) {}
   @override
-  void accept(AstVisitor visitor) {}
+  void accept(AstVisitor visitor) {
+    visitor.visitModelNode(this);
+  }
 }

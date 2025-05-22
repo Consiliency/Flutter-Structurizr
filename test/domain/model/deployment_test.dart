@@ -1,5 +1,3 @@
-import 'package:flutter_structurizr/domain/model/element.dart';
-import 'package:flutter_structurizr/domain/model/model.dart';
 import 'package:flutter_structurizr/domain/model/deployment_node.dart';
 import 'package:flutter_structurizr/domain/model/container_instance.dart';
 import 'package:flutter_structurizr/domain/model/software_system_instance.dart';
@@ -16,7 +14,7 @@ void main() {
     const nodeEnvironment = 'Production';
 
     setUp(() {
-      deploymentNode = DeploymentNode(
+      deploymentNode = const DeploymentNode(
         id: nodeId,
         name: nodeName,
         description: nodeDescription,
@@ -64,7 +62,7 @@ void main() {
     });
 
     test('addChildNode() adds a child deployment node', () {
-      final childNode = DeploymentNode(
+      const childNode = DeploymentNode(
         id: 'child-node-1',
         name: 'EC2',
         environment: nodeEnvironment,
@@ -84,7 +82,7 @@ void main() {
     });
 
     test('addContainerInstance() adds a container instance', () {
-      final containerInstance = ContainerInstance(
+      const containerInstance = ContainerInstance(
         id: 'container-instance-1',
         containerId: 'container-1',
         parentId: nodeId,
@@ -105,7 +103,7 @@ void main() {
     });
 
     test('addSoftwareSystemInstance() adds a software system instance', () {
-      final systemInstance = SoftwareSystemInstance(
+      const systemInstance = SoftwareSystemInstance(
         id: 'system-instance-1',
         softwareSystemId: 'system-1',
         parentId: nodeId,
@@ -123,7 +121,7 @@ void main() {
     });
 
     test('addInfrastructureNode() adds an infrastructure node', () {
-      final infraNode = InfrastructureNode(
+      const infraNode = InfrastructureNode(
         id: 'infra-1',
         name: 'Load Balancer',
         technology: 'Amazon ELB',
@@ -139,14 +137,14 @@ void main() {
     });
 
     test('Nested child nodes are handled properly', () {
-      final childNode1 = DeploymentNode(
+      const childNode1 = DeploymentNode(
         id: 'child-1',
         name: 'VPC',
         environment: nodeEnvironment,
         parentId: nodeId,
       );
 
-      final childNode2 = DeploymentNode(
+      const childNode2 = DeploymentNode(
         id: 'child-2',
         name: 'Subnet',
         environment: nodeEnvironment,
@@ -180,7 +178,7 @@ void main() {
     const parentId = 'node-1';
 
     setUp(() {
-      infraNode = InfrastructureNode(
+      infraNode = const InfrastructureNode(
         id: nodeId,
         name: nodeName,
         description: nodeDescription,
@@ -246,7 +244,7 @@ void main() {
     const healthEndpoint = '/health';
 
     setUp(() {
-      containerInstance = ContainerInstance(
+      containerInstance = const ContainerInstance(
         id: instanceId,
         containerId: containerId,
         parentId: parentId,
@@ -316,7 +314,7 @@ void main() {
     const healthEndpoint = '/health';
 
     setUp(() {
-      systemInstance = SoftwareSystemInstance(
+      systemInstance = const SoftwareSystemInstance(
         id: instanceId,
         softwareSystemId: systemId,
         parentId: parentId,

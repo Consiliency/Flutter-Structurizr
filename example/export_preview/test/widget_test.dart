@@ -18,7 +18,7 @@ void main() {
     expect(find.text('Export Preview Example'), findsOneWidget);
     expect(find.text('Show Export Dialog'), findsOneWidget);
   });
-  
+
   testWidgets('Dialog shows export options', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const ExportPreviewExampleApp());
@@ -26,7 +26,7 @@ void main() {
     // Tap the button to show the dialog
     await tester.tap(find.text('Show Export Dialog'));
     await tester.pumpAndSettle();
-    
+
     // Verify the dialog appears
     expect(find.text('Export Diagram'), findsOneWidget);
     expect(find.text('Export Options'), findsOneWidget);

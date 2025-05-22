@@ -97,9 +97,11 @@ class WorkspaceMapper implements AstVisitor {
   /// This is the main entry point for the mapping process.
   Workspace? mapWorkspace(WorkspaceNode workspaceNode) {
     try {
+      print('DEBUG: [WorkspaceMapper] Starting mapWorkspace - first phase');
       // First phase: process the AST and build model elements
       workspaceNode.accept(this);
 
+      print('DEBUG: [WorkspaceMapper] First phase complete, starting relationship resolution');
       // Second phase: resolve relationships
       _resolveRelationships();
 
@@ -117,8 +119,15 @@ class WorkspaceMapper implements AstVisitor {
 
   /// Resolves relationships between elements.
   void _resolveRelationships() {
+    print('DEBUG: [WorkspaceMapper] _resolveRelationships called with ${_pendingRelationships.length} pending relationships');
+    for (int i = 0; i < _pendingRelationships.length; i++) {
+      final rel = _pendingRelationships[i];
+      print('DEBUG: [WorkspaceMapper] Pending relationship $i: ${rel.sourceId} -> ${rel.destinationId}');
+    }
+    
     // First process all relationships to create basic relationships
     for (final relationshipNode in _pendingRelationships) {
+      print('DEBUG: [WorkspaceMapper] Processing relationship: ${relationshipNode.sourceId} -> ${relationshipNode.destinationId}');
       _processRelationship(relationshipNode);
     }
 
@@ -457,7 +466,7 @@ class WorkspaceMapper implements AstVisitor {
         // Update the component in the parent
         final updatedContainer = parentContainer.copyWith(
           components: parentContainer.components
-              .map((c) => c.id == element.id ? element as Component : c)
+              .map((c) => c.id == element.id ? element : c)
               .toList(),
         );
 
@@ -1035,9 +1044,12 @@ class WorkspaceMapper implements AstVisitor {
     }
 
     // Process relationships at the model level
+    print('DEBUG: [WorkspaceMapper] visitModelNode - processing ${node.relationships.length} relationships');
     for (final relationship in node.relationships) {
+      print('DEBUG: [WorkspaceMapper] Adding relationship to pending: ${relationship.sourceId} -> ${relationship.destinationId}');
       _pendingRelationships.add(relationship);
     }
+    print('DEBUG: [WorkspaceMapper] Total pending relationships after visitModelNode: ${_pendingRelationships.length}');
   }
 
   @override
@@ -1336,6 +1348,14 @@ class WorkspaceMapper implements AstVisitor {
 
   @override
   void visitSystemContextViewNode(SystemContextViewNode node) {
+    print('DEBUG: [WorkspaceMapper] visitSystemContextViewNode - START');
+    print('DEBUG: [WorkspaceMapper] View key: ${node.key}');
+    print('DEBUG: [WorkspaceMapper] System ID: ${node.systemId}');
+    print('DEBUG: [WorkspaceMapper] Node includes count: ${node.includes.length}');
+    for (var inc in node.includes) {
+      print('DEBUG: [WorkspaceMapper] Include path: ${inc.path}');
+    }
+    
     // Resolve the system reference
     final softwareSystem = _resolveElementReference(
       node.systemId,
@@ -1350,6 +1370,8 @@ class WorkspaceMapper implements AstVisitor {
       );
       return;
     }
+    
+    print('DEBUG: [WorkspaceMapper] Found software system: ${softwareSystem.id}, name: ${softwareSystem.name}');
 
     // Create auto-layout if specified
     AutomaticLayout? automaticLayout;
@@ -1373,9 +1395,55 @@ class WorkspaceMapper implements AstVisitor {
 
     // Process include/exclude rules for the view
     final includes =
-        node.includes.map((include) => include.expression).toList();
+        node.includes.map((include) => include.path).toList();
     final excludes =
-        node.excludes.map((exclude) => exclude.expression).toList();
+        node.excludes.map((exclude) => exclude.path).toList();
+    
+    print('DEBUG: [WorkspaceMapper] SystemContextView includes: $includes');
+    print('DEBUG: [WorkspaceMapper] SystemContextView excludes: $excludes');
+
+    // Populate elements based on include/exclude rules
+    final elementViews = <ElementView>[];
+    final relationshipViews = <RelationshipView>[];
+    
+    if (includes.contains('*')) {
+      // Include all elements in scope
+      // Add the software system itself
+      elementViews.add(ElementView(id: softwareSystem.id));
+      print('DEBUG: [WorkspaceMapper] Added software system to view: ${softwareSystem.id}');
+      
+      // Add all people in the model
+      for (final person in _currentModel.people) {
+        elementViews.add(ElementView(id: person.id));
+        print('DEBUG: [WorkspaceMapper] Added person to view: ${person.id}');
+      }
+      
+      // Add all other software systems
+      for (final otherSystem in _currentModel.softwareSystems) {
+        if (otherSystem.id != softwareSystem.id) {
+          elementViews.add(ElementView(id: otherSystem.id));
+          print('DEBUG: [WorkspaceMapper] Added other system to view: ${otherSystem.id}');
+        }
+      }
+      
+      print('DEBUG: [WorkspaceMapper] Total elements in view: ${elementViews.length}');
+      
+      // Add all relationships between these elements
+      for (final person in _currentModel.people) {
+        for (final rel in person.relationships) {
+          relationshipViews.add(RelationshipView(id: rel.id));
+          print('DEBUG: [WorkspaceMapper] Added relationship to view: ${rel.id}');
+        }
+      }
+      for (final system in _currentModel.softwareSystems) {
+        for (final rel in system.relationships) {
+          relationshipViews.add(RelationshipView(id: rel.id));
+          print('DEBUG: [WorkspaceMapper] Added relationship to view: ${rel.id}');
+        }
+      }
+      
+      print('DEBUG: [WorkspaceMapper] Total relationships in view: ${relationshipViews.length}');
+    }
 
     // Create a system context view
     final view = SystemContextView(
@@ -1383,13 +1451,15 @@ class WorkspaceMapper implements AstVisitor {
       softwareSystemId: softwareSystem.id,
       title: node.title ?? '${softwareSystem.name} - System Context',
       description: node.description,
-      elements: [], // Elements will be populated based on include/exclude rules
-      relationships: [], // Relationships will be computed
+      elements: elementViews,
+      relationships: relationshipViews,
       automaticLayout: automaticLayout,
       animations: animationSteps,
       includeTags: includes,
       excludeTags: excludes,
     );
+
+    print('DEBUG: [WorkspaceMapper] Created SystemContextView with ${view.elements.length} elements and ${view.relationships.length} relationships');
 
     // Add to views collection
     _currentViews = _currentViews.addSystemContextView(view);

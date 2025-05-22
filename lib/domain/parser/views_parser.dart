@@ -244,9 +244,9 @@ class ViewsParser {
       return _parseSystemLandscapeView(startPosition);
     } else if (_check(TokenType.systemContext)) {
       return _parseSystemContextView(startPosition);
-    } else if (_check(TokenType.containerView)) {
+    } else if (_check(TokenType.container)) {
       return _parseContainerView(startPosition);
-    } else if (_check(TokenType.componentView)) {
+    } else if (_check(TokenType.component)) {
       return _parseComponentView(startPosition);
     } else if (_check(TokenType.dynamicView)) {
       return _parseDynamicView(startPosition);
@@ -783,8 +783,11 @@ class ViewsParser {
 
     // Parse view contents until closing brace
     while (!_check(TokenType.rightBrace) && !_isAtEnd()) {
+      print('DEBUG: [ViewsParser] Parsing view body token: ${_peek().type} "${_peek().lexeme}"');
       if (_check(TokenType.include)) {
+        print('DEBUG: [ViewsParser] Found include token, parsing include directive');
         IncludeNode includeNode = _parseInclude();
+        print('DEBUG: [ViewsParser] Parsed include: "${includeNode.path}"');
         includes.add(includeNode);
       } else if (_check(TokenType.exclude)) {
         ExcludeNode excludeNode = _parseExclude();

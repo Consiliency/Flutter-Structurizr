@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- iCloud Capabilities -->
+	<key>com.apple.developer.icloud-container-identifiers</key>
+	<array>
+		<string>iCloud.com.structurizr.flutter</string>
+	</array>
+	
+	<key>com.apple.developer.icloud-services</key>
+	<array>
+		<string>CloudDocuments</string>
+		<string>CloudKit</string>
+	</array>
+	
+	<key>com.apple.developer.ubiquity-container-identifiers</key>
+	<array>
+		<string>iCloud.com.structurizr.flutter</string>
+	</array>
+	
+	<!-- Document Provider -->
+	<key>com.apple.developer.document-browser</key>
+	<true/>
+	
+	<!-- File Provider -->
+	<key>com.apple.developer.fileprovider.testing-mode</key>
+	<true/>
+	
+	<!-- App Groups for Share Extension -->
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.com.structurizr.flutter.shared</string>
+	</array>
+	
+	<!-- Network Client -->
+	<key>com.apple.developer.networking.networkextension</key>
+	<array>
+		<string>app-proxy-provider</string>
+	</array>
+	
+	<!-- Background Capabilities -->
+	<key>com.apple.developer.background-processing</key>
+	<array>
+		<string>com.structurizr.flutter.sync</string>
+		<string>com.structurizr.flutter.backup</string>
+	</array>
+	
+	<!-- Inter-App Audio -->
+	<key>inter-app-audio</key>
+	<false/>
+	
+	<!-- Associated Domains (for Universal Links) -->
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>activitycontinuation:structurizr.com</string>
+		<string>applinks:structurizr.com</string>
+	</array>
+	
+	<!-- Siri Integration -->
+	<key>com.apple.developer.siri</key>
+	<true/>
+	
+	<!-- Shortcuts -->
+	<key>com.apple.developer.usernotifications.time-sensitive</key>
+	<true/>
+	
+	<!-- HealthKit (if needed for performance monitoring) -->
+	<key>com.apple.developer.healthkit</key>
+	<false/>
+	
+	<!-- Game Center (if adding collaborative features) -->
+	<key>com.apple.developer.game-center</key>
+	<false/>
+	
+	<!-- Push Notifications -->
+	<key>aps-environment</key>
+	<string>development</string>
+	
+	<!-- CarPlay (if supporting CarPlay in future) -->
+	<key>com.apple.developer.carplay-audio</key>
+	<false/>
+	
+	<!-- Wireless Accessory Configuration -->
+	<key>com.apple.external-accessory.wireless-configuration</key>
+	<false/>
+	
+	<!-- Network Extensions -->
+	<key>com.apple.developer.networking.wifi-info</key>
+	<false/>
+	
+	<!-- Personal VPN -->
+	<key>com.apple.developer.networking.vpn.api</key>
+	<false/>
+	
+	<!-- App Sandbox (for macOS Catalyst) -->
+	<key>com.apple.security.app-sandbox</key>
+	<false/>
+	
+	<!-- File System Access for macOS Catalyst -->
+	<key>com.apple.security.files.user-selected.read-write</key>
+	<true/>
+	
+	<!-- Network Access for macOS Catalyst -->
+	<key>com.apple.security.network.client</key>
+	<true/>
+	
+	<!-- Camera Access (if adding diagram scanning) -->
+	<key>com.apple.security.device.camera</key>
+	<false/>
+	
+	<!-- Microphone Access (if adding voice notes) -->
+	<key>com.apple.security.device.microphone</key>
+	<false/>
+</dict>
+</plist>

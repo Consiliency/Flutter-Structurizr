@@ -3,7 +3,7 @@ import 'package:flutter_structurizr/domain/parser/parser.dart';
 
 /// This test file focuses on the integration testing of the ModelParser methods
 /// as defined in Table 7 of the refactored_method_relationship.md file.
-/// 
+///
 /// The methods being tested are:
 /// - ModelParser.parse(List<Token>): ModelNode
 /// - ModelParser._parseGroup(List<Token>): GroupNode
@@ -48,29 +48,31 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(dsl);
       final workspace = parser.parse();
-      
+
       expect(workspace, isA<WorkspaceNode>());
       expect(workspace.name, equals('Test Workspace'));
       expect(workspace.model, isA<ModelNode>());
-      
+
       // Enterprise checks
       // Actual assertions would depend on your implementation details
       // This is just a scaffold to show what should be tested
-      
+
       // Group checks
       // Add assertions based on your implementation
-      
+
       // Element checks
       // Add assertions based on your implementation
-      
+
       // Relationship checks
       // Add assertions based on your implementation
     });
-    
-    test('should parse model with nested elements and hierarchical relationships', () {
+
+    test(
+        'should parse model with nested elements and hierarchical relationships',
+        () {
       const dsl = '''
         workspace "Nested Test" {
           model {
@@ -91,23 +93,23 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(dsl);
       final workspace = parser.parse();
-      
+
       expect(workspace, isA<WorkspaceNode>());
       expect(workspace.model, isA<ModelNode>());
-      
+
       // Verify the elements were created correctly
       // Add assertions based on your implementation
-      
+
       // Verify the hierarchy was maintained
       // Add assertions based on your implementation
-      
+
       // Verify relationships were created correctly
       // Add assertions based on your implementation
     });
-    
+
     test('should parse model with complex enterprise structure', () {
       const dsl = '''
         workspace "Enterprise Test" {
@@ -135,23 +137,23 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(dsl);
       final workspace = parser.parse();
-      
+
       expect(workspace, isA<WorkspaceNode>());
       expect(workspace.model, isA<ModelNode>());
-      
+
       // Verify enterprise structure
       // Add assertions based on your implementation
-      
+
       // Verify groups within enterprise
       // Add assertions based on your implementation
-      
+
       // Verify relationships
       // Add assertions based on your implementation
     });
-    
+
     test('should parse group with elements and internal relationships', () {
       const dsl = '''
         workspace "Group Test" {
@@ -167,20 +169,20 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(dsl);
       final workspace = parser.parse();
-      
+
       expect(workspace, isA<WorkspaceNode>());
       expect(workspace.model, isA<ModelNode>());
-      
+
       // Verify group structure
       // Add assertions based on your implementation
-      
+
       // Verify relationships within group
       // Add assertions based on your implementation
     });
-    
+
     test('should parse implied relationships between elements', () {
       const dsl = '''
         workspace "Relationship Test" {
@@ -194,17 +196,17 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(dsl);
       final workspace = parser.parse();
-      
+
       expect(workspace, isA<WorkspaceNode>());
       expect(workspace.model, isA<ModelNode>());
-      
+
       // Verify relationships
       // Add assertions based on your implementation
     });
-    
+
     test('should parse relationships with additional properties', () {
       const dsl = '''
         workspace "Relationship Properties Test" {
@@ -223,17 +225,17 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(dsl);
       final workspace = parser.parse();
-      
+
       expect(workspace, isA<WorkspaceNode>());
       expect(workspace.model, isA<ModelNode>());
-      
+
       // Verify relationship properties
       // Add assertions based on your implementation
     });
-    
+
     test('should handle model with explicit identifiers', () {
       const dsl = '''
         workspace {
@@ -256,20 +258,20 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(dsl);
       final workspace = parser.parse();
-      
+
       expect(workspace, isA<WorkspaceNode>());
       expect(workspace.model, isA<ModelNode>());
-      
+
       // Verify identifiers were set correctly
       // Add assertions based on your implementation
-      
+
       // Verify relationships using identifiers
       // Add assertions based on your implementation
     });
-    
+
     test('should handle model with complex nesting', () {
       const dsl = '''
         workspace {
@@ -299,17 +301,17 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(dsl);
       final workspace = parser.parse();
-      
+
       expect(workspace, isA<WorkspaceNode>());
       expect(workspace.model, isA<ModelNode>());
-      
+
       // Verify complex nesting structure
       // Add assertions based on your implementation
     });
-    
+
     test('should report errors for invalid model syntax', () {
       const invalidDsl = '''
         workspace {
@@ -329,9 +331,9 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(invalidDsl);
-      
+
       // Depending on your error handling, either check for thrown exception
       // or verify errors were collected in the ErrorReporter
       expect(() => parser.parse(), throwsException);
@@ -339,7 +341,7 @@ void main() {
       // final workspace = parser.parse();
       // expect(parser.errorReporter.errors.isNotEmpty, isTrue);
     });
-    
+
     test('should handle empty structures correctly', () {
       const dsl = '''
         workspace {
@@ -350,13 +352,13 @@ void main() {
           }
         }
       ''';
-      
+
       final parser = Parser(dsl);
       final workspace = parser.parse();
-      
+
       expect(workspace, isA<WorkspaceNode>());
       expect(workspace.model, isA<ModelNode>());
-      
+
       // Verify empty structures were created correctly
       // Add assertions based on your implementation
     });

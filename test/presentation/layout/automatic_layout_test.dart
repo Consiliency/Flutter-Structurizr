@@ -1,4 +1,5 @@
-import 'package:flutter_structurizr/presentation/layout/automatic_layout.dart' as layout;
+import 'package:flutter_structurizr/presentation/layout/automatic_layout.dart'
+    as layout;
 import 'package:flutter_structurizr/presentation/layout/layout_strategy.dart';
 import 'package:flutter_structurizr/domain/view/view.dart' hide AutomaticLayout;
 import 'package:flutter/material.dart' hide Element, Container, View;
@@ -41,7 +42,8 @@ void main() {
       expect(autoLayout.description, contains('based on diagram content'));
     });
 
-    test('should select force-directed layout for diagrams with boundaries', () {
+    test('should select force-directed layout for diagrams with boundaries',
+        () {
       // Arrange
       final autoLayout = LayoutAutomatic(debug: true);
 
@@ -49,7 +51,8 @@ void main() {
       // the ElementView class in domain/view/view.dart or use a different approach
       final elementViews = [
         const ElementView(id: 'parent1', x: 100, y: 100), // Parent element
-        const ElementView(id: 'child1', parentId: 'parent1'), // Child element with parent
+        const ElementView(
+            id: 'child1', parentId: 'parent1'), // Child element with parent
         const ElementView(id: 'element1'), // Another element
         const ElementView(id: 'element2'), // Another element
         const ElementView(id: 'element3'), // Another element

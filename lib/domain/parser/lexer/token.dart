@@ -35,6 +35,7 @@ enum TokenType {
 
   // Keywords - Workspace level
   workspace,
+  extends_, // extends keyword (using underscore to avoid Dart keyword conflict)
   model,
   views,
   styles,
@@ -151,6 +152,7 @@ enum TokenType {
 final Map<String, TokenType> keywords = {
   // Workspace level
   'workspace': TokenType.workspace,
+  'extends': TokenType.extends_,
   'model': TokenType.model,
   'views': TokenType.views,
   'styles': TokenType.styles,
@@ -193,8 +195,9 @@ final Map<String, TokenType> keywords = {
   // Views
   'systemLandscape': TokenType.systemLandscape,
   'systemContext': TokenType.systemContext,
-  'container': TokenType.containerView,
-  'component': TokenType.componentView,
+  'systemcontext': TokenType.systemContext, // Lowercase variant
+  'container': TokenType.container,
+  'component': TokenType.component,
   'dynamic': TokenType.dynamicView,
   'deployment': TokenType.deploymentView,
   'filtered': TokenType.filteredView,

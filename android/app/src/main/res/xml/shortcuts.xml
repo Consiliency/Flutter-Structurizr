@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- New Workspace shortcut -->
+    <shortcut
+        android:shortcutId="new_workspace"
+        android:enabled="true"
+        android:icon="@drawable/ic_add"
+        android:shortcutShortLabel="@string/shortcut_new_workspace_short"
+        android:shortcutLongLabel="@string/shortcut_new_workspace_long"
+        android:shortcutDisabledMessage="@string/shortcut_disabled_message">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.structurizr.flutter"
+            android:targetClass="com.structurizr.flutter.MainActivity">
+            <extra android:name="action" android:value="new_workspace" />
+        </intent>
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+    
+    <!-- Open Recent shortcut -->
+    <shortcut
+        android:shortcutId="open_recent"
+        android:enabled="true"
+        android:icon="@drawable/ic_history"
+        android:shortcutShortLabel="@string/shortcut_recent_short"
+        android:shortcutLongLabel="@string/shortcut_recent_long"
+        android:shortcutDisabledMessage="@string/shortcut_disabled_message">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.structurizr.flutter"
+            android:targetClass="com.structurizr.flutter.MainActivity">
+            <extra android:name="action" android:value="open_recent" />
+        </intent>
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+    
+    <!-- Quick Diagram shortcut -->
+    <shortcut
+        android:shortcutId="quick_diagram"
+        android:enabled="true"
+        android:icon="@drawable/ic_diagram"
+        android:shortcutShortLabel="@string/shortcut_diagram_short"
+        android:shortcutLongLabel="@string/shortcut_diagram_long"
+        android:shortcutDisabledMessage="@string/shortcut_disabled_message">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.structurizr.flutter"
+            android:targetClass="com.structurizr.flutter.MainActivity">
+            <extra android:name="action" android:value="quick_diagram" />
+        </intent>
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+    
+    <!-- Import File shortcut -->
+    <shortcut
+        android:shortcutId="import_file"
+        android:enabled="true"
+        android:icon="@drawable/ic_import"
+        android:shortcutShortLabel="@string/shortcut_import_short"
+        android:shortcutLongLabel="@string/shortcut_import_long"
+        android:shortcutDisabledMessage="@string/shortcut_disabled_message">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.structurizr.flutter"
+            android:targetClass="com.structurizr.flutter.MainActivity">
+            <extra android:name="action" android:value="import_file" />
+        </intent>
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+    
+</shortcuts>
